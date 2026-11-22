@@ -3,6 +3,7 @@ import {
     Pill,
     Plus,
     Search,
+    Filter,
     Pencil,
     Trash2,
     Package,
@@ -1124,60 +1125,129 @@ function Medicine() {
                 </section>
 
 
-                <section className="overflow-hidden rounded-xl border border-[#e8dfd4] bg-white shadow-sm">
+                <section className="overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white shadow-sm dark:border-[#382f25] dark:bg-[#251f19]">
 
-                    <div className="flex flex-col gap-3 border-b border-[#e8dfd4] px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+                    {/* Section Top Header & Prominent Controls Bar */}
+                    <div className="flex flex-col gap-3.5 border-b border-[#e8dfd4] p-4 sm:p-5 dark:border-[#382f25]">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f3ebdf] text-[#8a6f50] dark:bg-[#342a22] dark:text-[#d4b996]">
+                                    <Pill size={20} />
+                                </div>
 
-                        <div className="flex items-center gap-2.5">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f3ebdf] text-[#8a6f50]">
-                                <Pill size={16} />
+                                <div>
+                                    <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-[#f4ecdf]">
+                                        Medicine List &amp; Formulary
+                                    </h2>
+
+                                    <p className="text-xs text-[#887d70] dark:text-stone-400">
+                                        Showing {pagination.total || medicines.length} registered clinic medications
+                                    </p>
+                                </div>
                             </div>
 
-                            <div>
-                                <h2 className="text-sm font-bold">
-                                    Medicine List
-                                </h2>
-
-                                <p className="text-[10px] text-[#887d70]">
-                                    Current medicine inventory
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="relative w-full sm:w-80">
-                            <Search
-                                size={15}
-                                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#a99d8f]"
-                            />
-
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={(event) => {
-                                    const val = event.target.value;
-                                    setSearch(val);
-                                    setSelectedCategory(val ? "" : "All");
-                                }}
-                                placeholder="Search by name, treatment, unit, or symptom..."
-                                className="w-full rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] py-2 pl-9 pr-8 text-xs outline-none transition focus:border-[#8a6f50] focus:bg-white focus:ring-4 focus:ring-[#8a6f50]/10"
-                            />
-
-                            {search && (
+                            {/* Active filter count / quick reset indicator */}
+                            {(search || statusFilter !== "all" || (selectedCategory && selectedCategory !== "All")) && (
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setSearch("");
                                         setSelectedCategory("All");
-                                        loadMedicines(1, "");
+                                        setStatusFilter("all");
+                                        loadMedicines(1, "", "all");
                                     }}
-                                    aria-label="Clear search"
-                                    className="absolute right-2.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-[#a99d8f] hover:bg-[#f6f1e9] hover:text-[#3c332a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8a6f50]"
+                                    className="inline-flex items-center gap-1.5 rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] px-3 py-1.5 text-xs font-semibold text-[#70091f] hover:bg-[#fcebe7] transition dark:border-[#382f25] dark:bg-[#201a15] dark:text-[#f8a598]"
                                 >
-                                    <X size={13} />
+                                    <RotateCcw size={13} />
+                                    <span>Reset All Filters</span>
                                 </button>
                             )}
                         </div>
 
+                        {/* Bigger Search Bar and Integrated Filter Dropdowns */}
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                            {/* Prominent, Expanded Search Bar */}
+                            <div className="relative flex-1">
+                                <Search
+                                    size={18}
+                                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8a6f50] dark:text-[#d4b996]"
+                                />
+
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={(event) => {
+                                        const val = event.target.value;
+                                        setSearch(val);
+                                        setSelectedCategory(val ? "" : "All");
+                                    }}
+                                    placeholder="Search by name, treatment, unit, or symptom..."
+                                    className="w-full rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] py-3 pl-10 pr-10 text-sm font-medium text-stone-900 outline-none transition placeholder:text-[#a99d8f] focus:border-[#70091f] focus:bg-white focus:ring-4 focus:ring-[#70091f]/10 dark:border-[#4e4234] dark:bg-[#201a15] dark:text-[#f4ecdf] dark:placeholder:text-stone-500"
+                                />
+
+                                {search && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSearch("");
+                                            setSelectedCategory("All");
+                                            loadMedicines(1, "");
+                                        }}
+                                        aria-label="Clear search"
+                                        className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-[#a99d8f] hover:bg-[#f6f1e9] hover:text-[#3c332a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8a6f50]"
+                                    >
+                                        <X size={15} />
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Filter Dropdowns Controls */}
+                            <div className="flex flex-wrap items-center gap-2">
+                                <div className="relative flex-1 sm:w-48 sm:flex-initial">
+                                    <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8a6f50] dark:text-[#d4b996]">
+                                        <Filter size={15} />
+                                    </div>
+                                    <select
+                                        value={selectedCategory || "All"}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            const query = val === "All" ? "" : val;
+                                            setSelectedCategory(val);
+                                            setSearch(query);
+                                            loadMedicines(1, query, statusFilter);
+                                        }}
+                                        aria-label="Filter by Category"
+                                        className="w-full rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] py-3 pl-8.5 pr-8 text-sm font-medium text-stone-800 outline-none transition focus:border-[#70091f] focus:bg-white focus:ring-4 focus:ring-[#70091f]/10 dark:border-[#4e4234] dark:bg-[#201a15] dark:text-[#f4ecdf]"
+                                    >
+                                        <option value="All">All Categories</option>
+                                        <option value="First Aid">First Aid</option>
+                                        <option value="Medication">Medication</option>
+                                        <option value="Wound Care">Wound Care</option>
+                                        <option value="Cold Compress">Cold Compress</option>
+                                        <option value="Hot Compress">Hot Compress</option>
+                                    </select>
+                                </div>
+
+                                <div className="relative flex-1 sm:w-52 sm:flex-initial">
+                                    <select
+                                        value={statusFilter}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setStatusFilter(val);
+                                            loadMedicines(1, search, val);
+                                        }}
+                                        aria-label="Filter by Status"
+                                        className="w-full rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-3 text-sm font-medium text-stone-800 outline-none transition focus:border-[#70091f] focus:bg-white focus:ring-4 focus:ring-[#70091f]/10 dark:border-[#4e4234] dark:bg-[#201a15] dark:text-[#f4ecdf]"
+                                    >
+                                        <option value="all">All Statuses</option>
+                                        <option value="low_stock">Low Stock ({summary.low_stock_count || 0})</option>
+                                        <option value="out_of_stock">Out of Stock ({summary.out_of_stock_count || 0})</option>
+                                        <option value="expired">Expired ({summary.expired_count || 0})</option>
+                                        <option value="expiring_soon">Expiring Soon ({summary.expiring_soon_count || 0})</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e8dfd4] bg-[#fcfaf6] px-4 py-2.5">

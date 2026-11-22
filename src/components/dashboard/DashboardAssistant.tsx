@@ -2,20 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import { isAxiosError } from "axios";
 import {
     ArrowLeft,
+    Bot,
     Clock,
     History,
-    MessageCircle,
     MessageSquare,
     Plus,
     RotateCcw,
     Send,
+    Sparkles,
     Trash2,
     X,
 } from "lucide-react";
 import api from "../../services/api";
 import { addClinicNotification } from "../../services/notifications";
-
-const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8a6f50]/40";
 
 const AI_QUICK_REPLIES = [
     "Add a new patient",
@@ -26,7 +25,7 @@ const AI_QUICK_REPLIES = [
 ];
 
 const AI_GREETING =
-    "Hello! I can help with clinic workflows and aggregate dashboard counts, plus general health education. I can’t view individual patient records or provide a diagnosis. What would you like help with?";
+    "Hello! I can help with clinic workflows and aggregate dashboard counts, plus general health education. I can't view individual patient records or provide a diagnosis. What would you like help with?";
 
 export type ChatMessage = {
     id: string;
@@ -335,7 +334,6 @@ export function DashboardAssistant() {
     };
 
     const startNewChat = () => {
-        // If current conversation has no user messages yet, just stay on it
         const hasUserMessage = activeSession.messages.some((m) => m.role === "user");
         if (!hasUserMessage) {
             setViewMode("chat");
@@ -391,30 +389,31 @@ export function DashboardAssistant() {
     };
 
     return (
-        <div className="fixed bottom-20 right-5 sm:bottom-20 sm:right-6 z-50">
+        <aside aria-label="TCC Clinic AI Assistant" className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end pointer-events-auto">
+            {/* ── EXPANDED CHAT WINDOW ──────────────────────────────────────── */}
             {open && (
-                <div className="relative mb-3 flex h-[480px] max-h-[calc(100vh-160px)] w-[360px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white shadow-2xl">
-                    {/* Delete Confirmation Modal */}
+                <div className="relative mb-4 flex h-[580px] max-h-[85vh] w-[92vw] sm:w-[410px] flex-col overflow-hidden rounded-3xl border border-[#e5a93b]/40 bg-[#160207] text-white shadow-2xl shadow-black/80 animate-in fade-in slide-in-from-bottom-5 duration-300">
+                    {/* Delete Confirmation Dialog */}
                     {deleteConfirm && (
                         <div
-                            className="absolute inset-0 z-30 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]"
+                            className="absolute inset-0 z-30 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs"
                             role="alertdialog"
                             aria-modal="true"
                             aria-labelledby="confirm-delete-title"
                         >
-                            <div className="w-full max-w-[300px] rounded-2xl border border-[#e8dfd4] bg-white p-4 shadow-xl">
+                            <div className="w-full max-w-[320px] rounded-2xl border border-[#e5a93b]/30 bg-[#20040b] p-5 shadow-2xl">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-950/80 border border-red-500/40 text-red-400">
                                         <Trash2 size={16} />
                                     </div>
-                                    <h3 id="confirm-delete-title" className="text-sm font-bold text-[#302820]">
+                                    <h3 id="confirm-delete-title" className="text-sm font-bold text-white">
                                         {deleteConfirm.type === "all"
                                             ? "Clear All History?"
                                             : "Delete Conversation?"}
                                     </h3>
                                 </div>
 
-                                <p className="mt-2 text-xs leading-relaxed text-[#766959]">
+                                <p className="mt-2.5 text-xs leading-relaxed text-[#fcebe7]/75">
                                     {deleteConfirm.type === "all"
                                         ? `Are you sure you want to delete all ${sessions.length} conversations? All chat history will be permanently erased.`
                                         : deleteConfirm.type === "single"
@@ -422,11 +421,11 @@ export function DashboardAssistant() {
                                         : "Are you sure you want to delete this conversation? Your chat messages will be permanently removed."}
                                 </p>
 
-                                <div className="mt-4 flex items-center justify-end gap-2">
+                                <div className="mt-5 flex items-center justify-end gap-2.5">
                                     <button
                                         type="button"
                                         onClick={() => setDeleteConfirm(null)}
-                                        className="rounded-lg border border-[#e8dfd4] bg-white px-3 py-1.5 text-xs font-semibold text-[#5a4d3f] transition hover:bg-[#fcfaf6]"
+                                        className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/80 transition hover:bg-white/10 cursor-pointer"
                                     >
                                         Cancel
                                     </button>
@@ -441,7 +440,7 @@ export function DashboardAssistant() {
                                                 handleDeleteActive();
                                             }
                                         }}
-                                        className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700"
+                                        className="rounded-xl bg-gradient-to-r from-red-700 to-red-800 px-3.5 py-1.5 text-xs font-bold text-white shadow-md transition hover:from-red-600 hover:to-red-700 cursor-pointer"
                                     >
                                         {deleteConfirm.type === "all" ? "Clear All" : "Delete"}
                                     </button>
@@ -451,34 +450,43 @@ export function DashboardAssistant() {
                     )}
 
                     {/* Header */}
-                    <div className="flex items-center justify-between bg-[#8a6f50] px-4 py-3.5 text-white">
+                    <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-[#2c040e] via-[#200309] to-[#160207] border-b border-[#70091f]/50 shrink-0">
                         {viewMode === "history" ? (
                             <div className="flex items-center gap-2">
                                 <button
                                     type="button"
                                     onClick={() => setViewMode("chat")}
-                                    className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10"
+                                    className="flex h-8 w-8 items-center justify-center rounded-xl text-white/70 hover:bg-white/10 hover:text-white cursor-pointer transition-colors"
                                     aria-label="Back to chat"
                                     title="Back to chat"
                                 >
                                     <ArrowLeft size={18} />
                                 </button>
                                 <div>
-                                    <p className="text-sm font-bold">Chat History</p>
-                                    <p className="text-[11px] text-white/70">
+                                    <p className="text-sm font-bold text-white">Chat History</p>
+                                    <p className="text-[11px] text-[#fcebe7]/60">
                                         {sessions.length} conversation{sessions.length === 1 ? "" : "s"}
                                     </p>
                                 </div>
                             </div>
                         ) : (
                             <div className="flex items-center gap-3">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
-                                    <MessageCircle size={19} />
+                                <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#70091f] to-[#450512] border border-[#e5a93b]/40 shadow-md">
+                                    <Bot size={20} className="text-[#e5a93b]" />
+                                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-[#160207]" />
                                 </div>
-                                <div className="min-w-0">
-                                    <p className="text-sm font-bold">TCC AI</p>
-                                    <p className="truncate text-[11px] text-white/70">
-                                        {activeSession.title || "AI Clinic Assistant"}
+                                <div className="text-left">
+                                    <div className="flex items-center gap-1.5">
+                                        <h2 className="text-sm font-bold text-white tracking-tight">
+                                            TCC Clinic Assistant
+                                        </h2>
+                                        <span className="rounded-full bg-[#e5a93b]/20 px-2 py-0.5 text-[9px] font-black uppercase text-[#e5a93b] tracking-wider border border-[#e5a93b]/30">
+                                            AI
+                                        </span>
+                                    </div>
+                                    <p className="text-[11px] text-[#fcebe7]/70 flex items-center gap-1">
+                                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                        Active Duty · Clinic Intelligence
                                     </p>
                                 </div>
                             </div>
@@ -487,14 +495,18 @@ export function DashboardAssistant() {
                         <div className="flex items-center gap-1">
                             {viewMode === "chat" ? (
                                 <>
-                                    {activeSession.messages.some((m) => m.role === "user") && (
+                                    {messages.some((m) => m.role === "user") && (
                                         <button
                                             type="button"
-                                            onClick={() => setDeleteConfirm({ type: "active" })}
-                                            disabled={sending}
-                                            className="flex h-8 w-8 items-center justify-center rounded-full text-white/80 hover:bg-white/10 hover:text-white disabled:opacity-50"
-                                            aria-label="Delete this conversation"
-                                            title="Delete this conversation"
+                                            onClick={() =>
+                                                setDeleteConfirm({
+                                                    type: "active",
+                                                    title: activeSession.title || "Current Conversation",
+                                                })
+                                            }
+                                            className="flex h-8 w-8 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 hover:text-red-300 transition-colors cursor-pointer"
+                                            aria-label="Delete current chat"
+                                            title="Delete current chat"
                                         >
                                             <Trash2 size={16} />
                                         </button>
@@ -503,7 +515,7 @@ export function DashboardAssistant() {
                                         type="button"
                                         onClick={startNewChat}
                                         disabled={sending}
-                                        className="flex h-8 w-8 items-center justify-center rounded-full text-white/80 hover:bg-white/10 hover:text-white disabled:opacity-50"
+                                        className="flex h-8 w-8 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-50 transition-colors cursor-pointer"
                                         aria-label="New chat"
                                         title="New chat"
                                     >
@@ -512,7 +524,7 @@ export function DashboardAssistant() {
                                     <button
                                         type="button"
                                         onClick={() => setViewMode("history")}
-                                        className="flex h-8 w-8 items-center justify-center rounded-full text-white/80 hover:bg-white/10 hover:text-white"
+                                        className="flex h-8 w-8 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 hover:text-[#e5a93b] transition-colors cursor-pointer"
                                         aria-label="View history"
                                         title="Chat history"
                                     >
@@ -523,7 +535,7 @@ export function DashboardAssistant() {
                                 <button
                                     type="button"
                                     onClick={startNewChat}
-                                    className="flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold hover:bg-white/30"
+                                    className="flex items-center gap-1.5 rounded-full bg-[#70091f] border border-[#e5a93b]/40 px-3 py-1 text-xs font-semibold text-white hover:bg-[#8b1505] transition-colors cursor-pointer"
                                     title="Start a new chat"
                                 >
                                     <Plus size={14} /> New
@@ -533,8 +545,9 @@ export function DashboardAssistant() {
                             <button
                                 type="button"
                                 onClick={() => setOpen(false)}
-                                className="flex h-8 w-8 items-center justify-center rounded-full text-white/80 hover:bg-white/10 hover:text-white"
+                                className="flex h-8 w-8 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
                                 aria-label="Close AI chatbot"
+                                title="Close"
                             >
                                 <X size={18} />
                             </button>
@@ -543,8 +556,8 @@ export function DashboardAssistant() {
 
                     {/* View: History List */}
                     {viewMode === "history" ? (
-                        <div className="flex flex-1 flex-col overflow-hidden bg-[#fcfaf6]">
-                            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                        <div className="flex flex-1 flex-col overflow-hidden bg-[#160207]">
+                            <div className="flex-1 overflow-y-auto p-3.5 space-y-2">
                                 {sessions.map((session) => {
                                     const isCurrent = session.id === activeSession.id;
                                     const messageCount = session.messages.filter(
@@ -558,27 +571,27 @@ export function DashboardAssistant() {
                                                 setActiveSessionId(session.id);
                                                 setViewMode("chat");
                                             }}
-                                            className={`group flex cursor-pointer items-start justify-between gap-3 rounded-xl border p-3 transition ${
+                                            className={`group flex cursor-pointer items-start justify-between gap-3 rounded-2xl border p-3.5 transition-all ${
                                                 isCurrent
-                                                    ? "border-[#8a6f50] bg-white shadow-sm ring-1 ring-[#8a6f50]/20"
-                                                    : "border-[#e8dfd4] bg-white/80 hover:border-[#8a6f50]/50 hover:bg-white"
+                                                    ? "border-[#e5a93b]/60 bg-[#25040e] shadow-md ring-1 ring-[#e5a93b]/30"
+                                                    : "border-[#70091f]/40 bg-[#1c0309] hover:border-[#e5a93b]/40 hover:bg-[#25040e]"
                                             }`}
                                         >
                                             <div className="flex min-w-0 flex-1 items-start gap-2.5">
                                                 <div
-                                                    className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                                                    className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${
                                                         isCurrent
-                                                            ? "bg-[#8a6f50] text-white"
-                                                            : "bg-[#f3ebdf] text-[#8a6f50]"
+                                                            ? "bg-[#70091f] text-[#e5a93b]"
+                                                            : "bg-white/5 text-[#fcebe7]/60"
                                                     }`}
                                                 >
                                                     <MessageSquare size={14} />
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="truncate text-xs font-semibold text-[#302820]">
+                                                    <p className="truncate text-xs font-semibold text-white">
                                                         {session.title || "Conversation"}
                                                     </p>
-                                                    <div className="mt-1 flex items-center gap-2 text-[10px] text-[#a99d8f]">
+                                                    <div className="mt-1 flex items-center gap-2 text-[10px] text-[#fcebe7]/50">
                                                         <span className="flex items-center gap-1">
                                                             <Clock size={10} />
                                                             {formatSessionTime(session.updatedAt)}
@@ -602,7 +615,7 @@ export function DashboardAssistant() {
                                                         title: session.title || "Conversation",
                                                     });
                                                 }}
-                                                className="shrink-0 p-1 text-[#a99d8f] opacity-60 transition hover:text-red-600 group-hover:opacity-100"
+                                                className="shrink-0 p-1.5 text-[#fcebe7]/40 opacity-70 transition hover:text-red-400 group-hover:opacity-100 cursor-pointer"
                                                 title="Delete chat"
                                                 aria-label="Delete chat"
                                             >
@@ -614,11 +627,11 @@ export function DashboardAssistant() {
                             </div>
 
                             {/* Clear All Footer */}
-                            <div className="border-t border-[#e8dfd4] bg-white p-3">
+                            <div className="border-t border-[#70091f]/40 bg-[#120105] p-3">
                                 <button
                                     type="button"
                                     onClick={() => setDeleteConfirm({ type: "all" })}
-                                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-50 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100"
+                                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-red-500/30 bg-red-950/40 py-2.5 text-xs font-semibold text-red-300 transition hover:bg-red-900/60 cursor-pointer"
                                 >
                                     <Trash2 size={13} /> Clear all history
                                 </button>
@@ -631,7 +644,7 @@ export function DashboardAssistant() {
                                 ref={scrollRef}
                                 role="log"
                                 aria-live="polite"
-                                className="flex-1 space-y-3 overflow-y-auto bg-[#fcfaf6] px-3 py-4"
+                                className="flex-1 space-y-3.5 overflow-y-auto bg-[#160207] p-4 text-left"
                             >
                                 {messages.map((message) => (
                                     <div
@@ -641,12 +654,12 @@ export function DashboardAssistant() {
                                         }`}
                                     >
                                         <div
-                                            className={`max-w-[86%] whitespace-pre-line rounded-2xl px-3.5 py-2.5 text-sm leading-5 ${
+                                            className={`max-w-[86%] whitespace-pre-line rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                                                 message.role === "user"
-                                                    ? "bg-[#8a6f50] text-white"
+                                                    ? "bg-gradient-to-br from-[#70091f] via-[#550718] to-[#3a0410] border border-[#e5a93b]/40 text-white shadow-md"
                                                     : message.error
-                                                    ? "border border-[#fecaca] bg-[#fdeeea] text-red-700"
-                                                    : "border border-[#e8dfd4] bg-white text-[#302820]"
+                                                    ? "border border-red-500/50 bg-[#36050e] text-red-200"
+                                                    : "border border-[#70091f]/60 bg-[#20040b] text-[#fcebe7] shadow-xs"
                                             }`}
                                         >
                                             {message.text}
@@ -655,14 +668,14 @@ export function DashboardAssistant() {
                                                     type="button"
                                                     onClick={retryLastMessage}
                                                     disabled={sending}
-                                                    className="mt-2 flex items-center gap-1 font-semibold underline underline-offset-2 disabled:opacity-50"
+                                                    className="mt-2.5 flex items-center gap-1 font-semibold text-red-300 underline underline-offset-2 hover:text-red-100 disabled:opacity-50 cursor-pointer"
                                                 >
                                                     <RotateCcw size={13} /> Try again
                                                 </button>
                                             )}
                                         </div>
                                         {message.timestamp && (
-                                            <span className="mt-1 px-1 text-[9px] text-[#a99d8f]">
+                                            <span className="mt-1 px-1.5 text-[9px] text-[#fcebe7]/50">
                                                 {formatMessageTime(message.timestamp)}
                                             </span>
                                         )}
@@ -671,14 +684,14 @@ export function DashboardAssistant() {
 
                                 {sending && (
                                     <div className="flex justify-start">
-                                        <div className="flex items-center gap-1 rounded-2xl border border-[#e8dfd4] bg-white px-4 py-3">
-                                            <span className="h-2 w-2 animate-bounce rounded-full bg-[#8a6f50]" />
+                                        <div className="flex items-center gap-1.5 rounded-2xl border border-[#70091f]/50 bg-[#20040b] px-4 py-3">
+                                            <span className="h-2 w-2 animate-bounce rounded-full bg-[#e5a93b]" />
                                             <span
-                                                className="h-2 w-2 animate-bounce rounded-full bg-[#8a6f50]"
+                                                className="h-2 w-2 animate-bounce rounded-full bg-[#e5a93b]"
                                                 style={{ animationDelay: "120ms" }}
                                             />
                                             <span
-                                                className="h-2 w-2 animate-bounce rounded-full bg-[#8a6f50]"
+                                                className="h-2 w-2 animate-bounce rounded-full bg-[#e5a93b]"
                                                 style={{ animationDelay: "240ms" }}
                                             />
                                         </div>
@@ -687,8 +700,8 @@ export function DashboardAssistant() {
                             </div>
 
                             {/* Quick Questions */}
-                            <div className="border-t border-[#e8dfd4] bg-white px-3 py-2.5">
-                                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-[#a99d8f]">
+                            <div className="border-t border-[#70091f]/40 bg-[#1c0309] px-3.5 py-2.5">
+                                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#e5a93b]/80">
                                     Quick questions
                                 </p>
                                 <div className="flex gap-1.5 overflow-x-auto pb-1">
@@ -698,7 +711,7 @@ export function DashboardAssistant() {
                                             type="button"
                                             onClick={() => sendMessage(reply)}
                                             disabled={sending}
-                                            className="shrink-0 rounded-full border border-[#e8dfd4] bg-[#fcfaf6] px-2.5 py-1.5 text-[11px] font-medium text-[#766959] transition hover:border-[#8a6f50] hover:text-[#8a6f50] disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="shrink-0 rounded-full border border-[#70091f] bg-[#29050d] px-3 py-1.5 text-[11px] font-medium text-[#fcebe7]/85 transition hover:border-[#e5a93b] hover:text-[#e5a93b] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
                                         >
                                             {reply}
                                         </button>
@@ -712,31 +725,31 @@ export function DashboardAssistant() {
                                     event.preventDefault();
                                     sendMessage();
                                 }}
-                                className="flex items-center gap-2 border-t border-[#e8dfd4] bg-white p-2.5"
+                                className="flex items-center gap-2 border-t border-[#70091f]/50 bg-[#160207] p-3"
                             >
                                 <input
                                     ref={inputRef}
                                     value={input}
                                     onChange={(event) => setInput(event.target.value)}
-                                    placeholder="Ask TCC AI..."
+                                    placeholder="Ask TCC Clinic AI..."
                                     disabled={sending}
-                                    className="min-w-0 flex-1 rounded-full border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-2.5 text-sm outline-none transition focus:border-[#8a6f50] focus:bg-white focus:ring-2 focus:ring-[#8a6f50]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="min-w-0 flex-1 rounded-2xl border border-[#70091f]/70 bg-[#24040d] px-4 py-2.5 text-sm text-white placeholder-[#fcebe7]/40 outline-none transition focus:border-[#e5a93b] focus:ring-1 focus:ring-[#e5a93b]/40 disabled:cursor-not-allowed disabled:opacity-60"
                                 />
                                 <button
                                     type="submit"
                                     disabled={!input.trim() || sending}
-                                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#8a6f50] text-white transition hover:bg-[#735a40] disabled:cursor-not-allowed disabled:opacity-40"
+                                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#70091f] to-[#4d0615] border border-[#e5a93b]/50 text-[#e5a93b] transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer shadow-md"
                                     aria-label="Send message"
+                                    title="Send"
                                 >
                                     <Send size={16} />
                                 </button>
                             </form>
 
                             {/* Disclaimer */}
-                            <div className="border-t border-[#e8dfd4] bg-[#fcfaf6] px-3 py-2">
-                                <p className="text-center text-[10px] leading-4 text-[#a99d8f]">
-                                    TCC AI provides general information and system assistance. It
-                                    does not replace a healthcare professional.
+                            <div className="border-t border-[#70091f]/40 bg-[#120105] px-3.5 py-2">
+                                <p className="text-center text-[10px] leading-4 text-[#fcebe7]/50">
+                                    TCC AI provides general information and system assistance. It does not replace a healthcare professional.
                                 </p>
                             </div>
                         </>
@@ -744,15 +757,43 @@ export function DashboardAssistant() {
                 </div>
             )}
 
-            {/* Floating button */}
-            <button
-                type="button"
-                onClick={() => setOpen((previous) => !previous)}
-                className={`ml-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#8a6f50] text-white shadow-xl transition hover:scale-105 hover:bg-[#735a40] ${FOCUS_RING}`}
-                aria-label={open ? "Close TCC AI chatbot" : "Open TCC AI chatbot"}
-            >
-                {open ? <X size={22} /> : <MessageCircle size={22} />}
-            </button>
-        </div>
+            {/* ── FLOATING LAUNCHER BUTTON ──────────────────────────────────── */}
+            <div className="flex items-center gap-3">
+                {/* Floating pill badge when closed */}
+                {!open && (
+                    <button
+                        type="button"
+                        onClick={() => setOpen(true)}
+                        className="hidden sm:flex items-center gap-2 rounded-full bg-gradient-to-r from-[#2c040e] to-[#1c0309] border border-[#e5a93b]/50 px-4 py-2 shadow-2xl text-left cursor-pointer hover:border-[#e5a93b] hover:scale-105 transition-all duration-300"
+                    >
+                        <span className="flex h-2 w-2 rounded-full bg-[#e5a93b] animate-ping" />
+                        <span className="text-xs font-bold text-white">Ask Clinic AI</span>
+                        <span className="text-[10px] font-semibold text-[#e5a93b]">· Online</span>
+                    </button>
+                )}
+
+                <button
+                    type="button"
+                    onClick={() => setOpen((previous) => !previous)}
+                    aria-expanded={open}
+                    title={open ? "Close AI Assistant" : "Open TCC Clinic AI Chatbot"}
+                    className="group relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#70091f] via-[#500615] to-[#30030c] border border-[#e5a93b]/60 text-white shadow-2xl shadow-black/80 hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer"
+                >
+                    {/* Pulsing glow ring */}
+                    <span className="absolute -inset-1 rounded-2xl bg-[#e5a93b]/20 blur-sm group-hover:bg-[#e5a93b]/40 transition-all pointer-events-none" />
+
+                    {open ? (
+                        <X size={24} className="relative z-10 text-white transition-transform group-hover:rotate-90 duration-300" />
+                    ) : (
+                        <div className="relative z-10 flex items-center justify-center">
+                            <Bot size={26} className="text-[#e5a93b] transition-transform group-hover:scale-110 duration-200" />
+                            <Sparkles size={11} className="absolute -top-1.5 -right-1.5 text-yellow-300 animate-pulse" />
+                        </div>
+                    )}
+                </button>
+            </div>
+        </aside>
     );
 }
+
+export default DashboardAssistant;

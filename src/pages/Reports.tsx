@@ -1070,9 +1070,6 @@ function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyV
         </div>
     );
 }
-        </div>
-    );
-}
 
 function getDayOfMonth(value: any) {
     const match = /^\d{4}-\d{2}-(\d{2})/.exec(String(value || ""));

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    Accessibility,
-    LayoutList,
     LoaderCircle,
     LockKeyhole,
     Moon,
@@ -17,12 +15,6 @@ import { applyTheme, useTheme } from "../utils/theme";
 function Settings() {
     const navigate = useNavigate();
     const { isDark: darkMode } = useTheme();
-    const [compactTables, setCompactTables] = useState(() =>
-        localStorage.getItem("tcc-compact-tables") === "true"
-    );
-    const [reducedMotion, setReducedMotion] = useState(() =>
-        localStorage.getItem("tcc-reduced-motion") === "true"
-    );
     const [passwordForm, setPasswordForm] = useState({
         current_password: "",
         password: "",
@@ -65,18 +57,6 @@ function Settings() {
 
     const updateTheme = (enabled: boolean) => {
         applyTheme(enabled ? "dark" : "light");
-    };
-
-    const updateCompactTables = (enabled) => {
-        setCompactTables(enabled);
-        localStorage.setItem("tcc-compact-tables", String(enabled));
-        document.documentElement.classList.toggle("tcc-compact-tables", enabled);
-    };
-
-    const updateReducedMotion = (enabled) => {
-        setReducedMotion(enabled);
-        localStorage.setItem("tcc-reduced-motion", String(enabled));
-        document.documentElement.classList.toggle("tcc-reduced-motion", enabled);
     };
 
     return (
@@ -225,32 +205,6 @@ function Settings() {
                             )}
                         </div>
                     </form>
-                </section>
-
-                {/* Display & Accessibility */}
-                <section className="tcc-settings-card mt-5 rounded-2xl border border-[#e8dfd4] bg-white p-5 shadow-sm sm:p-6">
-                    <div className="mb-5">
-                        <h2 className="text-base font-bold text-[#302820]">Display &amp; accessibility</h2>
-                        <p className="mt-1 text-sm text-[#887d70]">
-                            Adjust tables and animation to suit your workspace.
-                        </p>
-                    </div>
-                    <div className="divide-y divide-[#e8dfd4]">
-                        <PreferenceSwitch
-                            icon={LayoutList}
-                            title="Compact tables"
-                            description="Reduce row spacing to show more records at once."
-                            checked={compactTables}
-                            onChange={updateCompactTables}
-                        />
-                        <PreferenceSwitch
-                            icon={Accessibility}
-                            title="Reduce motion"
-                            description="Minimize interface animations and transitions."
-                            checked={reducedMotion}
-                            onChange={updateReducedMotion}
-                        />
-                    </div>
                 </section>
             </main>
         </div>
@@ -587,42 +541,6 @@ function ChangeProfilePhotoSection({ onSuccess }: { onSuccess?: (msg: string) =>
                 </div>
             </form>
         </section>
-    );
-}
-
-// ---------------------------------------------------------------------------
-// PreferenceSwitch
-// ---------------------------------------------------------------------------
-
-function PreferenceSwitch({ icon: Icon, title, description, checked, onChange }) {
-    return (
-        <div className="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f3ebdf] text-[#8a6f50]">
-                    <Icon size={18} aria-hidden="true" />
-                </div>
-                <div>
-                    <h3 className="text-sm font-semibold text-[#302820]">{title}</h3>
-                    <p className="mt-1 text-sm text-[#887d70]">{description}</p>
-                </div>
-            </div>
-            <button
-                type="button"
-                role="switch"
-                aria-checked={checked}
-                aria-label={title}
-                onClick={() => onChange(!checked)}
-                className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8a6f50]/40 ${
-                    checked ? "bg-[#8a6f50]" : "bg-stone-300"
-                }`}
-            >
-                <span
-                    className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                        checked ? "translate-x-6" : "translate-x-1"
-                    }`}
-                />
-            </button>
-        </div>
     );
 }
 

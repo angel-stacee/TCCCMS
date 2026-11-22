@@ -1,12 +1,4 @@
 import { useEffect, useState, useMemo } from "react";
-import {
-    ResponsiveContainer,
-    LineChart,
-    Line,
-    CartesianGrid,
-    XAxis,
-    Tooltip,
-} from "recharts";
 import api from "../services/api";
 import { getCachedRecord, invalidateRecordCache } from "../services/recordCache";
 import { exportMonthlyReportPDF } from "../utils/pdfExport";
@@ -747,20 +739,37 @@ const CHART_TABS = {
 
 type ChartTabKey = keyof typeof CHART_TABS;
 
+function getSmoothSpline(points: { x: number; y: number }[]) {
+    if (points.length === 0) return "";
+    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+    let path = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+    for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i === 0 ? 0 : i - 1];
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const p3 = points[i + 2 < points.length ? i + 2 : i + 1];
+
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+        path += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    }
+    return path;
+}
+
 function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyVisitsChartProps) {
     const [activeChart, setActiveChart] = useState<ChartTabKey>("total");
-
-    useEffect(() => {
-        const handlePrintResize = () => {
-            window.dispatchEvent(new Event("resize"));
-        };
-        window.addEventListener("beforeprint", handlePrintResize);
-        window.addEventListener("afterprint", handlePrintResize);
-        return () => {
-            window.removeEventListener("beforeprint", handlePrintResize);
-            window.removeEventListener("afterprint", handlePrintResize);
-        };
-    }, []);
+    const [hoveredPoint, setHoveredPoint] = useState<{
+        day: number;
+        date: string;
+        formattedDate: string;
+        count: number;
+        x: number;
+        y: number;
+    } | null>(null);
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const monthNamesShort = [
@@ -822,10 +831,37 @@ function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyV
         };
     }, [summary, points]);
 
+    // SVG plotting coordinates
+    const width = 860;
+    const height = 210;
+    const left = 46;
+    const right = 836;
+    const top = 26;
+    const baseline = 168;
+    const plotWidth = right - left;
+    const plotHeight = baseline - top;
+
+    const currentValues = points.map((p) => Number(p[activeChart]) || 0);
+    const rawMax = Math.max(0, ...currentValues);
+    const yAxisMax = Math.max(3, Math.ceil(rawMax));
+    const yTicks = Array.from({ length: yAxisMax + 1 }, (_, i) => i);
+
+    const svgCoords = points.map((p, index) => {
+        const x = left + (index / Math.max(1, daysInMonth - 1)) * plotWidth;
+        const val = Number(p[activeChart]) || 0;
+        const y = baseline - (val / yAxisMax) * plotHeight;
+        return { x, y, val, point: p };
+    });
+
+    const splinePath = getSmoothSpline(svgCoords.map((c) => ({ x: c.x, y: c.y })));
+    const areaPath = svgCoords.length > 0
+        ? `${splinePath} L ${svgCoords[svgCoords.length - 1].x.toFixed(1)} ${baseline} L ${svgCoords[0].x.toFixed(1)} ${baseline} Z`
+        : "";
+
     return (
         <div className="report-panel report-chart-wrap w-full overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white text-stone-900 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-[#382f25] dark:bg-[#251f19] dark:text-[#f4ecdf]">
             <div className="flex flex-col sm:flex-row items-stretch border-b border-[#e8dfd4] dark:border-[#382f25]">
-                <div className="flex flex-1 flex-col justify-center gap-1 p-5 sm:p-6">
+                <div className="flex flex-1 flex-col justify-center gap-1 p-4 sm:p-5">
                     <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a6f50] dark:text-[#d4b996]">
                         Daily activity
                     </p>
@@ -846,7 +882,7 @@ function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyV
                                 key={key}
                                 type="button"
                                 data-active={isActive}
-                                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-r border-[#e8dfd4] px-4 py-3 text-left transition-colors duration-150 last:border-r-0 hover:bg-[#faf6f0] data-[active=true]:bg-[#f4ecdf]/70 dark:border-[#382f25] dark:hover:bg-[#2f2720] dark:data-[active=true]:bg-[#382f25] sm:px-6 sm:py-4"
+                                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-r border-[#e8dfd4] px-4 py-3 text-left transition-colors duration-150 last:border-r-0 hover:bg-[#faf6f0] data-[active=true]:bg-[#f4ecdf]/70 dark:border-[#382f25] dark:hover:bg-[#2f2720] dark:data-[active=true]:bg-[#382f25] sm:px-6 sm:py-4 cursor-pointer"
                                 onClick={() => setActiveChart(key)}
                             >
                                 <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400">
@@ -861,58 +897,179 @@ function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyV
                 </div>
             </div>
 
-            <div className="p-4 sm:p-6">
-                <div className="h-64 sm:h-72 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={points} margin={{ top: 12, right: 16, left: 16, bottom: 4 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0ebe1" />
-                            <XAxis
-                                dataKey="day"
-                                tickLine={false}
-                                axisLine={false}
-                                tickMargin={8}
-                                minTickGap={16}
-                                tick={{ fontSize: 11, fill: "#78716c" }}
-                                tickFormatter={(val) => `${monthShort} ${val}`}
+            <div className="p-3 sm:p-5">
+                <div className="relative w-full overflow-hidden">
+                    <svg
+                        viewBox={`0 0 ${width} ${height}`}
+                        className="w-full h-auto block select-none"
+                        preserveAspectRatio="xMidYMid meet"
+                    >
+                        <defs>
+                            <linearGradient id="clinicVisitGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#0284c7" stopOpacity="0.18" />
+                                <stop offset="100%" stopColor="#0284c7" stopOpacity="0.0" />
+                            </linearGradient>
+                        </defs>
+
+                        {/* Y-axis Horizontal Grid Lines & Ticks */}
+                        {yTicks.map((tick) => {
+                            const y = baseline - (tick / yAxisMax) * plotHeight;
+                            return (
+                                <g key={`ytick-${tick}`}>
+                                    <line
+                                        x1={left}
+                                        y1={y}
+                                        x2={right}
+                                        y2={y}
+                                        stroke="#f0ebe1"
+                                        strokeDasharray={tick === 0 ? undefined : "3 3"}
+                                        strokeWidth={1}
+                                    />
+                                    <text
+                                        x={left - 10}
+                                        y={y + 3.5}
+                                        textAnchor="end"
+                                        fontSize="10"
+                                        fill="#78716c"
+                                        fontWeight="500"
+                                    >
+                                        {tick}
+                                    </text>
+                                </g>
+                            );
+                        })}
+
+                        {/* Gradient Area Fill under Curve */}
+                        {areaPath && (
+                            <path d={areaPath} fill="url(#clinicVisitGradient)" />
+                        )}
+
+                        {/* Main Visits Spline Curve */}
+                        {splinePath && (
+                            <path
+                                d={splinePath}
+                                fill="none"
+                                stroke="#0284c7"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
                             />
-                            <Tooltip
-                                content={({ active, payload }) => {
-                                    if (!active || !payload?.length) return null;
-                                    const item = payload[0].payload;
-                                    return (
-                                        <div className="rounded-xl border border-stone-200 bg-white p-3 text-xs shadow-lg dark:border-[#382f25] dark:bg-[#251f19]">
-                                            <p className="font-semibold text-stone-800 dark:text-stone-200">
-                                                {item.date} ({item.formattedDate})
-                                            </p>
-                                            <p className="mt-1 font-bold text-sky-600 dark:text-sky-400">
-                                                {CHART_TABS[activeChart].label}: {Number(item[activeChart] || 0).toLocaleString()} visits
-                                            </p>
-                                        </div>
-                                    );
-                                }}
-                            />
-                            <Line
-                                dataKey={activeChart}
-                                type="monotone"
-                                stroke={CHART_TABS[activeChart].color}
-                                strokeWidth={2.5}
-                                dot={false}
-                                isAnimationActive={false}
-                                activeDot={{
-                                    r: 5,
-                                    fill: CHART_TABS[activeChart].color,
-                                    stroke: "#ffffff",
-                                    strokeWidth: 2,
-                                }}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
+                        )}
+
+                        {/* Data Points on Days with Visits */}
+                        {svgCoords.map(({ x, y, val, point }) => {
+                            if (val <= 0) return null;
+                            return (
+                                <g key={`point-${point.day}`} className="transition-transform duration-150">
+                                    <circle cx={x} cy={y} r="6" fill="#0284c7" fillOpacity="0.25" />
+                                    <circle cx={x} cy={y} r="4" fill="#0284c7" stroke="#ffffff" strokeWidth="2" />
+                                    {/* Prominent count badge above the point */}
+                                    <g transform={`translate(${x}, ${y - 12})`}>
+                                        <rect
+                                            x="-9"
+                                            y="-13"
+                                            width="18"
+                                            height="13"
+                                            rx="3.5"
+                                            fill="#0284c7"
+                                        />
+                                        <text
+                                            x="0"
+                                            y="-3.5"
+                                            textAnchor="middle"
+                                            fill="#ffffff"
+                                            fontSize="8.5"
+                                            fontWeight="bold"
+                                        >
+                                            {val}
+                                        </text>
+                                    </g>
+                                </g>
+                            );
+                        })}
+
+                        {/* X-axis Date Labels (every 2 days) */}
+                        {svgCoords.map(({ x, point }) => {
+                            const isEvenDay = point.day % 2 === 0 || point.day === 1 || point.day === daysInMonth;
+                            if (!isEvenDay) return null;
+                            return (
+                                <g key={`xlabel-${point.day}`}>
+                                    <line
+                                        x1={x}
+                                        y1={baseline}
+                                        x2={x}
+                                        y2={baseline + 4}
+                                        stroke="#e8dfd4"
+                                        strokeWidth={1}
+                                    />
+                                    <text
+                                        x={x}
+                                        y={baseline + 16}
+                                        textAnchor="middle"
+                                        fontSize="9.5"
+                                        fill="#78716c"
+                                    >
+                                        {monthShort} {point.day}
+                                    </text>
+                                </g>
+                            );
+                        })}
+
+                        {/* Interactive Invisible Hover Columns for Tooltips */}
+                        {svgCoords.map(({ x, y, val, point }) => {
+                            const colWidth = plotWidth / daysInMonth;
+                            return (
+                                <rect
+                                    key={`hover-${point.day}`}
+                                    x={x - colWidth / 2}
+                                    y={top}
+                                    width={colWidth}
+                                    height={baseline - top + 18}
+                                    fill="transparent"
+                                    className="cursor-pointer"
+                                    onMouseEnter={() =>
+                                        setHoveredPoint({
+                                            day: point.day,
+                                            date: point.date,
+                                            formattedDate: point.formattedDate,
+                                            count: val,
+                                            x,
+                                            y,
+                                        })
+                                    }
+                                    onMouseLeave={() => setHoveredPoint(null)}
+                                />
+                            );
+                        })}
+                    </svg>
+
+                    {/* Interactive Floating Hover Tooltip */}
+                    {hoveredPoint && (
+                        <div
+                            className="pointer-events-none absolute -top-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs shadow-xl dark:border-[#382f25] dark:bg-[#251f19] transition-all"
+                            style={{
+                                left: `${(hoveredPoint.x / width) * 100}%`,
+                                transform: "translateX(-50%) translateY(-100%)",
+                            }}
+                        >
+                            <p className="font-semibold text-stone-800 dark:text-stone-200">
+                                {hoveredPoint.date} ({hoveredPoint.formattedDate})
+                            </p>
+                            <p className="mt-0.5 font-bold text-sky-600 dark:text-sky-400">
+                                {CHART_TABS[activeChart].label}: {hoveredPoint.count.toLocaleString()} visits
+                            </p>
+                        </div>
+                    )}
                 </div>
+
                 <div className="mt-2 flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
                     <span>Day of month</span>
-                    <span>{totals.total.toLocaleString()} visits recorded this month</span>
+                    <span>{totals[activeChart].toLocaleString()} visits recorded this month</span>
                 </div>
             </div>
+        </div>
+    );
+}
         </div>
     );
 }

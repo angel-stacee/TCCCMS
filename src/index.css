@@ -987,10 +987,11 @@ html.dark .tcc-module-page table tbody tr:hover {
         box-shadow: none !important;
     }
 
-    #reports-page .report-chart-wrap .recharts-responsive-container,
-    #reports-page .report-chart-wrap .recharts-wrapper {
+    #reports-page .report-chart-wrap svg {
         width: 100% !important;
         max-width: 100% !important;
+        height: auto !important;
+        display: block !important;
     }
 
     #reports-page .report-chart {

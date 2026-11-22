@@ -1,5 +1,6 @@
 import type { ChangeEvent, FormEvent } from "react";
-import { Pill, AlertTriangle, CheckCircle2, Calendar, AlertOctagon } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Pill, AlertTriangle, CheckCircle2, Calendar, AlertOctagon, X } from "lucide-react";
 
 export interface MedicineFormData {
     medicine_name: string;
@@ -97,9 +98,12 @@ export function MedicineModal({
         }
     }
 
-    return (
+    if (typeof document === "undefined") return null;
+
+    return createPortal(
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4"
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-3 sm:p-5 md:p-6 backdrop-blur-[3px] overflow-y-auto"
+            style={{ zIndex: 99999 }}
             onMouseDown={(event) => {
                 if (event.target === event.currentTarget && !saving) {
                     closeForm();
@@ -110,18 +114,19 @@ export function MedicineModal({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="medicine-modal-title"
-                className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-stone-200 bg-white shadow-xl dark:border-stone-800 dark:bg-stone-900"
+                className="relative my-auto flex flex-col w-full max-w-2xl max-h-[90vh] rounded-2xl border border-stone-200 bg-white shadow-2xl dark:border-[#382f25] dark:bg-[#1f1915] overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
             >
                 {/* Modal Header */}
-                <div className="sticky top-0 z-20 flex items-center justify-between border-b border-stone-200 bg-white px-6 py-4 dark:border-stone-800 dark:bg-stone-900">
+                <div className="flex shrink-0 items-center justify-between border-b border-stone-200 bg-white/95 px-6 py-4 backdrop-blur-sm dark:border-[#382f25] dark:bg-[#1f1915]/95">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#70091f]/10 text-[#70091f] dark:bg-[#70091f]/20 dark:text-[#dc667a]">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#70091f]/10 text-[#70091f] dark:bg-[#70091f]/20 dark:text-[#dc667a]">
                             <Pill size={20} />
                         </div>
                         <div>
                             <h2
                                 id="medicine-modal-title"
-                                className="text-lg font-semibold text-stone-800 dark:text-stone-100"
+                                className="text-lg font-bold text-stone-800 dark:text-stone-100"
                             >
                                 {editingMedicine ? "Edit Medicine" : "Add New Medicine"}
                             </h2>
@@ -138,14 +143,15 @@ export function MedicineModal({
                         onClick={closeForm}
                         disabled={saving}
                         aria-label="Close modal"
-                        className="rounded-lg px-2.5 py-1 text-xl text-stone-500 transition hover:bg-stone-100 hover:text-stone-700 disabled:opacity-50 dark:hover:bg-stone-800 dark:hover:text-stone-300"
+                        className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-[#2c221a] dark:hover:text-stone-200 cursor-pointer transition"
                     >
-                        ×
+                        <X size={20} />
                     </button>
                 </div>
 
                 {/* Modal Form */}
-                <form onSubmit={handleSubmit} className="p-6">
+                <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+                    <div className="flex-1 overflow-y-auto p-5 sm:p-6">
                     {/* Error Alert */}
                     {error && (
                         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
@@ -368,13 +374,15 @@ export function MedicineModal({
                         </div>
                     </div>
 
+                    </div>
+
                     {/* Divider and Action Buttons matching reference layout */}
-                    <div className="mt-6 flex items-center justify-end gap-3 border-t border-stone-200 pt-4 dark:border-stone-800">
+                    <div className="flex shrink-0 items-center justify-end gap-3 border-t border-stone-200 bg-stone-50/90 px-6 py-4 backdrop-blur-sm dark:border-[#382f25] dark:bg-[#171310]">
                         <button
                             type="button"
                             onClick={closeForm}
                             disabled={saving}
-                            className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-stone-50 disabled:opacity-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+                            className="rounded-xl border border-stone-300 bg-white px-5 py-2.5 text-sm font-semibold text-stone-700 shadow-xs transition hover:bg-stone-100 hover:text-stone-900 disabled:opacity-50 dark:border-stone-700 dark:bg-[#251e18] dark:text-stone-300 dark:hover:bg-[#302720]"
                         >
                             Cancel
                         </button>
@@ -382,7 +390,7 @@ export function MedicineModal({
                         <button
                             type="submit"
                             disabled={saving}
-                            className="flex items-center gap-2 rounded-lg bg-[#70091f] px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-[#70091f]/20 transition hover:bg-[#8b1505] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-xl bg-[#70091f] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#70091f]/20 transition hover:bg-[#8b1505] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {saving
                                 ? "Saving..."
@@ -393,6 +401,7 @@ export function MedicineModal({
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

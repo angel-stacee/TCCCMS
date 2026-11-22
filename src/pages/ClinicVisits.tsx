@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
     Stethoscope,
     Pencil,
@@ -2252,9 +2253,10 @@ function ClinicVisits() {
                     </Modal>
                 )}
 
-                {showAddConfirmation && (
+                {showAddConfirmation && typeof document !== "undefined" && createPortal(
                     <div
-                        className="fixed inset-0 z-[120] flex items-center justify-center bg-stone-950/45 px-4 py-6 backdrop-blur-sm"
+                        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+                        style={{ zIndex: 99999 }}
                         onMouseDown={(event) => {
                             if (event.target === event.currentTarget) {
                                 cancelAddConfirmation();
@@ -2266,36 +2268,37 @@ function ClinicVisits() {
                             aria-modal="true"
                             aria-labelledby="confirm-add-visit-title"
                             aria-describedby="confirm-add-visit-description"
-                            className="w-full max-w-md rounded-2xl border border-[#e8dfd4] bg-white p-6 shadow-2xl shadow-stone-950/20"
+                            className="w-full max-w-md rounded-2xl border border-[#e8dfd4] bg-white p-6 shadow-2xl shadow-stone-950/20 dark:bg-[#1f1915] dark:border-[#382f25]"
+                            onClick={(e) => e.stopPropagation()}
                         >
                             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fcebe7] text-[#70091f]">
                                 <CircleHelp size={24} aria-hidden="true" />
                             </div>
 
-                            <h2 id="confirm-add-visit-title" className="text-lg font-bold text-[#302820]">
+                            <h2 id="confirm-add-visit-title" className="text-lg font-bold text-[#302820] dark:text-stone-100">
                                 Confirm clinic visit
                             </h2>
-                            <p id="confirm-add-visit-description" className="mt-2 text-sm leading-6 text-[#766959]">
+                            <p id="confirm-add-visit-description" className="mt-2 text-sm leading-6 text-[#766959] dark:text-stone-300">
                                 Are you sure you want to add this clinic visit?
                             </p>
 
-                            <div className="mt-4 space-y-2 rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] p-3 text-sm">
-                                <p className="truncate text-[#302820]">
+                            <div className="mt-4 space-y-2 rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] p-3 text-sm dark:border-[#382f25] dark:bg-[#28201a]">
+                                <p className="truncate text-[#302820] dark:text-stone-100">
                                     <span className="font-semibold">Patient:</span>{" "}
                                     {patientSearch || "Selected patient"}
                                 </p>
                                 {formData.department && (
-                                    <p className="truncate text-[#54483a]">
+                                    <p className="truncate text-[#54483a] dark:text-stone-300">
                                         <span className="font-semibold">Department:</span>{" "}
                                         {formatNA(formData.department)}
                                     </p>
                                 )}
-                                <p className="flex items-center gap-2 text-[#766959]">
+                                <p className="flex items-center gap-2 text-[#766959] dark:text-stone-300">
                                     <CalendarDays size={15} aria-hidden="true" />
                                     <span><span className="font-semibold">Visit date:</span>{" "}{formatDate(formData.visit_date)}</span>
                                 </p>
                                 {formData.temperature && (
-                                    <p className="text-xs text-[#766959]">
+                                    <p className="text-xs text-[#766959] dark:text-stone-300">
                                         <span className="font-semibold">Temperature:</span>{" "}
                                         {formatTemperature(formData.temperature)}
                                     </p>
@@ -2306,20 +2309,21 @@ function ClinicVisits() {
                                 <button
                                     type="button"
                                     onClick={cancelAddConfirmation}
-                                    className="rounded-xl border border-[#e8dfd4] px-4 py-2.5 text-sm font-semibold text-[#766959] transition hover:bg-[#fcfaf6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#70091f]/40"
+                                    className="rounded-xl border border-[#e8dfd4] px-4 py-2.5 text-sm font-semibold text-[#766959] transition hover:bg-[#fcfaf6] dark:border-stone-700 dark:bg-[#1f1915] dark:text-stone-300 dark:hover:bg-[#2c221a]"
                                 >
                                     Go back
                                 </button>
                                 <button
                                     type="button"
                                     onClick={confirmAddVisit}
-                                    className="rounded-xl bg-[#70091f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8b1505] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#70091f]/40"
+                                    className="rounded-xl bg-[#70091f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8b1505]"
                                 >
                                     Yes, add visit
                                 </button>
                             </div>
                         </section>
-                    </div>
+                    </div>,
+                    document.body
                 )}
                 {/* Restore Deleted Visits Modal */}
                 <RestoreVisitsModal

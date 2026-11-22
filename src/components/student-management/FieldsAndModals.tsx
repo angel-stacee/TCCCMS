@@ -1,5 +1,6 @@
 import type { ChangeEventHandler, ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { X, Check } from "lucide-react";
 
 interface InputFieldProps {
     label: string;
@@ -337,10 +338,10 @@ export function Modal({
             }}
         >
             <div
-                className={`my-auto max-h-[92vh] w-full ${maxWidth} overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-[#1f1915]`}
+                className={`my-auto flex flex-col max-h-[90vh] w-full ${maxWidth} overflow-hidden rounded-2xl bg-white shadow-2xl border border-stone-200 dark:bg-[#1f1915] dark:border-[#382f25]`}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#e8dfd4] bg-white/95 px-6 py-4 backdrop-blur-sm dark:border-[#382f25] dark:bg-[#1f1915]/95">
+                <div className="flex shrink-0 items-center justify-between border-b border-[#e8dfd4] bg-white/95 px-6 py-4 backdrop-blur-sm dark:border-[#382f25] dark:bg-[#1f1915]/95">
                     <h2 className="text-lg font-bold text-stone-800 dark:text-stone-100">
                         {title}
                     </h2>
@@ -348,13 +349,16 @@ export function Modal({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg px-3 py-1 text-xl font-bold text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-[#2c221a] dark:hover:text-stone-200 cursor-pointer"
+                        className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-[#2c221a] dark:hover:text-stone-200 cursor-pointer transition"
+                        aria-label="Close modal"
                     >
-                        ×
+                        <X size={20} />
                     </button>
                 </div>
 
-                {children}
+                <div className="flex-1 overflow-y-auto">
+                    {children}
+                </div>
             </div>
         </div>,
         document.body
@@ -409,9 +413,9 @@ export function ConfirmationModal({
                         }`}
                     >
                         {danger ? (
-                            <span className="text-2xl">!</span>
+                            <span className="text-2xl font-bold">!</span>
                         ) : (
-                            <span className="text-xl">✓</span>
+                            <Check size={24} />
                         )}
                     </div>
 

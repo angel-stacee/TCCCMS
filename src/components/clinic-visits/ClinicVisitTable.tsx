@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { createPortal } from "react-dom";
 import { CalendarDays, Eye, FileBadge, FileText, Pencil, Search, Stethoscope, Trash2, X } from "lucide-react";
 import { ReasonBadge } from "../../utils/reasonColors";
 import { formatNA, formatTemperature, mapCourseToDepartment } from "../../utils/formatters";
@@ -459,60 +460,53 @@ export function ClinicVisitTable({
             </div>
 
 
-                {deleteVisit && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
-
-                        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-
+                {deleteVisit && typeof document !== "undefined" && createPortal(
+                    <div
+                        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+                        style={{ zIndex: 99999 }}
+                        onMouseDown={(e) => {
+                            if (e.target === e.currentTarget) {
+                                setDeleteVisit(null);
+                            }
+                        }}
+                    >
+                        <div
+                            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-[#1f1915] border border-stone-200 dark:border-[#382f25]"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                             <div className="flex items-start gap-4">
-
-                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400">
                                     <Trash2 size={20} />
                                 </div>
 
                                 <div className="min-w-0">
-
-                                    <h3 className="text-base font-bold text-[#3c332a]">
+                                    <h3 className="text-base font-bold text-[#3c332a] dark:text-stone-100">
                                         Delete Clinic Visit?
                                     </h3>
 
-                                    <p className="mt-1 text-sm leading-6 text-[#887d70]">
+                                    <p className="mt-1 text-sm leading-6 text-[#887d70] dark:text-stone-300">
                                         Are you sure you want to delete this clinic visit record? This action cannot be undone.
                                     </p>
 
-                                    <div className="mt-3 rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] px-4 py-3">
-
-                                        <p className="text-xs font-bold text-[#3d3329]">
-                                            {
-                                                getPatientName(
-                                                    deleteVisit
-                                                ).name
-                                            }
+                                    <div className="mt-3 rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] px-4 py-3 dark:border-[#382f25] dark:bg-[#28201a]">
+                                        <p className="text-xs font-bold text-[#3d3329] dark:text-stone-100">
+                                            {getPatientName(deleteVisit).name}
                                         </p>
 
-                                        <p className="mt-1 text-[10px] text-[#887d70]">
-                                            {formatDate(
-                                                deleteVisit.visit_date
-                                            )}{" "}
+                                        <p className="mt-1 text-[10px] text-[#887d70] dark:text-stone-400">
+                                            {formatDate(deleteVisit.visit_date)}{" "}
                                             •{" "}
-                                            {deleteVisit.reason ||
-                                                "Clinic Visit"}
+                                            {deleteVisit.reason || "Clinic Visit"}
                                         </p>
-
                                     </div>
                                 </div>
                             </div>
 
                             <div className="mt-6 flex justify-end gap-3">
-
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        setDeleteVisit(
-                                            null
-                                        )
-                                    }
-                                    className="rounded-xl border border-[#e8dfd4] px-4 py-2.5 text-sm font-semibold text-[#766959] transition hover:bg-[#fcfaf6]"
+                                    onClick={() => setDeleteVisit(null)}
+                                    className="rounded-xl border border-[#e8dfd4] px-4 py-2.5 text-sm font-semibold text-[#766959] transition hover:bg-[#fcfaf6] dark:border-stone-700 dark:bg-[#1f1915] dark:text-stone-300 dark:hover:bg-[#2c221a]"
                                 >
                                     Cancel
                                 </button>
@@ -525,10 +519,10 @@ export function ClinicVisitTable({
                                     <Trash2 size={15} />
                                     Delete
                                 </button>
-
                             </div>
                         </div>
-                    </div>
+                    </div>,
+                    document.body
                 )}
 
         </>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import api from "../services/api";
 import { ConfirmationModal } from "../components/student-management/FieldsAndModals";
 import FloatingToast from "../components/common/FloatingToast";
@@ -586,16 +587,28 @@ function MemberEditModal({
         onSave(updated);
     };
 
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+    if (!isOpen) return null;
+    if (typeof document === "undefined") return null;
+
+    return createPortal(
+        <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-black/60 backdrop-blur-[3px] overflow-y-auto"
+            style={{ zIndex: 99999 }}
+            onMouseDown={(e) => {
+                if (e.target === e.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
             <div
-                className="relative flex flex-col w-full max-w-2xl max-h-[92vh] overflow-hidden rounded-2xl bg-white shadow-2xl border border-stone-200 dark:bg-[#201a14] dark:border-[#3d3328]"
+                className="relative my-auto flex flex-col w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl border border-stone-200 dark:bg-[#201a14] dark:border-[#3d3328]"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline"
+                onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4 bg-stone-50/80 dark:bg-[#251f19] dark:border-[#382f25]">
+                <div className="flex shrink-0 items-center justify-between border-b border-stone-200 px-6 py-4 bg-stone-50/90 backdrop-blur-sm dark:bg-[#251f19]/90 dark:border-[#382f25]">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#70091f] text-white shadow-sm">
                             {isNew ? <Plus size={20} /> : <Pencil size={18} />}
@@ -607,14 +620,14 @@ function MemberEditModal({
                             <p className="text-xs text-stone-500 dark:text-stone-400">
                                 {isNew
                                     ? "Add a new member to this organizational team"
-                                    : "Updating details for " + (member.name || "personnel")}
+                                    : "Updating details for " + (member?.name || "personnel")}
                             </p>
                         </div>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-200/60 hover:text-stone-700 transition dark:hover:bg-[#342820] dark:hover:text-stone-200"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-200/60 hover:text-stone-700 transition dark:hover:bg-[#342820] dark:hover:text-stone-200 cursor-pointer"
                         aria-label="Close dialog"
                     >
                         <X size={18} />
@@ -622,13 +635,14 @@ function MemberEditModal({
                 </div>
 
                 {/* Form Body */}
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4 text-left">
-                    {error && (
-                        <div className="flex items-center gap-2 rounded-xl border border-red-300 bg-red-50 p-3 text-xs font-semibold text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
-                            <AlertCircle size={16} className="shrink-0 text-red-600" />
-                            <span>{error}</span>
-                        </div>
-                    )}
+                <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden text-left">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                        {error && (
+                            <div className="flex items-center gap-2 rounded-xl border border-red-300 bg-red-50 p-3 text-xs font-semibold text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+                                <AlertCircle size={16} className="shrink-0 text-red-600" />
+                                <span>{error}</span>
+                            </div>
+                        )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {/* Name */}
@@ -796,43 +810,45 @@ function MemberEditModal({
                             Press Enter after each duty to create separate bullet points on the member card.
                         </p>
                     </div>
+                </div>
 
-                    {/* Modal Actions */}
-                    <div className="flex items-center justify-between pt-4 border-t border-stone-200 dark:border-stone-800">
-                        <div>
-                            {!isNew && onDelete && (
-                                <button
-                                    type="button"
-                                    onClick={() => onDelete(member.id)}
-                                    className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition active:scale-95 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
-                                >
-                                    <Trash2 size={14} />
-                                    <span>Remove Member</span>
-                                </button>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
+                {/* Modal Actions */}
+                <div className="flex shrink-0 items-center justify-between border-t border-stone-200 bg-stone-50/90 px-6 py-4 backdrop-blur-sm dark:border-[#382f25] dark:bg-[#1a1410]">
+                    <div>
+                        {!isNew && onDelete && member && (
                             <button
                                 type="button"
-                                onClick={onClose}
-                                className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition dark:bg-[#251f19] dark:border-[#382f25] dark:text-stone-300"
+                                onClick={() => onDelete(member.id)}
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition active:scale-95 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
                             >
-                                Cancel
+                                <Trash2 size={14} />
+                                <span>Remove Member</span>
                             </button>
-                            <button
-                                type="submit"
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-[#70091f] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#8b1505] transition active:scale-95"
-                            >
-                                <Save size={14} />
-                                <span>{isNew ? "Add to Chart" : "Save Changes"}</span>
-                            </button>
-                        </div>
+                        )}
                     </div>
-                </form>
-            </div>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition dark:bg-[#251f19] dark:border-[#382f25] dark:text-stone-300"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-[#70091f] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#8b1505] transition active:scale-95"
+                        >
+                            <Save size={14} />
+                            <span>{isNew ? "Add to Chart" : "Save Changes"}</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
-    );
+    </div>,
+    document.body
+);
 }
 
 /* ─── Main Organization Component ────────────────────────────────────────── */

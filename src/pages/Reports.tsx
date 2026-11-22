@@ -157,7 +157,10 @@ function Reports() {
     };
 
     const handlePrint = () => {
-        window.print();
+        window.dispatchEvent(new Event("resize"));
+        setTimeout(() => {
+            window.print();
+        }, 120);
     };
 
     const handleDownloadPDF = () => {
@@ -326,9 +329,21 @@ function Reports() {
                                 <div className="text-sm font-black uppercase tracking-wider text-[#70091f]">
                                     TAGOLOAN COMMUNITY COLLEGE
                                 </div>
-                                <h1 className="pt-1 text-2xl font-black tracking-tight text-stone-900 sm:text-3xl">
+                                <div className="text-xs font-bold uppercase tracking-wide text-stone-600">
+                                    HEALTH SERVICES CLINIC — CAMPUS CLINIC MANAGEMENT SYSTEM
+                                </div>
+                                <div className="text-[11px] text-stone-400">
+                                    Baluarte, Tagoloan, Misamis Oriental · clinic@tcc.edu.ph
+                                </div>
+                                <h1 className="pt-2 text-2xl font-black tracking-tight text-stone-900 sm:text-3xl">
                                     MONTHLY CLINIC ACTIVITY & HEALTH REPORT
                                 </h1>
+                                <p className="text-xs font-medium text-stone-500">
+                                    Report Period:{" "}
+                                    <span className="font-bold text-[#70091f] uppercase">
+                                        {report.report?.period || `${monthNames[month - 1]} ${year}`}
+                                    </span>
+                                </p>
                             </div>
 
                             <div className="flex items-center gap-3 self-end sm:self-start">
@@ -734,6 +749,18 @@ type ChartTabKey = keyof typeof CHART_TABS;
 
 function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyVisitsChartProps) {
     const [activeChart, setActiveChart] = useState<ChartTabKey>("total");
+
+    useEffect(() => {
+        const handlePrintResize = () => {
+            window.dispatchEvent(new Event("resize"));
+        };
+        window.addEventListener("beforeprint", handlePrintResize);
+        window.addEventListener("afterprint", handlePrintResize);
+        return () => {
+            window.removeEventListener("beforeprint", handlePrintResize);
+            window.removeEventListener("afterprint", handlePrintResize);
+        };
+    }, []);
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const monthNamesShort = [

@@ -38,6 +38,11 @@ import {
     clearAllClinicNotifications,
     getStoredNotifications,
 } from "../../services/notifications";
+import {
+    requestDeviceNotificationPermission,
+    syncDeviceNotifications,
+    sendDeviceNotification,
+} from "../../services/deviceNotifications";
 import { useTheme } from "../../utils/theme";
 import { Avatar, StudentDetail, Skeleton } from "../dashboard/DashboardWidgets";
 import { ConfirmationModal } from "../student-management/FieldsAndModals";
@@ -232,6 +237,8 @@ export function Header({
                 if (res.counts) {
                     setCategoryCounts(res.counts);
                 }
+                // Automatically push new notifications to the cellphone / device tray!
+                syncDeviceNotifications(res.data).catch(() => {});
             }
         } catch (e) {
             console.warn("Error loading notifications:", e);
@@ -239,6 +246,11 @@ export function Header({
             setLoadingNotifs(false);
         }
     };
+
+    // Request cellphone / browser push notification permission on mount
+    useEffect(() => {
+        requestDeviceNotificationPermission().catch(() => {});
+    }, []);
 
     // Listen to user changes (e.g. Profile updates)
     useEffect(() => {
@@ -1045,6 +1057,22 @@ export function Header({
                                 </div>
 
                                 <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            const granted = await requestDeviceNotificationPermission();
+                                            if (granted) {
+                                                await sendDeviceNotification(
+                                                    "TCC Clinic Notification",
+                                                    "Cellphone notifications are active! You will receive live alerts for medication reminders and patient attention."
+                                                );
+                                            }
+                                        }}
+                                        title="Send a test notification to your cellphone"
+                                        className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 transition cursor-pointer"
+                                    >
+                                        <span>📱 Test Alert</span>
+                                    </button>
                                     {unreadCount > 0 && (
                                         <button
                                             type="button"

@@ -1,4 +1,5 @@
 import api from "./api";
+import { sendDeviceNotification } from "./deviceNotifications";
 
 export interface ClinicNotification {
     id: number | string;
@@ -134,6 +135,8 @@ export function addClinicNotification(item: {
     if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("tcc-notifications-updated"));
     }
+    // Also dispatch to cellphone / device notification tray
+    sendDeviceNotification(item.title, item.description).catch(() => {});
 }
 
 export function getStoredNotifications(): ClinicNotification[] {

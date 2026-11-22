@@ -84,3 +84,46 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// Push notification click handler for cellphone notifications
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const urlToOpen = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/dashboard';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (let client of windowClients) {
+        if (client.url.includes(urlToOpen) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
+
+// Web Push event listener
+self.addEventListener('push', (event) => {
+  let data = { title: 'TCC Clinic Alert', body: 'New clinic notification received.' };
+  try {
+    if (event.data) {
+      data = event.data.json();
+    }
+  } catch (e) {
+    if (event.data) {
+      data.body = event.data.text();
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'TCC Clinic Alert', {
+      body: data.body || 'You have an important notification.',
+      icon: '/pwa-icon-192.png',
+      badge: '/pwa-icon-192.png',
+      vibrate: [200, 100, 200],
+      data: { url: data.url || '/dashboard' }
+    })
+  );
+});

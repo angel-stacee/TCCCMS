@@ -37,15 +37,27 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // CRITICAL: All API requests go DIRECTLY to the live backend database (NEVER CACHE)
-  if (url.pathname.startsWith('/api') || event.request.method !== 'GET') {
+  // CRITICAL: Never intercept localhost, dev servers, vite HMR, or non-GET requests
+  if (
+    url.hostname === 'localhost' ||
+    url.hostname === '127.0.0.1' ||
+    url.port === '5173' ||
+    url.pathname.startsWith('/@') ||
+    url.pathname.startsWith('/src') ||
+    url.pathname.startsWith('/node_modules') ||
+    url.pathname.startsWith('/api') ||
+    event.request.method !== 'GET'
+  ) {
     return;
   }
 
-  // Navigation requests: Network first with fallback to index.html for SPA routing
+  // Navigation requests: Network first with fallback to cached index.html
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
+      fetch(event.request).catch(async () => {
+        const cached = await caches.match('/index.html');
+        return cached || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } });
+      })
     );
     return;
   }
@@ -66,8 +78,52 @@ self.addEventListener('fetch', (event) => {
         });
         return networkResponse;
       }).catch(() => {
-        // Network offline fallback
+        // Fallback for failed asset fetch
+        return new Response('', { status: 404 });
       });
+    })
+  );
+});
+
+// Push notification click handler for cellphone notifications
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const urlToOpen = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/dashboard';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (let client of windowClients) {
+        if (client.url.includes(urlToOpen) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
+
+// Web Push event listener
+self.addEventListener('push', (event) => {
+  let data = { title: 'TCC Clinic Alert', body: 'New clinic notification received.' };
+  try {
+    if (event.data) {
+      data = event.data.json();
+    }
+  } catch (e) {
+    if (event.data) {
+      data.body = event.data.text();
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'TCC Clinic Alert', {
+      body: data.body || 'You have an important notification.',
+      icon: '/pwa-icon-192.png',
+      badge: '/pwa-icon-192.png',
+      vibrate: [200, 100, 200],
+      data: { url: data.url || '/dashboard' }
     })
   );
 });

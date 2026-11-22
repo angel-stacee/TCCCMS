@@ -41,6 +41,7 @@ import {
 import { useTheme } from "../../utils/theme";
 import { Avatar, StudentDetail, Skeleton } from "../dashboard/DashboardWidgets";
 import { ConfirmationModal } from "../student-management/FieldsAndModals";
+import { PwaDropdownItem } from "../common/PwaInstallPrompt";
 
 interface HeaderProps {
     sidebarOpen: boolean;
@@ -1293,6 +1294,9 @@ export function Header({
                                     </div>
                                 </button>
                             </div>
+
+                            {/* Download / Install App option on mobile */}
+                            <PwaDropdownItem />
 
                             {/* Log Out Row - Visible ONLY on mobile view */}
                             <div className="border-t border-[#eee7de] p-1.5 dark:border-stone-800/80 sm:hidden">

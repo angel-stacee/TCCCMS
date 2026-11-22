@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { PageLoadingContent } from "./PageLoading";
 import ErrorBoundary from "./ErrorBoundary";
+import { PwaInstallPrompt } from "../common/PwaInstallPrompt";
 
 const DashboardAssistant = React.lazy(() =>
     import("../dashboard/DashboardAssistant").then((m) => ({
@@ -135,6 +136,9 @@ function MainLayout({ children }: MainLayoutProps): React.JSX.Element {
                     <DashboardAssistant />
                 </Suspense>
             )}
+
+            {/* Mobile PWA Install / Download prompt */}
+            <PwaInstallPrompt />
         </div>
     );
 }

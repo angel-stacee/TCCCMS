@@ -88,83 +88,14 @@ export function InputField({
     );
 }
 
-export interface AddressOption {
-    barangay: string;
-    municipality: string;
-    province: string;
-    fullAddress: string;
-}
+import type { AddressOption } from "../../data/mindanaoAddresses";
+import {
+    MINDANAO_ADDRESSES,
+    COMMON_BARANGAYS,
+} from "../../data/mindanaoAddresses";
 
-export const COMMON_BARANGAYS: AddressOption[] = [
-    // Tagoloan (Host municipality of TCC - Top priority)
-    { barangay: "Baluarte", municipality: "Tagoloan", province: "Misamis Oriental", fullAddress: "Baluarte, Tagoloan, Misamis Oriental" },
-    { barangay: "Casinglot", municipality: "Tagoloan", province: "Misamis Oriental", fullAddress: "Casinglot, Tagoloan, Misamis Oriental" },
-    { barangay: "Poblacion", municipality: "Tagoloan", province: "Misamis Oriental", fullAddress: "Poblacion, Tagoloan, Misamis Oriental" },
-    { barangay: "Natumolan", municipality: "Tagoloan", province: "Misamis Oriental", fullAddress: "Natumolan, Tagoloan, Misamis Oriental" },
-    { barangay: "Mohon", municipality: "Tagoloan", province: "Misamis Oriental", fullAddress: "Mohon, Tagoloan, Misamis Oriental" },
-    { barangay: "Santa Ana", municipality: "Tagoloan", province: "Misamis Oriental", fullAddress: "Santa Ana, Tagoloan, Misamis Oriental" },
-    { barangay: "Santa Cruz", municipality: "Tagoloan", province: "Misamis Oriental", fullAddress: "Santa Cruz, Tagoloan, Misamis Oriental" },
-    { barangay: "Gracia", municipality: "Tagoloan", province: "Misamis Oriental", fullAddress: "Gracia, Tagoloan, Misamis Oriental" },
-    { barangay: "Rosario", municipality: "Tagoloan", province: "Misamis Oriental", fullAddress: "Rosario, Tagoloan, Misamis Oriental" },
-    { barangay: "Sugbongcogon", municipality: "Tagoloan", province: "Misamis Oriental", fullAddress: "Sugbongcogon, Tagoloan, Misamis Oriental" },
-
-    // Villanueva (Neighboring Municipality)
-    { barangay: "Poblacion 1", municipality: "Villanueva", province: "Misamis Oriental", fullAddress: "Poblacion 1, Villanueva, Misamis Oriental" },
-    { barangay: "Poblacion 2", municipality: "Villanueva", province: "Misamis Oriental", fullAddress: "Poblacion 2, Villanueva, Misamis Oriental" },
-    { barangay: "Poblacion 3", municipality: "Villanueva", province: "Misamis Oriental", fullAddress: "Poblacion 3, Villanueva, Misamis Oriental" },
-    { barangay: "Katipunan", municipality: "Villanueva", province: "Misamis Oriental", fullAddress: "Katipunan, Villanueva, Misamis Oriental" },
-    { barangay: "Dayawan", municipality: "Villanueva", province: "Misamis Oriental", fullAddress: "Dayawan, Villanueva, Misamis Oriental" },
-    { barangay: "Looc", municipality: "Villanueva", province: "Misamis Oriental", fullAddress: "Looc, Villanueva, Misamis Oriental" },
-    { barangay: "San Martin", municipality: "Villanueva", province: "Misamis Oriental", fullAddress: "San Martin, Villanueva, Misamis Oriental" },
-    { barangay: "Imelda", municipality: "Villanueva", province: "Misamis Oriental", fullAddress: "Imelda, Villanueva, Misamis Oriental" },
-
-    // Jasaan (Neighboring Municipality)
-    { barangay: "Lower Jasaan", municipality: "Jasaan", province: "Misamis Oriental", fullAddress: "Lower Jasaan, Jasaan, Misamis Oriental" },
-    { barangay: "Upper Jasaan", municipality: "Jasaan", province: "Misamis Oriental", fullAddress: "Upper Jasaan, Jasaan, Misamis Oriental" },
-    { barangay: "Aplaya", municipality: "Jasaan", province: "Misamis Oriental", fullAddress: "Aplaya, Jasaan, Misamis Oriental" },
-    { barangay: "Bobontohan", municipality: "Jasaan", province: "Misamis Oriental", fullAddress: "Bobontohan, Jasaan, Misamis Oriental" },
-    { barangay: "Kimaya", municipality: "Jasaan", province: "Misamis Oriental", fullAddress: "Kimaya, Jasaan, Misamis Oriental" },
-    { barangay: "Luz Banzon", municipality: "Jasaan", province: "Misamis Oriental", fullAddress: "Luz Banzon, Jasaan, Misamis Oriental" },
-    { barangay: "Solana", municipality: "Jasaan", province: "Misamis Oriental", fullAddress: "Solana, Jasaan, Misamis Oriental" },
-    { barangay: "San Antonio", municipality: "Jasaan", province: "Misamis Oriental", fullAddress: "San Antonio, Jasaan, Misamis Oriental" },
-    { barangay: "Jampason", municipality: "Jasaan", province: "Misamis Oriental", fullAddress: "Jampason, Jasaan, Misamis Oriental" },
-    { barangay: "IS Cruz", municipality: "Jasaan", province: "Misamis Oriental", fullAddress: "IS Cruz, Jasaan, Misamis Oriental" },
-
-    // Claveria
-    { barangay: "Poblacion", municipality: "Claveria", province: "Misamis Oriental", fullAddress: "Poblacion, Claveria, Misamis Oriental" },
-    { barangay: "Patrocinio", municipality: "Claveria", province: "Misamis Oriental", fullAddress: "Patrocinio, Claveria, Misamis Oriental" },
-    { barangay: "Hinaplanan", municipality: "Claveria", province: "Misamis Oriental", fullAddress: "Hinaplanan, Claveria, Misamis Oriental" },
-    { barangay: "Tamboboan", municipality: "Claveria", province: "Misamis Oriental", fullAddress: "Tamboboan, Claveria, Misamis Oriental" },
-    { barangay: "Mat-I", municipality: "Claveria", province: "Misamis Oriental", fullAddress: "Mat-I, Claveria, Misamis Oriental" },
-
-    // Cagayan de Oro City (Districts frequented by students)
-    { barangay: "Bugo", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Bugo, Cagayan de Oro City" },
-    { barangay: "Puerto", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Puerto, Cagayan de Oro City" },
-    { barangay: "Tablon", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Tablon, Cagayan de Oro City" },
-    { barangay: "Agusan", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Agusan, Cagayan de Oro City" },
-    { barangay: "Cugman", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Cugman, Cagayan de Oro City" },
-    { barangay: "Lapasan", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Lapasan, Cagayan de Oro City" },
-    { barangay: "Gusa", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Gusa, Cagayan de Oro City" },
-    { barangay: "Macasandig", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Macasandig, Cagayan de Oro City" },
-    { barangay: "Carmen", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Carmen, Cagayan de Oro City" },
-    { barangay: "Kauswagan", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Kauswagan, Cagayan de Oro City" },
-    { barangay: "Bulua", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Bulua, Cagayan de Oro City" },
-    { barangay: "Nazareth", municipality: "Cagayan de Oro City", province: "Misamis Oriental", fullAddress: "Nazareth, Cagayan de Oro City" },
-
-    // Balingasag
-    { barangay: "Poblacion", municipality: "Balingasag", province: "Misamis Oriental", fullAddress: "Poblacion, Balingasag, Misamis Oriental" },
-    { barangay: "Baliwagan", municipality: "Balingasag", province: "Misamis Oriental", fullAddress: "Baliwagan, Balingasag, Misamis Oriental" },
-    { barangay: "Linggangao", municipality: "Balingasag", province: "Misamis Oriental", fullAddress: "Linggangao, Balingasag, Misamis Oriental" },
-    { barangay: "Hermano", municipality: "Balingasag", province: "Misamis Oriental", fullAddress: "Hermano, Balingasag, Misamis Oriental" },
-
-    // Other Misamis Oriental Municipalities
-    { barangay: "Poblacion", municipality: "Opol", province: "Misamis Oriental", fullAddress: "Poblacion, Opol, Misamis Oriental" },
-    { barangay: "Poblacion", municipality: "El Salvador City", province: "Misamis Oriental", fullAddress: "Poblacion, El Salvador City, Misamis Oriental" },
-    { barangay: "Poblacion", municipality: "Alubijid", province: "Misamis Oriental", fullAddress: "Poblacion, Alubijid, Misamis Oriental" },
-    { barangay: "Poblacion", municipality: "Initao", province: "Misamis Oriental", fullAddress: "Poblacion, Initao, Misamis Oriental" },
-    { barangay: "Poblacion", municipality: "Salay", province: "Misamis Oriental", fullAddress: "Poblacion, Salay, Misamis Oriental" },
-    { barangay: "Poblacion", municipality: "Gingoog City", province: "Misamis Oriental", fullAddress: "Poblacion, Gingoog City, Misamis Oriental" },
-];
+export type { AddressOption };
+export { COMMON_BARANGAYS, MINDANAO_ADDRESSES };
 
 export interface AddressAutocompleteFieldProps {
     label?: string;
@@ -181,7 +112,7 @@ export function AddressAutocompleteField({
     value,
     onChange,
     required = false,
-    placeholder = "e.g. Baluarte, Tagoloan or type street / purok",
+    placeholder = "e.g. Baluarte, Tagoloan or type any Mindanao address...",
     disabled = false,
     error,
 }: AddressAutocompleteFieldProps) {
@@ -201,29 +132,31 @@ export function AddressAutocompleteField({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Filter matching barangays and municipalities
+    // Filter matching barangays, municipalities, and provinces across all Mindanao
     const filteredOptions = useMemo(() => {
         const query = (value || "").toLowerCase().trim();
         if (!query) {
-            // Show all 10 Tagoloan barangays by default
-            return COMMON_BARANGAYS.slice(0, 10);
+            return MINDANAO_ADDRESSES.slice(0, 10);
         }
-
-        // Extract last token or words to match barangay / municipality name
-        const cleanQuery = query.replace(/^purok\s*\d+[,.\s]*/i, "").replace(/^zone\s*\d+[,.\s]*/i, "").trim();
-
-        const matches = COMMON_BARANGAYS.filter((item) => {
+        const cleanQuery = query.replace(/^(purok|zone|sitio|blk|lot|phase)\s*[\w\d-]+\s*[,.\s]*/i, "").trim();
+        const matches = MINDANAO_ADDRESSES.filter((item) => {
             const b = item.barangay.toLowerCase();
             const m = item.municipality.toLowerCase();
+            const p = item.province.toLowerCase();
+            const reg = (item.region || "").toLowerCase();
             const f = item.fullAddress.toLowerCase();
-            return f.includes(query) || (cleanQuery && (b.includes(cleanQuery) || m.includes(cleanQuery)));
+            return (
+                f.includes(query) ||
+                (cleanQuery && (b.includes(cleanQuery) || m.includes(cleanQuery) || p.includes(cleanQuery) || reg.includes(cleanQuery)))
+            );
         });
-
-        if (matches.length > 0) return matches.slice(0, 12);
-
-        // Fallback: search across all barangays
-        return COMMON_BARANGAYS.filter((item) => {
-            return item.barangay.toLowerCase().includes(cleanQuery) || item.municipality.toLowerCase().includes(cleanQuery);
+        if (matches.length > 0) return matches.slice(0, 15);
+        return MINDANAO_ADDRESSES.filter((item) => {
+            return (
+                item.barangay.toLowerCase().includes(cleanQuery) ||
+                item.municipality.toLowerCase().includes(cleanQuery) ||
+                item.province.toLowerCase().includes(cleanQuery)
+            );
         }).slice(0, 10);
     }, [value]);
 
@@ -277,7 +210,7 @@ export function AddressAutocompleteField({
                     {required && <span className="ml-1 text-red-500">*</span>}
                 </label>
                 <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400">
-                    (Auto-suggests Barangay & Place)
+                    (Auto-suggests Mindanao Barangay & Place)
                 </span>
             </div>
 
@@ -326,7 +259,7 @@ export function AddressAutocompleteField({
 
             {/* Native Mobile Keyboard Datalist Fallback */}
             <datalist id="tcc-address-datalist">
-                {COMMON_BARANGAYS.map((b, idx) => (
+                {MINDANAO_ADDRESSES.map((b, idx) => (
                     <option key={`dl-${idx}`} value={b.fullAddress} />
                 ))}
             </datalist>
@@ -336,7 +269,7 @@ export function AddressAutocompleteField({
                 <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 max-h-60 overflow-y-auto rounded-xl border border-stone-200 bg-white p-1.5 shadow-xl dark:border-stone-700 dark:bg-stone-900 animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-2.5 py-1.5 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
                         <span>Select Barangay / Location</span>
-                        <span className="text-[10px] lowercase text-[#70091f] dark:text-[#f8a598]">Tagoloan & Mis. Or.</span>
+                        <span className="text-[10px] font-semibold text-[#70091f] dark:text-[#f8a598]">All Mindanao (6 Regions)</span>
                     </div>
 
                     <div className="divide-y divide-stone-100 dark:divide-stone-800/50">
@@ -363,9 +296,16 @@ export function AddressAutocompleteField({
                                             className="mt-0.5 shrink-0 text-[#70091f] dark:text-[#f8a598]"
                                         />
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-bold truncate text-[13px] leading-tight">
-                                                Brgy. {option.barangay}
-                                            </p>
+                                            <div className="flex items-center justify-between gap-1.5">
+                                                <p className="font-bold truncate text-[13px] leading-tight">
+                                                    Brgy. {option.barangay}
+                                                </p>
+                                                {option.region && (
+                                                    <span className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-medium bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400">
+                                                        {option.region}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
                                                 {option.municipality}, {option.province}
                                             </p>
@@ -375,7 +315,7 @@ export function AddressAutocompleteField({
                             })
                         ) : (
                             <div className="px-3 py-2.5 text-center text-xs text-stone-500 dark:text-stone-400">
-                                No matching barangay found. You can continue typing custom address.
+                                No matching Mindanao barangay found. You can continue typing custom address.
                             </div>
                         )}
                     </div>

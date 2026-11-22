@@ -130,6 +130,7 @@ function ClinicVisits() {
     const [viewingVisit, setViewingVisit] = useState<VisitRecord | null>(null);
     const [deleteVisit, setDeleteVisit] = useState<VisitRecord | null>(null);
     const [toastMessage, setToastMessage] = useState("");
+    const [toastType, setToastType] = useState<"success" | "delete" | "info" | "error" | "warning">("info");
     const [toastAction, setToastAction] = useState<{ label: string; onClick: () => void } | undefined>(undefined);
     const [showRestoreModal, setShowRestoreModal] = useState(false);
 
@@ -998,7 +999,8 @@ function ClinicVisits() {
             });
         } catch (error) {
             console.error("Error saving clinic visit:", error);
-            alert(
+            setToastType("error");
+            setToastMessage(
                 getErrorMessage(
                     error,
                     "Failed to save clinic visit."
@@ -1038,37 +1040,32 @@ function ClinicVisits() {
         ].filter(Boolean).length;
 
         if (patientCount === 0) {
-            alert(
-                "Please select a Student, Faculty, or Staff."
-            );
+            setToastType("warning");
+            setToastMessage("Please select a Student, Faculty, or Staff.");
             return;
         }
 
         if (patientCount > 1) {
-            alert(
-                "Please select only one patient."
-            );
+            setToastType("warning");
+            setToastMessage("Please select only one patient.");
             return;
         }
 
         if (!formData.nurse_id) {
-            alert(
-                "Please select a nurse on duty."
-            );
+            setToastType("warning");
+            setToastMessage("Please select a nurse on duty.");
             return;
         }
 
         if (!formData.visit_date) {
-            alert(
-                "Please select the visit date."
-            );
+            setToastType("warning");
+            setToastMessage("Please select the visit date.");
             return;
         }
 
         if (!formData.reason.trim()) {
-            alert(
-                "Please enter the reason for visit."
-            );
+            setToastType("warning");
+            setToastMessage("Please enter the reason for visit.");
             return;
         }
 
@@ -1076,7 +1073,8 @@ function ClinicVisits() {
             treatmentNeedsMedicine(formData.treatment) &&
             !formData.medicine_id
         ) {
-            alert(
+            setToastType("warning");
+            setToastMessage(
                 `Please select a medicine / supply for ${formData.treatment}.`
             );
             return;
@@ -1091,7 +1089,8 @@ function ClinicVisits() {
                 ) < 1
             )
         ) {
-            alert(
+            setToastType("warning");
+            setToastMessage(
                 "Please enter a valid quantity used (at least 1)."
             );
             return;
@@ -1107,7 +1106,8 @@ function ClinicVisits() {
                     selectedMedicine
                 )
         ) {
-            alert(
+            setToastType("warning");
+            setToastMessage(
                 `Not enough stock. Available stock: ${getMedicineStock(
                     selectedMedicine
                 )}.`
@@ -1241,7 +1241,8 @@ function ClinicVisits() {
                 error
             );
 
-            alert(
+            setToastType("error");
+            setToastMessage(
                 getErrorMessage(
                     error,
                     "Failed to delete clinic visit."
@@ -1486,6 +1487,7 @@ function ClinicVisits() {
         <div className="tcc-module-page min-h-screen w-full px-3.5 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
             <FloatingToast
                 message={toastMessage}
+                type={toastType}
                 onClose={() => {
                     setToastMessage("");
                     setToastAction(undefined);

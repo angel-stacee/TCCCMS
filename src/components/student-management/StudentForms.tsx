@@ -1021,7 +1021,7 @@ export function StudentForms({
                             >
                                 {editingStudent
                                     ? "Update Student"
-                                    : "Save Patient"}
+                                    : "Add Student"}
                             </button>
                         </div>
                     </form>

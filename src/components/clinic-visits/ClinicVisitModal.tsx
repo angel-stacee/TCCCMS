@@ -873,10 +873,10 @@ export function ClinicVisitModal({
                             className="flex items-center gap-2 rounded-xl bg-[#70091f] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#70091f]/20 transition hover:bg-[#8b1505] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {loading
-                                ? "Saving..."
+                                ? (editingVisit ? "Updating Visit..." : "Adding Visit...")
                                 : editingVisit
-                                ? "Update Visit"
-                                : "Save Visit"}
+                                ? "Update Clinic Visit"
+                                : "Add Clinic Visit"}
                         </button>
                     </div>
                 </form>

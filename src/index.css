@@ -864,7 +864,10 @@ html.dark .tcc-module-page table tbody tr:hover {
 
     #root:has(#reports-page) .tcc-sidebar,
     #root:has(#reports-page) .tcc-sidebar-overlay,
-    #root:has(#reports-page) header.fixed,
+    #root:has(#reports-page) header,
+    #root header,
+    header,
+    .print\:hidden,
     #reports-page [class~="print:hidden"] {
         display: none !important;
     }

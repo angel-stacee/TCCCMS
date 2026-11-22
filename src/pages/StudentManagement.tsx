@@ -12,12 +12,6 @@ import { exportMedicalCertificatePDF, exportPatientMedicalReportPDF } from "../u
 import { formatNA, formatTemperature, formatDate, mapCourseToDepartment } from "../utils/formatters";
 import { ReasonBadge } from "../utils/reasonColors";
 
-
-
-
-
-
-
 const EMPTY_STUDENT_FORM = {
     student_id: "",
     first_name: "",

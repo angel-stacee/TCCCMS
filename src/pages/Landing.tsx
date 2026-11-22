@@ -391,21 +391,24 @@ export default function Landing(): React.JSX.Element {
                     {/* Top Accreditation Pill */}
                     <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#e5a93b]/40 bg-[#e5a93b]/10 px-4 py-1.5 text-xs font-semibold text-[#f5c358] backdrop-blur-md">
                         <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                        <span>Tagoloan Community College · Baluarte Campus Clinic</span>
+                        <span>Tagoloan Community College · Only Staff Can Access</span>
                     </div>
 
                     {/* Central Headline */}
                     <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.1]">
-                        Accessible campus healthcare
+                        TCC Clinic is ready
                         <br />
                         <span className="bg-gradient-to-r from-[#e5a93b] via-[#f7b944] to-[#f49342] bg-clip-text text-transparent">
-                            for every student &amp; staff.
+                            to serve you better.
                         </span>
                     </h1>
 
                     {/* Concise Subtitle */}
                     <p className="mt-5 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed text-[#fcebe7]/85 font-normal">
                         Confidential medical consultations, vital signs triage, and free medicine dispensary dedicated to campus health security.
+                        <span className="block mt-2 font-semibold text-[#f5c358]">
+                            Notice: Only authorized clinic staff can access this portal.
+                        </span>
                     </p>
 
                     {/* Action buttons */}

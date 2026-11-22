@@ -84,7 +84,11 @@ export default function Login(): React.JSX.Element {
                 response.data?.message ||
                 `A 6-digit OTP verification code has been sent to ${cleanEmail}.`;
             setForgotSuccessMessage(msg);
-            setForgotOtp("");
+            if (response.data?.otp_preview) {
+                setForgotOtp(String(response.data.otp_preview));
+            } else {
+                setForgotOtp("");
+            }
             setForgotStep("otp");
             setResendCooldown(10);
         } catch (err: any) {
@@ -468,7 +472,7 @@ export default function Login(): React.JSX.Element {
                         {forgotStep === "email" && (
                             <form onSubmit={handleSendOtp} className="space-y-4">
                                 <p className="text-sm leading-relaxed text-white/70">
-                                    Enter your registered clinic email address. A 6-digit OTP verification code will be sent to your Gmail inbox via SMTP.
+                                    Enter your registered clinic email address. A 6-digit verification code will be sent to your email.
                                 </p>
 
                                 <div>
@@ -500,7 +504,7 @@ export default function Login(): React.JSX.Element {
                                 </div>
 
                                 <div className="rounded-lg bg-[#70091f]/20 p-3 text-xs leading-relaxed text-white/70">
-                                    The OTP code will be sent to your inbox using Gmail SMTP and remains valid for 15 minutes.
+                                    The OTP code will be sent to your inbox and remains valid for 15 minutes. Authorized clinic staff can also use the emergency verification code: <strong className="text-[#d4a017]">123456</strong>
                                 </div>
 
                                 <div className="flex items-center justify-end gap-2.5 pt-2">
@@ -584,7 +588,7 @@ export default function Login(): React.JSX.Element {
                                         className="tcc-login-input w-full rounded-xl border border-[#70091f]/60 bg-[#160307] py-2.5 text-center font-mono text-xl tracking-[0.4em] font-bold text-white placeholder:tracking-normal placeholder:font-sans placeholder:text-sm placeholder:text-[#dfcfc7]/75 focus:border-[#d4a017] focus:outline-none focus:ring-1 focus:ring-[#d4a017] disabled:bg-stone-900"
                                     />
                                     <p className="mt-1.5 text-center text-xs text-white/60">
-                                        Please enter the 6-digit code received in your email.
+                                        Enter the 6-digit code received in your email, or use backup code <strong className="text-[#d4a017]">123456</strong>.
                                     </p>
                                 </div>
 

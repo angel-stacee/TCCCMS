@@ -1082,7 +1082,6 @@ export function Header({
                         </div>
                     )}
                 </div>
-                )}
             </div>
 
             {/* Confirmation Modal for Clear All Notifications */}

@@ -166,10 +166,16 @@ export async function exportMonthlyReportPDF(reportData: {
     const logoData = await loadLogoDataUrl();
     const periodText = reportData.report?.period || `${reportData.report?.month_name || "Monthly"} ${reportData.report?.year || ""}`;
 
-    // ── 1. OFFICIAL INSTITUTIONAL LETTERHEAD (White Background matching Print Report) ──
-    // Transparent TCC Logo on the Right Upper
+    // ── 1. OFFICIAL INSTITUTIONAL LETTERHEAD ──
+    const logoSize = 20;
+    const logoX = pageWidth - 14 - logoSize;
+    const logoY = 12;
     if (logoData) {
-        doc.addImage(logoData, "PNG", pageWidth - 14 - 22, 11, 22, 22);
+        try {
+            doc.addImage(logoData, "PNG", logoX, logoY, logoSize, logoSize);
+        } catch {
+            // fallback gracefully
+        }
     }
 
     // Header Titles
@@ -203,18 +209,25 @@ export async function exportMonthlyReportPDF(reportData: {
     doc.setTextColor(112, 9, 31);
     doc.text(periodText.toUpperCase(), 34, 38);
 
-    // Reporting Period Box on the Upper Right (matching print view)
+    // Reporting Period Box on the Upper Right (placed to the left of the Logo without overlapping)
+    const boxWidth = 38;
+    const boxHeight = 13;
+    const boxX = logoX - 5 - boxWidth;
+    const boxY = 15.5;
     doc.setDrawColor(232, 223, 212);
     doc.setFillColor(252, 250, 246);
-    doc.roundedRect(pageWidth - 14 - 40, 25, 40, 12, 1.5, 1.5, "FD");
+    doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 1.5, 1.5, "FD");
+
+    const boxCenterX = boxX + boxWidth / 2;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(6.5);
     doc.setTextColor(130, 130, 130);
-    doc.text("REPORTING PERIOD", pageWidth - 14 - 20, 29, { align: "center" });
+    doc.text("REPORTING PERIOD", boxCenterX, boxY + 4.5, { align: "center" });
+
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
     doc.setTextColor(112, 9, 31);
-    doc.text(periodText.toUpperCase(), pageWidth - 14 - 20, 34, { align: "center" });
+    doc.text(periodText.toUpperCase(), boxCenterX, boxY + 9.5, { align: "center" });
 
     // Meta Divider Bar
     doc.setDrawColor(220, 212, 202);

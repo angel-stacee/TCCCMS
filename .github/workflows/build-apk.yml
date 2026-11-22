@@ -47,7 +47,11 @@ jobs:
         working-directory: ./android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee ../gradle-build.log
+
+      - name: Dump Gradle Log on Failure
+        if: failure()
+        run: tail -n 120 gradle-build.log
 
       - name: Locate and Prepare APK File
         run: |

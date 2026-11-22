@@ -229,7 +229,6 @@ export function AddressAutocompleteField({
                     placeholder={placeholder}
                     disabled={disabled}
                     autoComplete="off"
-                    list="tcc-address-datalist"
                     className={`w-full rounded-lg border ${
                         error
                             ? "border-red-400 focus:border-red-500 focus:ring-red-100"
@@ -257,12 +256,6 @@ export function AddressAutocompleteField({
                 </button>
             </div>
 
-            {/* Native Mobile Keyboard Datalist Fallback */}
-            <datalist id="tcc-address-datalist">
-                {MINDANAO_ADDRESSES.map((b, idx) => (
-                    <option key={`dl-${idx}`} value={b.fullAddress} />
-                ))}
-            </datalist>
 
             {/* Floating Dropdown Autocomplete Menu */}
             {isOpen && !disabled && (

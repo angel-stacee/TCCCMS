@@ -983,8 +983,9 @@ html.dark .tcc-module-page table tbody tr:hover {
     }
 
     #reports-page .report-signatures {
-        display: grid !important;
-        margin-top: 12mm !important;
+        display: block !important;
+        break-inside: avoid !important;
+        margin-top: 10mm !important;
     }
 }
 

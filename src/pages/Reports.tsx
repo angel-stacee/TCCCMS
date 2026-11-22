@@ -625,20 +625,20 @@ function Reports() {
                         </div>
                     </section>
 
-                    <footer className="report-signatures mt-8 rounded-2xl border border-[#e8dfd4] bg-white p-6 shadow-sm print:rounded-none print:border-0 print:border-t-2 print:border-stone-400 print:p-0 print:pt-6 print:shadow-none">
+                    <footer className="report-signatures mt-8 rounded-2xl border border-[#e8dfd4] bg-white p-6 shadow-sm break-inside-avoid print:rounded-none print:border-0 print:border-t-2 print:border-stone-400 print:p-0 print:pt-6 print:shadow-none">
                         <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.14em] text-[#70091f]">
                             Official Endorsement & Signatures
                         </p>
-                        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 print:grid-cols-2 print:gap-12 text-xs">
-                            <div className="space-y-1">
+                        <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between text-xs print:flex-row print:items-start print:justify-between">
+                            <div className="w-64 max-w-full space-y-1">
                                 <p className="font-medium text-stone-500">Prepared by:</p>
-                                <div className="w-56 border-b border-stone-400 pt-10" />
+                                <div className="w-full border-b border-stone-400 pt-12" />
                                 <p className="pt-1 font-bold text-stone-800">Clinic Staff / Attending Nurse</p>
                                 <p className="text-[11px] text-stone-500">Health Services Clinic · Tagoloan Community College</p>
                             </div>
-                            <div className="space-y-1">
+                            <div className="w-64 max-w-full space-y-1">
                                 <p className="font-medium text-stone-500">Noted by:</p>
-                                <div className="w-56 border-b border-stone-400 pt-10" />
+                                <div className="w-full border-b border-stone-400 pt-12" />
                                 <p className="pt-1 font-bold text-stone-800">College Administration</p>
                                 <p className="text-[11px] text-stone-500">Tagoloan Community College</p>
                             </div>

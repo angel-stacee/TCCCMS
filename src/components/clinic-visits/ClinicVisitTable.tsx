@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import { createPortal } from "react-dom";
-import { CalendarDays, Eye, FileBadge, FileText, Pencil, Search, Stethoscope, Trash2, X } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Eye, FileBadge, FileText, Pencil, Search, Stethoscope, Trash2, X } from "lucide-react";
 import { ReasonBadge } from "../../utils/reasonColors";
 import { formatNA, formatTemperature, mapCourseToDepartment } from "../../utils/formatters";
 
@@ -431,30 +431,52 @@ export function ClinicVisitTable({
             </div>
 
             {/* RESPONSIVE PAGINATION FOOTER */}
-            <div className="mt-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-[#887d70] dark:text-stone-400">
-                <span>
-                    Page {visitPagination.current_page} of {visitPagination.last_page} ({visitPagination.total} total)
+            <div className="mt-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-stone-700 dark:text-stone-300">
+                <span className="font-semibold text-center sm:text-left">
+                    Page <span className="font-bold text-[#70091f] dark:text-[#f8a598]">{visitPagination.current_page}</span> of <span className="font-bold">{visitPagination.last_page || 1}</span> ({visitPagination.total} total)
                 </span>
-                <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-2 mr-0 sm:mr-16">
+                <div className="flex flex-wrap items-center justify-center sm:justify-end gap-1.5 w-full sm:w-auto">
                     <button
                         type="button"
                         disabled={visitPagination.current_page <= 1}
-                        onClick={() =>
-                            fetchVisits(visitPagination.current_page - 1, search)
-                        }
-                        className="flex-1 sm:flex-none rounded-xl border border-[#e8dfd4] bg-white px-4 py-2 font-medium transition hover:bg-[#fcfaf6] disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200"
+                        onClick={() => fetchVisits(visitPagination.current_page - 1, search)}
+                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
                     >
-                        Previous
+                        <ChevronLeft size={14} strokeWidth={2.5} />
+                        <span>Previous</span>
                     </button>
+
+                    {Array.from({ length: Math.min(5, visitPagination.last_page || 1) }, (_, i) => {
+                        let pageNum = i + 1;
+                        if (visitPagination.last_page > 5) {
+                            const start = Math.max(1, Math.min(visitPagination.current_page - 2, visitPagination.last_page - 4));
+                            pageNum = start + i;
+                        }
+                        const isActive = pageNum === visitPagination.current_page;
+                        return (
+                            <button
+                                key={pageNum}
+                                type="button"
+                                onClick={() => fetchVisits(pageNum, search)}
+                                className={`min-w-8 h-8 rounded-xl px-2.5 text-xs font-bold transition flex items-center justify-center cursor-pointer ${
+                                    isActive
+                                        ? "bg-[#70091f] text-white shadow-sm ring-1 ring-[#70091f]"
+                                        : "border border-stone-300 bg-white text-stone-800 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
+                                }`}
+                            >
+                                {pageNum}
+                            </button>
+                        );
+                    })}
+
                     <button
                         type="button"
                         disabled={visitPagination.current_page >= visitPagination.last_page}
-                        onClick={() =>
-                            fetchVisits(visitPagination.current_page + 1, search)
-                        }
-                        className="flex-1 sm:flex-none rounded-xl border border-[#e8dfd4] bg-white px-4 py-2 font-medium transition hover:bg-[#fcfaf6] disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200"
+                        onClick={() => fetchVisits(visitPagination.current_page + 1, search)}
+                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
                     >
-                        Next
+                        <span>Next</span>
+                        <ChevronRight size={14} strokeWidth={2.5} />
                     </button>
                 </div>
             </div>

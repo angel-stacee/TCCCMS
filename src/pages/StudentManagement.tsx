@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AlertCircle, BookOpen, Briefcase, CheckCircle2, ChevronDown, Download, Eye, FileBadge, FileText, GraduationCap, MapPin, Pencil, RotateCcw, Search, ShieldCheck, Stethoscope, Trash2, User, X } from "lucide-react";
+import { AlertCircle, BookOpen, Briefcase, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Download, Eye, FileBadge, FileText, GraduationCap, MapPin, Pencil, RotateCcw, Search, ShieldCheck, Stethoscope, Trash2, User, X } from "lucide-react";
 import api from "../services/api";
 import { getCachedRecord, invalidateRecordCache } from "../services/recordCache";
 import { ConfirmationModal, InfoItem, Modal, RecordSection } from "../components/student-management/FieldsAndModals";
@@ -145,6 +145,69 @@ function StudentManagement() {
             }
             return next;
         }, { replace: true });
+    };
+
+    const renderPagination = (
+        current_page: number,
+        last_page: number,
+        total: number,
+        onPageChange: (page: number) => void
+    ) => {
+        const pages: number[] = [];
+        const maxPages = last_page || 1;
+        const maxVisible = 5;
+        let startPage = Math.max(1, current_page - 2);
+        let endPage = Math.min(maxPages, startPage + maxVisible - 1);
+        if (endPage - startPage + 1 < maxVisible) {
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+        for (let p = startPage; p <= endPage; p++) {
+            pages.push(p);
+        }
+
+        return (
+            <div className="flex flex-col gap-3 border-t border-[#e8dfd4] bg-white px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between dark:border-[#4e4234] dark:bg-[#211c17]">
+                <span className="text-center sm:text-left text-xs sm:text-sm font-semibold text-stone-700 dark:text-stone-300">
+                    Page <span className="font-bold text-[#70091f] dark:text-[#f8a598]">{current_page}</span> of <span className="font-bold">{maxPages}</span> ({total} records)
+                </span>
+                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:justify-end">
+                    <button
+                        type="button"
+                        disabled={current_page <= 1}
+                        onClick={() => onPageChange(current_page - 1)}
+                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 disabled:shadow-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
+                    >
+                        <ChevronLeft size={14} strokeWidth={2.5} />
+                        <span>Previous</span>
+                    </button>
+
+                    {pages.map((p) => (
+                        <button
+                            key={p}
+                            type="button"
+                            onClick={() => onPageChange(p)}
+                            className={`min-w-8 h-8 rounded-xl px-2.5 text-xs font-bold transition flex items-center justify-center cursor-pointer ${
+                                p === current_page
+                                    ? "bg-[#70091f] text-white shadow-sm ring-1 ring-[#70091f]"
+                                    : "border border-stone-300 bg-white text-stone-800 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
+                            }`}
+                        >
+                            {p}
+                        </button>
+                    ))}
+
+                    <button
+                        type="button"
+                        disabled={current_page >= maxPages}
+                        onClick={() => onPageChange(current_page + 1)}
+                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 disabled:shadow-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
+                    >
+                        <span>Next</span>
+                        <ChevronRight size={14} strokeWidth={2.5} />
+                    </button>
+                </div>
+            </div>
+        );
     };
 
     const [loading, setLoading] = useState(true);
@@ -2377,39 +2440,12 @@ function StudentManagement() {
                                         ))
                                     )}
                                 </div>
-                                <div className="flex flex-col gap-3 border-t border-[#e8dfd4] bg-white px-5 py-4 text-sm text-[#887d70] sm:flex-row sm:items-center sm:justify-between dark:border-[#4e4234] dark:bg-[#211c17] dark:text-[#a99d8f]">
-                                    <span className="text-center sm:text-left">
-                                        Page {studentPagination.current_page} of {studentPagination.last_page}
-                                    </span>
-                                    <div className="flex justify-center gap-2 sm:justify-end mr-0 sm:mr-16">
-                                        <button
-                                            type="button"
-                                            disabled={studentPagination.current_page <= 1}
-                                            onClick={() =>
-                                                loadStudentPage(
-                                                    studentPagination.current_page - 1,
-                                                    search
-                                                )
-                                            }
-                                            className="rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-1.5 text-xs font-semibold text-[#766959] transition hover:bg-[#f3ebdf] hover:text-[#3d3329] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#4e4234] dark:bg-[#2c231a] dark:text-[#e5dcd1] dark:hover:bg-[#382f25]"
-                                        >
-                                            Previous
-                                        </button>
-                                        <button
-                                            type="button"
-                                            disabled={studentPagination.current_page >= studentPagination.last_page}
-                                            onClick={() =>
-                                                loadStudentPage(
-                                                    studentPagination.current_page + 1,
-                                                    search
-                                                )
-                                            }
-                                            className="rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-1.5 text-xs font-semibold text-[#766959] transition hover:bg-[#f3ebdf] hover:text-[#3d3329] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#4e4234] dark:bg-[#2c231a] dark:text-[#e5dcd1] dark:hover:bg-[#382f25]"
-                                        >
-                                            Next
-                                        </button>
-                                    </div>
-                                </div>
+                                {renderPagination(
+                                    studentPagination.current_page,
+                                    studentPagination.last_page,
+                                    studentPagination.total,
+                                    (p) => loadStudentPage(p, search)
+                                )}
                             </div>
                         )}
 
@@ -2655,13 +2691,12 @@ function StudentManagement() {
                                         ))
                                     )}
                                 </div>
-                                <div className="flex flex-col gap-3 border-t border-[#e8dfd4] bg-white px-5 py-4 text-sm text-[#887d70] sm:flex-row sm:items-center sm:justify-between dark:border-[#4e4234] dark:bg-[#211c17] dark:text-[#a99d8f]">
-                                    <span className="text-center sm:text-left">Page {staffPagination.current_page} of {staffPagination.last_page}</span>
-                                    <div className="flex justify-center gap-2 sm:justify-end mr-0 sm:mr-16">
-                                        <button type="button" disabled={staffPagination.current_page <= 1} onClick={() => loadStaffPage(staffPagination.current_page - 1, search)} className="rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-1.5 text-xs font-semibold text-[#766959] transition hover:bg-[#f3ebdf] hover:text-[#3d3329] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#4e4234] dark:bg-[#2c231a] dark:text-[#e5dcd1] dark:hover:bg-[#382f25]">Previous</button>
-                                        <button type="button" disabled={staffPagination.current_page >= staffPagination.last_page} onClick={() => loadStaffPage(staffPagination.current_page + 1, search)} className="rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-1.5 text-xs font-semibold text-[#766959] transition hover:bg-[#f3ebdf] hover:text-[#3d3329] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#4e4234] dark:bg-[#2c231a] dark:text-[#e5dcd1] dark:hover:bg-[#382f25]">Next</button>
-                                    </div>
-                                </div>
+                                {renderPagination(
+                                    staffPagination.current_page,
+                                    staffPagination.last_page,
+                                    staffPagination.total,
+                                    (p) => loadStaffPage(p, search)
+                                )}
                             </div>
                         )}
 
@@ -2907,13 +2942,12 @@ function StudentManagement() {
                                         ))
                                     )}
                                 </div>
-                                <div className="flex flex-col gap-3 border-t border-[#e8dfd4] bg-white px-5 py-4 text-sm text-[#887d70] sm:flex-row sm:items-center sm:justify-between dark:border-[#4e4234] dark:bg-[#211c17] dark:text-[#a99d8f]">
-                                    <span className="text-center sm:text-left">Page {facultyPagination.current_page} of {facultyPagination.last_page}</span>
-                                    <div className="flex justify-center gap-2 sm:justify-end mr-0 sm:mr-16">
-                                        <button type="button" disabled={facultyPagination.current_page <= 1} onClick={() => loadFacultyPage(facultyPagination.current_page - 1, search)} className="rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-1.5 text-xs font-semibold text-[#766959] transition hover:bg-[#f3ebdf] hover:text-[#3d3329] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#4e4234] dark:bg-[#2c231a] dark:text-[#e5dcd1] dark:hover:bg-[#382f25]">Previous</button>
-                                        <button type="button" disabled={facultyPagination.current_page >= facultyPagination.last_page} onClick={() => loadFacultyPage(facultyPagination.current_page + 1, search)} className="rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-1.5 text-xs font-semibold text-[#766959] transition hover:bg-[#f3ebdf] hover:text-[#3d3329] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#4e4234] dark:bg-[#2c231a] dark:text-[#e5dcd1] dark:hover:bg-[#382f25]">Next</button>
-                                    </div>
-                                </div>
+                                {renderPagination(
+                                    facultyPagination.current_page,
+                                    facultyPagination.last_page,
+                                    facultyPagination.total,
+                                    (p) => loadFacultyPage(p, search)
+                                )}
                             </div>
                         )}
 

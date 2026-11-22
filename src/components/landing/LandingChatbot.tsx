@@ -78,52 +78,115 @@ export function LandingChatbot() {
         }
     };
 
+    // Check if user query is related to TCC Clinic
+    const isClinicQuery = (query: string): boolean => {
+        const q = query.toLowerCase().trim();
+
+        // Greetings and bot capabilities
+        if (/^(hi|hello|hey|good\s*(morning|afternoon|evening)|sup|yo|welcome)\b/i.test(q) ||
+            /(who\s*are\s*you|what\s*(can|do)\s*you\s*do|help|what\s*is\s*your\s*purpose)/i.test(q) ||
+            /(thank\s*you|thanks|salamat|bye|goodbye)/i.test(q)) {
+            return true;
+        }
+
+        const clinicKeywords = [
+            "clinic", "tcc", "campus", "baluarte", "unifast", "tagoloan", "college", "school",
+            "health", "medical", "medicine", "meds", "drug", "pill", "dispensary", "pharmacy",
+            "vital", "vitals", "sign", "checkup", "check-up", "check up", "triage", "bp", "blood pressure",
+            "temperature", "temp", "fever", "chills", "pulse", "heart rate", "oxygen", "spo2",
+            "respiratory", "breathing", "height", "weight", "bmi", "physical", "assessment", "exam",
+            "doctor", "nurse", "medic", "staff", "patient", "student", "faculty",
+            "headache", "pain", "cough", "cold", "flu", "sore throat", "stomach", "dizzy", "nausea",
+            "injury", "wound", "cut", "bleed", "burn", "first aid", "bandage", "allergy", "asthma",
+            "certificate", "cert", "clearance", "excuse", "ojt", "sports clearance",
+            "hour", "time", "open", "close", "schedule", "when", "where", "location", "building", "floor",
+            "free", "cost", "fee", "pay", "eligible", "id", "emergency", "ambulance", "hospital",
+            "portal", "login", "sign in", "account", "bed", "rest", "observation", "consult"
+        ];
+
+        return clinicKeywords.some((kw) => q.includes(kw));
+    };
+
     // Client-side knowledge base fallback if API is unreachable
     const getClientKnowledgeReply = (query: string): string => {
-        const q = query.toLowerCase();
+        const q = query.toLowerCase().trim();
 
-        if (q.includes("where") || q.includes("location") || q.includes("building") || q.includes("locate") || q.includes("find") || q.includes("floor") || q.includes("unifast")) {
+        // 1. Strict Scope Check: Reject non-clinic questions
+        if (!isClinicQuery(q)) {
+            return "I apologize, but I am specifically designed to assist with **Tagoloan Community College (TCC) Clinic** inquiries only.\n\nI can only answer questions related to:\n• **Clinic Operating Hours & Baluarte Campus Location**\n• **Free Dispensary Medicines & Medical Consultations**\n• **Vital Signs Triage & Checkups (BP, Temperature, Pulse, SpO2, BMI)**\n• **Official Medical Certificates & OJT Clearance**\n• **Emergency Protocols & Ambulance Transfer**\n• **Staff Clinic Management Portal Access**\n\nPlease feel free to ask any clinic or campus health question!";
+        }
+
+        // 2. Vital Signs & Checkups
+        if (
+            q.includes("vital") ||
+            q.includes("checkup") ||
+            q.includes("check-up") ||
+            q.includes("check up") ||
+            q.includes("triage") ||
+            q.includes("blood pressure") ||
+            q.includes("bp") ||
+            q.includes("pulse") ||
+            q.includes("heart rate") ||
+            q.includes("temperature") ||
+            q.includes("temp") ||
+            q.includes("spo2") ||
+            q.includes("oxygen") ||
+            q.includes("respiratory") ||
+            q.includes("bmi") ||
+            q.includes("height") ||
+            q.includes("weight")
+        ) {
+            return "🩺 **Vital Signs & Checkups Available at TCC Clinic:**\n\nThe TCC Baluarte Campus Clinic provides comprehensive vital signs assessment and routine primary checkups **100% free of charge** for all students, faculty, and administrative staff:\n\n1. **Blood Pressure (BP) Monitoring:** Routine hypertension screening, hypotension checks, and monitoring for dizziness.\n2. **Body Temperature:** Digital thermometer screening for fevers, chills, and viral infections.\n3. **Heart Rate / Pulse Rate & Rhythm:** Radial pulse count and pulse oximeter evaluation.\n4. **Oxygen Saturation (SpO2):** Rapid fingertip pulse oximetry for respiratory wellness.\n5. **Respiratory Rate:** Breaths-per-minute monitoring for asthma or breathing difficulties.\n6. **Height, Weight & BMI Measurement:** Physical wellness and nutritional status baseline.\n7. **Basic Physical Assessment & Triage:** Evaluation of minor injuries, ear-nose-throat discomfort, abdominal pain triage, and bed-rest observation bay admission.\n\n📍 **Where to Avail:** Ground Floor, Beside UniFAST Building, Baluarte Campus\n🕒 **Clinic Hours:** Monday to Friday, 8:00 AM – 5:00 PM (Walk-ins welcome, just present your TCC ID)";
+        }
+
+        // 3. Location
+        if (q.includes("where") || q.includes("location") || q.includes("building") || q.includes("locate") || q.includes("find") || q.includes("floor") || q.includes("unifast") || q.includes("address")) {
             return "📍 **Clinic Location:**\nThe TCC Clinic is located on the **Ground Floor, Beside the UniFAST Building** at Baluarte Campus, Tagoloan, Misamis Oriental.\n\nWalk-ins are welcomed during our regular operating hours!";
         }
 
+        // 4. Operating Hours
         if (q.includes("hour") || q.includes("time") || q.includes("open") || q.includes("schedule") || q.includes("when") || q.includes("close")) {
             return "🕒 **Operating Hours:**\nThe TCC Baluarte Campus Clinic is open **Monday through Friday, from 8:00 AM to 5:00 PM**, with active duty registered nurses on site throughout the day.";
         }
 
+        // 5. Cost & Free Services
         if (q.includes("cost") || q.includes("fee") || q.includes("pay") || q.includes("free") || q.includes("price") || q.includes("charge")) {
             return "💊 **Free Health Services:**\nYes! All medical consultations, vital sign checkups, emergency first-aid treatments, and basic dispensary medicines are **100% free of charge** for all TCC students, faculty, and administrative staff.";
         }
 
-        if (q.includes("med cert") || q.includes("certificate") || q.includes("clearance") || q.includes("excuse") || q.includes("ojt")) {
+        // 6. Medical Certificate & Clearance
+        if (q.includes("med cert") || q.includes("certificate") || q.includes("clearance") || q.includes("excuse") || q.includes("ojt") || q.includes("practicum")) {
             return "📋 **Medical Certificate & Health Clearance:**\nTo request an official Medical Certificate for class excuse, sports participation, or OJT clearance:\n1. Visit the clinic in person (Ground Floor, Beside UniFAST Building).\n2. Present your Student ID.\n3. Complete an in-person health assessment with our duty nurse.\n4. An officially signed Medical Certificate will be issued upon clearance.";
         }
 
-        if (q.includes("emergency") || q.includes("urgent") || q.includes("ambulance") || q.includes("hospital") || q.includes("severe") || q.includes("accident")) {
+        // 7. Emergency Protocols
+        if (q.includes("emergency") || q.includes("urgent") || q.includes("ambulance") || q.includes("hospital") || q.includes("severe") || q.includes("accident") || q.includes("rescue")) {
             return "🚨 **Emergency Protocols:**\nIn case of critical emergencies:\n1. The campus clinic team stabilizes the patient immediately.\n2. We coordinate rapid emergency transport with the **Tagoloan Municipal Health Office** and municipal rescue units.\n3. The patient's emergency contact or parents are notified immediately.";
         }
 
-        if (q.includes("vital") || q.includes("blood pressure") || q.includes("bp") || q.includes("temp") || q.includes("pulse")) {
-            return "🩺 **Vital Signs & Triage:**\nThe clinic performs complete vital sign evaluations including Blood Pressure (BP), Heart Rate, Body Temperature, Respiratory Rate, and physical assessment for all walk-in patients.";
+        // 8. Eligibility & Who can visit
+        if (q.includes("who") || q.includes("eligible") || q.includes("visitor") || q.includes("student") || q.includes("faculty") || q.includes("requirements")) {
+            return "👥 **Eligibility:**\nAll actively enrolled Tagoloan Community College students, faculty members, administrative staff, and official campus visitors are welcome and covered at zero cost. Just bring your TCC ID card!";
         }
 
-        if (q.includes("who") || q.includes("eligible") || q.includes("visitor") || q.includes("student")) {
-            return "👥 **Eligibility:**\nAll actively enrolled Tagoloan Community College students, faculty members, administrative staff, and official campus visitors are welcome and covered at zero cost.";
-        }
-
+        // 9. Symptoms / Sickness
         if (q.includes("fever") || q.includes("headache") || q.includes("pain") || q.includes("cough") || q.includes("sick") || q.includes("cold") || q.includes("dizzy") || q.includes("vomit") || q.includes("stomach") || q.includes("wound")) {
             return "🏥 **Medical Advice & Consultation:**\nFor symptoms like fever, headache, body pain, wounds, or illness, please visit the **TCC Baluarte Campus Clinic** in person (Ground Floor, Beside UniFAST Building). Our registered duty healthcare professionals will assess you and provide free first-aid care and dispensary medicines.\n\n*Clinic Hours: Monday – Friday, 8:00 AM – 5:00 PM.*";
         }
 
-        if (q.includes("medicine") || q.includes("drug") || q.includes("pill") || q.includes("dispensary") || q.includes("stock")) {
+        // 10. Medicines & Dispensary
+        if (q.includes("medicine") || q.includes("drug") || q.includes("pill") || q.includes("dispensary") || q.includes("stock") || q.includes("paracetamol")) {
             return "💊 **Available Medications:**\nThe clinic maintains an active stock of essential over-the-counter medicines including analgesics/pain relievers, fever medications (paracetamol), antacids, oral rehydration salts, antihistamines, and antiseptic wound care supplies — all dispensed free of charge upon clinical evaluation.";
         }
 
+        // 11. Portal Login & Access
         if (q.includes("login") || q.includes("sign in") || q.includes("portal") || q.includes("account") || q.includes("access")) {
             return "🔐 **Clinic Management Portal:**\nAuthorized clinic staff, nurses, and administrators can access the system by clicking **'Sign In'** at the top right of this page or visiting [/login](/login).";
         }
 
+        // 12. Greetings
         if (q.includes("hello") || q.includes("hi") || q.includes("hey") || q.includes("good morning") || q.includes("good afternoon")) {
-            return "Hello! 👋 Welcome to the **Tagoloan Community College (TCC) Clinic** virtual assistant. How can I help you today? You can ask about our campus clinic location, operating hours, free medications, medical certificate procedures, or emergency protocols!";
+            return "Hello! 👋 Welcome to the **Tagoloan Community College (TCC) Clinic** virtual assistant. How can I help you today? You can ask about our campus clinic location, operating hours, free medications, vital signs & checkups, medical certificate procedures, or emergency protocols!";
         }
 
         return "Thank you for reaching out to the **TCC Clinic Assistant**! 🏥\n\n- **Location:** Ground Floor, Beside UniFAST Building, Baluarte Campus, Tagoloan\n- **Hours:** Monday to Friday, 8:00 AM – 5:00 PM\n- **Services:** Free consultations, vital sign triage, free medicines, and official Medical Certificates.\n\nFor in-person assistance, feel free to walk into the clinic or consult with our on-duty campus nurse!";

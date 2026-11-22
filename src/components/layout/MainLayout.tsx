@@ -25,6 +25,7 @@ function MainLayout({ children }: MainLayoutProps): React.JSX.Element {
         }
     });
     const location = useLocation();
+    const isReports = location.pathname.toLowerCase().startsWith("/reports");
     const [isPageTransitioning, setIsPageTransitioning] = useState(false);
 
     const handleToggleSidebar = () => {
@@ -124,10 +125,12 @@ function MainLayout({ children }: MainLayoutProps): React.JSX.Element {
                 </main>
             </div>
 
-            {/* AI Chatbot Assistant for every internal portal tab */}
-            <Suspense fallback={null}>
-                <DashboardAssistant />
-            </Suspense>
+            {/* AI Chatbot Assistant for every internal portal tab (hidden on reports page) */}
+            {!isReports && (
+                <Suspense fallback={null}>
+                    <DashboardAssistant />
+                </Suspense>
+            )}
         </div>
     );
 }

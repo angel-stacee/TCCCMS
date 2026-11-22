@@ -1645,7 +1645,7 @@ function Medicine() {
                                 type="button"
                                 disabled={pagination.current_page <= 1}
                                 onClick={() => loadMedicines(pagination.current_page - 1, search)}
-                                className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3.5 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
+                                className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3.5 py-1.5 text-xs font-bold text-black shadow-xs transition hover:bg-stone-50 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-50 disabled:text-black dark:border-stone-700 dark:bg-stone-800 dark:text-white dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-white cursor-pointer"
                             >
                                 <ChevronLeft size={14} strokeWidth={2.5} />
                                 <span>Previous</span>
@@ -1655,7 +1655,7 @@ function Medicine() {
                                 type="button"
                                 disabled={pagination.current_page >= pagination.last_page}
                                 onClick={() => loadMedicines(pagination.current_page + 1, search)}
-                                className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3.5 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
+                                className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3.5 py-1.5 text-xs font-bold text-black shadow-xs transition hover:bg-stone-50 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-50 disabled:text-black dark:border-stone-700 dark:bg-stone-800 dark:text-white dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-white cursor-pointer"
                             >
                                 <span>Next</span>
                                 <ChevronRight size={14} strokeWidth={2.5} />

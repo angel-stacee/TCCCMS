@@ -1640,45 +1640,22 @@ function Medicine() {
                         <span className="font-semibold text-center sm:text-left">
                             {pagination.total} medicine(s) · Page <span className="font-bold text-[#70091f] dark:text-[#f8a598]">{pagination.current_page}</span> of <span className="font-bold">{pagination.last_page || 1}</span>
                         </span>
-                        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-1.5">
+                        <div className="flex items-center justify-center sm:justify-end gap-2">
                             <button
                                 type="button"
                                 disabled={pagination.current_page <= 1}
                                 onClick={() => loadMedicines(pagination.current_page - 1, search)}
-                                className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
+                                className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3.5 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
                             >
                                 <ChevronLeft size={14} strokeWidth={2.5} />
                                 <span>Previous</span>
                             </button>
 
-                            {Array.from({ length: Math.min(5, pagination.last_page || 1) }, (_, i) => {
-                                let pageNum = i + 1;
-                                if (pagination.last_page > 5) {
-                                    const start = Math.max(1, Math.min(pagination.current_page - 2, pagination.last_page - 4));
-                                    pageNum = start + i;
-                                }
-                                const isActive = pageNum === pagination.current_page;
-                                return (
-                                    <button
-                                        key={pageNum}
-                                        type="button"
-                                        onClick={() => loadMedicines(pageNum, search)}
-                                        className={`min-w-8 h-8 rounded-xl px-2.5 text-xs font-bold transition flex items-center justify-center cursor-pointer ${
-                                            isActive
-                                                ? "bg-[#70091f] text-white shadow-sm ring-1 ring-[#70091f]"
-                                                : "border border-stone-300 bg-white text-stone-800 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
-                                        }`}
-                                    >
-                                        {pageNum}
-                                    </button>
-                                );
-                            })}
-
                             <button
                                 type="button"
                                 disabled={pagination.current_page >= pagination.last_page}
                                 onClick={() => loadMedicines(pagination.current_page + 1, search)}
-                                className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
+                                className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3.5 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
                             >
                                 <span>Next</span>
                                 <ChevronRight size={14} strokeWidth={2.5} />

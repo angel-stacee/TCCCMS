@@ -153,54 +153,29 @@ function StudentManagement() {
         total: number,
         onPageChange: (page: number) => void
     ) => {
-        const pages: number[] = [];
         const maxPages = last_page || 1;
-        const maxVisible = 5;
-        let startPage = Math.max(1, current_page - 2);
-        let endPage = Math.min(maxPages, startPage + maxVisible - 1);
-        if (endPage - startPage + 1 < maxVisible) {
-            startPage = Math.max(1, endPage - maxVisible + 1);
-        }
-        for (let p = startPage; p <= endPage; p++) {
-            pages.push(p);
-        }
 
         return (
             <div className="flex flex-col gap-3 border-t border-[#e8dfd4] bg-white px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between dark:border-[#4e4234] dark:bg-[#211c17]">
                 <span className="text-center sm:text-left text-xs sm:text-sm font-semibold text-stone-700 dark:text-stone-300">
                     Page <span className="font-bold text-[#70091f] dark:text-[#f8a598]">{current_page}</span> of <span className="font-bold">{maxPages}</span> ({total} records)
                 </span>
-                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:justify-end">
+                <div className="flex items-center justify-center gap-2 sm:justify-end">
                     <button
                         type="button"
                         disabled={current_page <= 1}
                         onClick={() => onPageChange(current_page - 1)}
-                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 disabled:shadow-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
+                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3.5 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 disabled:shadow-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
                     >
                         <ChevronLeft size={14} strokeWidth={2.5} />
                         <span>Previous</span>
                     </button>
 
-                    {pages.map((p) => (
-                        <button
-                            key={p}
-                            type="button"
-                            onClick={() => onPageChange(p)}
-                            className={`min-w-8 h-8 rounded-xl px-2.5 text-xs font-bold transition flex items-center justify-center cursor-pointer ${
-                                p === current_page
-                                    ? "bg-[#70091f] text-white shadow-sm ring-1 ring-[#70091f]"
-                                    : "border border-stone-300 bg-white text-stone-800 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
-                            }`}
-                        >
-                            {p}
-                        </button>
-                    ))}
-
                     <button
                         type="button"
                         disabled={current_page >= maxPages}
                         onClick={() => onPageChange(current_page + 1)}
-                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 disabled:shadow-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
+                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3.5 py-1.5 text-xs font-bold text-stone-800 shadow-xs transition hover:bg-stone-50 hover:text-stone-900 hover:border-stone-400 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400 disabled:shadow-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700 dark:disabled:border-stone-800 dark:disabled:bg-stone-900/60 dark:disabled:text-stone-600 cursor-pointer"
                     >
                         <span>Next</span>
                         <ChevronRight size={14} strokeWidth={2.5} />

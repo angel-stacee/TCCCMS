@@ -12,7 +12,6 @@ import {
     Network,
     Settings,
     LogOut,
-    Heart,
     X,
     Menu,
 } from "lucide-react";
@@ -351,27 +350,6 @@ function Sidebar({
                         </span>
                     )}
                 </button>
-
-                {/* Better Care Banner */}
-                {!sidebarCollapsed && (
-                    <div className="rounded-2xl border border-white/15 bg-white/10 p-3.5">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-[#fcebe7]">
-                                <Heart size={18} fill="currentColor" />
-                            </div>
-
-                            <div className="min-w-0 flex-1">
-                                <p className="text-xs font-bold text-white">
-                                    Better Care
-                                </p>
-
-                                <p className="text-[11px] leading-tight text-[#fcebe7]/80">
-                                    Better Records, Better Monitoring
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
         </aside>
     );

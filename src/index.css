@@ -921,9 +921,15 @@ html.dark .tcc-module-page table tbody tr:hover {
         background: #fcfaf6 !important;
     }
 
-    #reports-page .report-panel {
+    #reports-page .report-panel:not(.report-chart-wrap) {
         padding: 5mm !important;
         border-radius: 0 !important;
+    }
+
+    #reports-page .report-panel.report-chart-wrap {
+        padding: 0 !important;
+        border-radius: 0 !important;
+        overflow: hidden !important;
     }
 
     #reports-page .report-register {
@@ -966,9 +972,31 @@ html.dark .tcc-module-page table tbody tr:hover {
         break-inside: avoid;
     }
 
-    #reports-page .overflow-x-auto,
-    #reports-page .report-chart-wrap {
+    #reports-page .overflow-x-auto {
         overflow: visible !important;
+    }
+
+    #reports-page .report-chart-wrap {
+        overflow: hidden !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        border: 1px solid #d4c7b8 !important;
+        border-radius: 0 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+    }
+
+    #reports-page .report-chart-wrap .recharts-responsive-container,
+    #reports-page .report-chart-wrap .recharts-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    #reports-page .report-chart-wrap svg.recharts-surface {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
     }
 
     #reports-page .report-chart {

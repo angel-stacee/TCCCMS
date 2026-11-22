@@ -155,7 +155,10 @@ function Reports() {
     };
 
     const handlePrint = () => {
-        window.print();
+        window.dispatchEvent(new Event("resize"));
+        setTimeout(() => {
+            window.print();
+        }, 120);
     };
 
     const handleDownloadPDF = () => {
@@ -391,16 +394,14 @@ function Reports() {
                     </section>
 
                     {/* Daily Visits Chart */}
-                    <section className="report-panel">
-                        <DailyVisitsChart
-                            data={dailyVisits}
-                            visits={rawVisits}
-                            summary={summary}
-                            month={month}
-                            year={year}
-                            period={report.report?.period || `${monthNames[month - 1]} ${year}`}
-                        />
-                    </section>
+                    <DailyVisitsChart
+                        data={dailyVisits}
+                        visits={rawVisits}
+                        summary={summary}
+                        month={month}
+                        year={year}
+                        period={report.report?.period || `${monthNames[month - 1]} ${year}`}
+                    />
 
                     {/* Detailed Breakdowns (Reasons, Illnesses, Medicine, Nurse) */}
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -748,6 +749,18 @@ type ChartTabKey = keyof typeof CHART_TABS;
 function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyVisitsChartProps) {
     const [activeChart, setActiveChart] = useState<ChartTabKey>("students");
 
+    useEffect(() => {
+        const handlePrintResize = () => {
+            window.dispatchEvent(new Event("resize"));
+        };
+        window.addEventListener("beforeprint", handlePrintResize);
+        window.addEventListener("afterprint", handlePrintResize);
+        return () => {
+            window.removeEventListener("beforeprint", handlePrintResize);
+            window.removeEventListener("afterprint", handlePrintResize);
+        };
+    }, []);
+
     const daysInMonth = new Date(year, month, 0).getDate();
     const monthNamesShort = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -809,7 +822,7 @@ function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyV
     }, [summary, points]);
 
     return (
-        <div className="report-chart-wrap w-full overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white text-stone-900 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-[#382f25] dark:bg-[#251f19] dark:text-[#f4ecdf]">
+        <div className="report-panel report-chart-wrap w-full overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white text-stone-900 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-[#382f25] dark:bg-[#251f19] dark:text-[#f4ecdf]">
             <div className="flex flex-col sm:flex-row items-stretch border-b border-[#e8dfd4] dark:border-[#382f25]">
                 <div className="flex flex-1 flex-col justify-center gap-1 p-5 sm:p-6">
                     <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a6f50] dark:text-[#d4b996]">
@@ -850,14 +863,14 @@ function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyV
             <div className="p-4 sm:p-6">
                 <div className="h-64 sm:h-72 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={points} margin={{ top: 12, right: 12, left: 12, bottom: 4 }}>
+                        <LineChart data={points} margin={{ top: 12, right: 16, left: 16, bottom: 4 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0ebe1" />
                             <XAxis
                                 dataKey="day"
                                 tickLine={false}
                                 axisLine={false}
                                 tickMargin={8}
-                                minTickGap={20}
+                                minTickGap={16}
                                 tick={{ fontSize: 11, fill: "#78716c" }}
                                 tickFormatter={(val) => `${monthShort} ${val}`}
                             />

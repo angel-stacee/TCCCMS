@@ -111,11 +111,7 @@ export default function Login(): React.JSX.Element {
                 response.data?.message ||
                 `A 6-digit OTP verification code has been sent to ${cleanEmail}.`;
             setForgotSuccessMessage(msg);
-            if (response.data?.otp_preview) {
-                setForgotOtp(String(response.data.otp_preview));
-            } else {
-                setForgotOtp("");
-            }
+            setForgotOtp("");
             setForgotStep("otp");
             setResendCooldown(10);
         } catch (err: any) {

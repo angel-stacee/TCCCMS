@@ -57,7 +57,7 @@ export function InteractiveClinicVisitsChart({
     visitTotals,
     loading = false,
 }: InteractiveClinicVisitsChartProps) {
-    const [activeChart, setActiveChart] = useState<ChartKey>("students");
+    const [activeChart, setActiveChart] = useState<ChartKey>("total");
 
     // Build continuous daily sequence for chartData (past 60 days)
     const chartData = useMemo(() => {

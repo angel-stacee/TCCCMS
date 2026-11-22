@@ -748,10 +748,11 @@ const CHART_TABS = {
 type ChartTabKey = keyof typeof CHART_TABS;
 
 function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyVisitsChartProps) {
-    const [activeChart, setActiveChart] = useState<ChartTabKey>("students");
+    const [activeChart, setActiveChart] = useState<ChartTabKey>("total");
 
     useEffect(() => {
         const handlePrintResize = () => {
+            setActiveChart("total");
             window.dispatchEvent(new Event("resize"));
         };
         window.addEventListener("beforeprint", handlePrintResize);

@@ -346,7 +346,7 @@ function Reports() {
                                             target.src = "/tcc-logo.jpg";
                                         }
                                     }}
-                                    className="h-16 w-16 rounded-full border border-stone-200 bg-white object-contain p-1 shadow-sm sm:h-20 sm:w-20"
+                                    className="h-16 w-16 object-contain sm:h-20 sm:w-20 shrink-0"
                                 />
                             </div>
                         </div>

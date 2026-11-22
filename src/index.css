@@ -1016,6 +1016,12 @@ html.dark .tcc-module-page table tbody tr:hover {
         border-radius: 0 !important;
     }
 
+    #reports-page img {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+
     #reports-page .report-signatures {
         display: block !important;
         break-inside: avoid !important;

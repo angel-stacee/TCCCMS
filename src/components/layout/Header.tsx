@@ -6,8 +6,6 @@ import {
     Bell,
     Trash2,
     ChevronDown,
-    Settings,
-    User as UserIcon,
     Sun,
     Moon,
     Activity,
@@ -1219,7 +1217,7 @@ export function Header({
                             </div>
 
                             {/* Dark Mode / Light Mode Switcher Row */}
-                            <div className="border-b border-[#eee7de] p-1.5 dark:border-stone-800">
+                            <div className="p-1.5">
                                 <button
                                     type="button"
                                     onClick={toggleTheme}
@@ -1253,26 +1251,6 @@ export function Header({
                                         />
                                     </div>
                                 </button>
-                            </div>
-
-                            {/* Navigation Links */}
-                            <div className="p-1 space-y-0.5">
-                                <Link
-                                    to="/profile"
-                                    onClick={() => setProfileMenuOpen(false)}
-                                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-stone-700 transition hover:bg-[#fcebe7]/60 hover:text-[#70091f] dark:text-stone-300 dark:hover:bg-stone-800/60 dark:hover:text-[#f8a598]"
-                                >
-                                    <UserIcon size={15} className="text-[#70091f] dark:text-[#f8a598]" />
-                                    <span>My Profile</span>
-                                </Link>
-                                <Link
-                                    to="/settings"
-                                    onClick={() => setProfileMenuOpen(false)}
-                                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-stone-700 transition hover:bg-[#fcebe7]/60 hover:text-[#70091f] dark:text-stone-300 dark:hover:bg-stone-800/60 dark:hover:text-[#f8a598]"
-                                >
-                                    <Settings size={15} className="text-[#70091f] dark:text-[#f8a598]" />
-                                    <span>Settings</span>
-                                </Link>
                             </div>
                         </div>
                     )}

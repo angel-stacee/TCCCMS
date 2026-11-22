@@ -42,6 +42,7 @@ import {
     requestDeviceNotificationPermission,
     syncDeviceNotifications,
     sendDeviceNotification,
+    getDeviceNotificationPermissionStatus,
 } from "../../services/deviceNotifications";
 import { useTheme } from "../../utils/theme";
 import { Avatar, StudentDetail, Skeleton } from "../dashboard/DashboardWidgets";
@@ -217,6 +218,7 @@ export function Header({
         expired_medicine: 0,
     });
     const [loadingNotifs, setLoadingNotifs] = useState(false);
+    const [deviceNotifPerm, setDeviceNotifPerm] = useState<string>("default");
 
     const [user, setUser] = useState<any>(() => {
         try {
@@ -247,9 +249,14 @@ export function Header({
         }
     };
 
-    // Request cellphone / browser push notification permission on mount
+    // Check and request cellphone / browser push notification permission on mount
     useEffect(() => {
-        requestDeviceNotificationPermission().catch(() => {});
+        getDeviceNotificationPermissionStatus().then((status) => {
+            setDeviceNotifPerm(status);
+            if (status === "granted") {
+                requestDeviceNotificationPermission().catch(() => {});
+            }
+        });
     }, []);
 
     // Listen to user changes (e.g. Profile updates)
@@ -1061,11 +1068,17 @@ export function Header({
                                         type="button"
                                         onClick={async () => {
                                             const granted = await requestDeviceNotificationPermission();
+                                            setDeviceNotifPerm(granted ? "granted" : "denied");
                                             if (granted) {
-                                                await sendDeviceNotification(
+                                                const sent = await sendDeviceNotification(
                                                     "TCC Clinic Notification",
                                                     "Cellphone notifications are active! You will receive live alerts for medication reminders and patient attention."
                                                 );
+                                                if (!sent) {
+                                                    alert("Alert sent! If it did not pop up, please check if your phone's notification volume is on or Do Not Disturb is off.");
+                                                }
+                                            } else {
+                                                alert("Notification permission is not enabled yet. Please tap 'Allow' when your browser or phone asks for permission.");
                                             }
                                         }}
                                         title="Send a test notification to your cellphone"
@@ -1095,6 +1108,41 @@ export function Header({
                                     )}
                                 </div>
                             </div>
+
+                            {/* Enable Phone Notifications Activation Banner */}
+                            {deviceNotifPerm !== "granted" && (
+                                <div className="mx-3 my-2 rounded-xl border border-amber-300 bg-amber-50 p-2.5 dark:border-amber-800/60 dark:bg-amber-950/30">
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-base">🔔</span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                                                Enable Cellphone Alerts
+                                            </p>
+                                            <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-snug mt-0.5">
+                                                Allow notifications so you receive alerts on your cellphone status bar for visits & medication reminders.
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={async () => {
+                                                    const ok = await requestDeviceNotificationPermission();
+                                                    setDeviceNotifPerm(ok ? "granted" : "denied");
+                                                    if (ok) {
+                                                        await sendDeviceNotification(
+                                                            "TCC Clinic Alerts Active",
+                                                            "Your cellphone will now receive alerts for clinic visits, reminders, and emergencies."
+                                                        );
+                                                    } else {
+                                                        alert("Notification permission was not granted. Please check your phone settings or tap the lock icon in your browser address bar to allow notifications.");
+                                                    }
+                                                }}
+                                                className="mt-1.5 inline-flex items-center gap-1 rounded-lg bg-[#70091f] px-2.5 py-1 text-xs font-bold text-white hover:bg-[#8b1505] transition cursor-pointer shadow-sm"
+                                            >
+                                                <span>Allow Cellphone Alerts</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Category Filter Tabs */}
                             <div className="flex items-center gap-1.5 overflow-x-auto border-b border-[#eee7de] bg-[#faf7f4] px-3 py-2 text-xs dark:border-stone-800 dark:bg-[#18130f] scrollbar-none">

@@ -104,6 +104,23 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
+// Client message listener to trigger notifications from page
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, body, id, url } = event.data;
+    event.waitUntil(
+      self.registration.showNotification(title || 'TCC Clinic Alert', {
+        body: body || 'You have an important clinic update.',
+        icon: '/pwa-icon-192.png',
+        badge: '/pwa-icon-192.png',
+        tag: `tcc-${id || Date.now()}`,
+        vibrate: [250, 100, 250],
+        data: { url: url || '/dashboard' }
+      })
+    );
+  }
+});
+
 // Web Push event listener
 self.addEventListener('push', (event) => {
   let data = { title: 'TCC Clinic Alert', body: 'New clinic notification received.' };

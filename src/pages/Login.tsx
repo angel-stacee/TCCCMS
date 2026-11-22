@@ -90,7 +90,7 @@ export default function Login(): React.JSX.Element {
 
     const handleSendOtp = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        const cleanEmail = forgotEmail.trim().toLowerCase();
+        const cleanEmail = forgotEmail.trim().replace(/,/g, ".").toLowerCase();
         if (!cleanEmail) {
             setForgotError("Please enter your registered clinic email.");
             return;
@@ -141,7 +141,7 @@ export default function Login(): React.JSX.Element {
 
         try {
             const response = await api.post("/forgot-password/verify-otp", {
-                email: forgotEmail.trim().toLowerCase(),
+                email: forgotEmail.trim().replace(/,/g, ".").toLowerCase(),
                 otp: cleanOtp,
             });
             setForgotSuccessMessage(
@@ -181,7 +181,7 @@ export default function Login(): React.JSX.Element {
 
         try {
             const response = await api.post("/forgot-password/reset", {
-                email: forgotEmail.trim().toLowerCase(),
+                email: forgotEmail.trim().replace(/,/g, ".").toLowerCase(),
                 otp: cleanOtp,
                 password: forgotNewPassword,
                 password_confirmation: forgotPasswordConfirm,
@@ -209,8 +209,9 @@ export default function Login(): React.JSX.Element {
         setLoading(true);
 
         try {
+            const cleanLoginEmail = email.trim().replace(/,/g, ".");
             const response = await api.post("/login", {
-                email: email.trim(),
+                email: cleanLoginEmail,
                 password,
             });
 
@@ -222,7 +223,7 @@ export default function Login(): React.JSX.Element {
             localStorage.setItem("user", JSON.stringify(response.data.user));
 
             if (rememberMe) {
-                localStorage.setItem("tcc-saved-email", email.trim());
+                localStorage.setItem("tcc-saved-email", cleanLoginEmail);
             } else {
                 localStorage.removeItem("tcc-saved-email");
             }
@@ -326,7 +327,7 @@ export default function Login(): React.JSX.Element {
                                 autoComplete="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="e.g. admin.clinic.edu@gmail.com"
+                                placeholder="e.g. staff.clinic.edu@gmail.com"
                                 required
                                 disabled={loading}
                                 className="tcc-login-input h-11 w-full rounded-xl border border-[#70091f]/60 bg-[#160307] pl-10 pr-4 text-sm font-semibold text-white placeholder:text-[#dfcfc7]/75 outline-none transition focus:border-[#d4a017] focus:ring-1 focus:ring-[#d4a017] disabled:cursor-not-allowed disabled:opacity-60"
@@ -558,7 +559,7 @@ export default function Login(): React.JSX.Element {
                                                 setForgotEmail(e.target.value);
                                                 if (forgotError) setForgotError("");
                                             }}
-                                            placeholder="e.g. nurse@tcc.edu.ph"
+                                            placeholder="e.g. staff.clinic.edu@gmail.com"
                                             className="tcc-login-input w-full rounded-xl border border-[#70091f]/60 bg-[#160307] py-2.5 pl-10 pr-3.5 text-sm font-semibold text-white placeholder:text-[#dfcfc7]/75 focus:border-[#d4a017] focus:outline-none focus:ring-1 focus:ring-[#d4a017] disabled:bg-stone-900"
                                         />
                                     </div>

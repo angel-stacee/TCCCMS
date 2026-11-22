@@ -1294,8 +1294,8 @@ export function Header({
                                 </button>
                             </div>
 
-                            {/* Log Out Row */}
-                            <div className="border-t border-[#eee7de] p-1.5 dark:border-stone-800/80">
+                            {/* Log Out Row - Visible ONLY on mobile view */}
+                            <div className="border-t border-[#eee7de] p-1.5 dark:border-stone-800/80 sm:hidden">
                                 <button
                                     type="button"
                                     onClick={() => {

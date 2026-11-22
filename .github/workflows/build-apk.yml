@@ -27,10 +27,11 @@ jobs:
         with:
           node-version: 20
 
-      - name: Configure Android SDK and Accept Licenses
+      - name: Configure Android SDK and Install Platform 36
         run: |
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" || true
 
       - name: Install Node Dependencies
         run: npm install
@@ -55,7 +56,9 @@ jobs:
 
       - name: Locate and Prepare APK File
         run: |
-          find android/app/build/outputs/apk -name "*.apk" -exec cp {} tcc-clinic.apk \;
+          APK_PATH=$(find android -name "*.apk" -type f | head -n 1)
+          echo "Found APK at: $APK_PATH"
+          cp "$APK_PATH" tcc-clinic.apk
           ls -lh tcc-clinic.apk
 
       - name: Upload APK to Artifacts

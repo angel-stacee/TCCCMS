@@ -457,7 +457,7 @@ export function Header({
     };
 
     return (
-        <header className="sticky top-0 z-30 flex h-[68px] sm:h-[72px] w-full items-center justify-between border-b border-[#eee7de] bg-white/95 px-4 sm:px-6 lg:px-8 backdrop-blur shadow-xs transition-colors duration-200 dark:border-stone-800 dark:bg-[#16120e]/95">
+        <header className="print:hidden sticky top-0 z-30 flex h-[68px] sm:h-[72px] w-full items-center justify-between border-b border-[#eee7de] bg-white/95 px-4 sm:px-6 lg:px-8 backdrop-blur shadow-xs transition-colors duration-200 dark:border-stone-800 dark:bg-[#16120e]/95">
             {/* Left side: Mobile Hamburger & Logo + Global Search Bar (replacing Title per user request) */}
             <div className="flex flex-1 items-center gap-2.5 sm:gap-4 min-w-0 mr-3 sm:mr-6">
                 <button

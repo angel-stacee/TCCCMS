@@ -896,15 +896,18 @@ html.dark .tcc-module-page table tbody tr:hover {
     }
 
     #reports-page .report-letterhead {
-        padding: 0 0 9mm !important;
-        border: 0 !important;
-        border-bottom: 2px solid #333 !important;
-        border-radius: 0 !important;
+        display: block !important;
+        padding: 5mm 6mm !important;
+        border: 1px solid #d4c7b8 !important;
+        border-radius: 4mm !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
     }
 
     #reports-page .report-period-box {
-        border-color: #888 !important;
-        background: #fff !important;
+        display: block !important;
+        border: 1px solid #d4c7b8 !important;
+        background: #fcfaf6 !important;
     }
 
     #reports-page .report-panel {

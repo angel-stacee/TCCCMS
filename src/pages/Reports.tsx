@@ -347,7 +347,7 @@ function Reports() {
 
             {report && (
                 <div id="report-print-area" className="report-paper space-y-5">
-                    <header className="report-letterhead rounded-2xl border border-[#e8dfd4] bg-white p-5 shadow-sm sm:p-7">
+                    <div className="report-letterhead rounded-2xl border border-[#e8dfd4] bg-white p-5 shadow-sm sm:p-7">
                         <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-start sm:justify-between">
                             <div className="space-y-1">
                                 <div className="text-sm font-black uppercase tracking-wider text-[#70091f]">
@@ -371,7 +371,7 @@ function Reports() {
                             </div>
 
                             <div className="flex items-center gap-3 self-end sm:self-start">
-                                <div className="report-period-box hidden rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] px-4 py-2.5 text-right sm:block">
+                                <div className="report-period-box rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] px-4 py-2.5 text-right">
                                     <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-stone-500">Reporting Period</p>
                                     <p className="text-sm font-bold text-[#70091f] uppercase">
                                         {report.report?.period || `${monthNames[month - 1]} ${year}`}
@@ -398,9 +398,9 @@ function Reports() {
                         <div className="mt-5 flex flex-wrap gap-x-8 gap-y-2 border-t border-[#e8dfd4] pt-4 text-xs text-stone-500">
                             <p><span className="font-semibold text-stone-700">Generated:</span>{" "}{formatGeneratedAt(report.report?.generated_at)}</p>
                             <p><span className="font-semibold text-stone-700">Total Visits:</span>{" "}{Number(visits.length).toLocaleString()}</p>
-                            <p className="print:hidden"><span className="font-semibold text-stone-700">Scope:</span>{" "}All clinic visits recorded for {report.report?.period || `${monthNames[month - 1]} ${year}`}</p>
+                            <p><span className="font-semibold text-stone-700">Scope:</span>{" "}All clinic visits recorded for {report.report?.period || `${monthNames[month - 1]} ${year}`}</p>
                         </div>
-                    </header>
+                    </div>
 
                     <section className="report-summary-grid grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 lg:grid-cols-5">
                         <SummaryCard title="Total Visits" value={summary.total_visits || 0} icon={<Activity size={21} />} />

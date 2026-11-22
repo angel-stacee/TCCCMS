@@ -167,6 +167,7 @@ export function Header({
 }: HeaderProps): React.JSX.Element {
     const location = useLocation();
     const navigate = useNavigate();
+    const isSettingsPage = location.pathname.toLowerCase().startsWith("/settings");
     const { isDark, toggleTheme } = useTheme();
 
     const bellRef = useRef<HTMLDivElement>(null);
@@ -490,9 +491,10 @@ export function Header({
                     />
                 </div>
 
-                {/* Global Search Bar (replacing Dashboard / Page Title) */}
-                <div ref={searchContainerRef} className="relative flex-1 max-w-md lg:max-w-xl">
-                    <form onSubmit={handleSearchSubmit} className="relative w-full">
+                {/* Global Search Bar (hidden on Settings page) */}
+                {!isSettingsPage && (
+                    <div ref={searchContainerRef} className="relative flex-1 max-w-md lg:max-w-xl">
+                        <form onSubmit={handleSearchSubmit} className="relative w-full">
                         <div className="relative flex items-center">
                             <Search size={17} className="pointer-events-none absolute left-3.5 text-stone-500 dark:text-stone-400" />
                             <input
@@ -873,6 +875,7 @@ export function Header({
                         </div>
                     )}
                 </div>
+                )}
             </div>
 
             {/* Right side: Notifications Bell & Profile Dropdown */}

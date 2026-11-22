@@ -347,7 +347,7 @@ function Reports() {
 
             {report && (
                 <div id="report-print-area" className="report-paper space-y-5">
-                    <div className="report-letterhead rounded-2xl border border-[#e8dfd4] bg-white p-5 shadow-sm sm:p-7">
+                    <div className="report-letterhead rounded-2xl border border-[#e8dfd4] bg-white p-5 shadow-sm sm:p-7 print:rounded-none">
                         <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-start sm:justify-between">
                             <div className="space-y-1">
                                 <div className="text-sm font-black uppercase tracking-wider text-[#70091f]">
@@ -371,7 +371,7 @@ function Reports() {
                             </div>
 
                             <div className="flex items-center gap-3 self-end sm:self-start">
-                                <div className="report-period-box rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] px-4 py-2.5 text-right">
+                                <div className="report-period-box rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] px-4 py-2.5 text-right print:rounded-none">
                                     <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-stone-500">Reporting Period</p>
                                     <p className="text-sm font-bold text-[#70091f] uppercase">
                                         {report.report?.period || `${monthNames[month - 1]} ${year}`}

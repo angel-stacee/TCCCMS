@@ -27,6 +27,11 @@ jobs:
         with:
           node-version: 20
 
+      - name: Configure Android SDK and Accept Licenses
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       - name: Install Node Dependencies
         run: npm install
 
@@ -38,30 +43,27 @@ jobs:
           mkdir -p android/app/src/main/assets/public
           cp -r dist/* android/app/src/main/assets/public/
 
-      - name: Configure Android SDK Path
-        run: |
-          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
-          cat android/local.properties
-
       - name: Build Android APK via Gradle
         working-directory: ./android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Prepare APK File
+      - name: Locate and Prepare APK File
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk tcc-clinic.apk
+          find android/app/build/outputs/apk -name "*.apk" -exec cp {} tcc-clinic.apk \;
+          ls -lh tcc-clinic.apk
 
       - name: Upload APK to Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tcc-clinic-apk
           path: tcc-clinic.apk
+          if-no-files-found: error
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
-        if: success()
+        continue-on-error: true
         with:
           tag_name: android-app
           name: "TCC Clinic Android App (.apk)"

@@ -27,6 +27,8 @@ import {
     CheckCircle2,
     Search,
     Calendar,
+    Building2,
+    Briefcase,
 } from "lucide-react";
 
 type ReportPeriod = {
@@ -385,12 +387,11 @@ function Reports() {
                     </div>
 
                     {/* Summary Cards */}
-                    <section className="report-summary-grid grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                    <section className="report-summary-grid grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                         <SummaryCard title="Total Consultations" value={summary.total_visits || 0} icon={<Activity size={21} />} />
-                        <SummaryCard title="Students Treated" value={summary.students_treated ?? summary.student_visits ?? 0} icon={<Users size={21} />} />
                         <SummaryCard title="Student Visits" value={summary.student_visits || 0} icon={<Users size={21} />} />
-                        <SummaryCard title="Faculty Consultations" value={summary.faculty_visits || 0} icon={<Users size={21} />} />
-                        <SummaryCard title="Staff Consultations" value={summary.staff_visits || 0} icon={<Users size={21} />} />
+                        <SummaryCard title="Faculty Consultations" value={summary.faculty_visits || 0} icon={<Building2 size={21} />} />
+                        <SummaryCard title="Staff Consultations" value={summary.staff_visits || 0} icon={<Briefcase size={21} />} />
                     </section>
 
                     {/* Daily Visits Chart */}

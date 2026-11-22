@@ -249,17 +249,15 @@ export async function exportMonthlyReportPDF(reportData: {
     // ── 2. SUMMARY STATISTICS CARDS (5 Columns matching Print Report) ──
     const summary = reportData.summary || {};
     const totalVisits = Number(summary.total_visits || 0);
-    const studentsTreated = Number(summary.students_treated ?? summary.student_visits ?? 0);
     const studentVisits = Number(summary.student_visits || 0);
     const facultyVisits = Number(summary.faculty_visits || 0);
     const staffVisits = Number(summary.staff_visits || 0);
 
     autoTable(doc, {
         startY: currentY,
-        head: [["Total Visits", "Students Treated", "Student Visits", "Faculty Visits", "Staff Visits"]],
+        head: [["Total Consultations", "Student Visits", "Faculty Consultations", "Staff Consultations"]],
         body: [[
             String(totalVisits),
-            String(studentsTreated),
             String(studentVisits),
             String(facultyVisits),
             String(staffVisits),

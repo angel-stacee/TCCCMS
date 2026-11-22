@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../../services/api";
-import { Modal } from "../student-management/FieldsAndModals";
+import { Modal, ConfirmationModal } from "../student-management/FieldsAndModals";
 import { RotateCcw, Trash2, Search, AlertCircle, CheckCircle2, Package, Pill } from "lucide-react";
 
 interface RestoreMedicinesModalProps {
@@ -17,6 +17,7 @@ export function RestoreMedicinesModal({
     const [loading, setLoading] = useState(false);
     const [restoringId, setRestoringId] = useState<number | null>(null);
     const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [confirmDeleteTarget, setConfirmDeleteTarget] = useState<{ id: number; name: string } | null>(null);
     const [search, setSearch] = useState("");
     const [feedback, setFeedback] = useState<{ message: string; type: "success" | "error" } | null>(null);
     const [medicines, setMedicines] = useState<any[]>([]);
@@ -59,16 +60,13 @@ export function RestoreMedicinesModal({
         }
     };
 
-    const handlePermanentDelete = async (id: number, name: string) => {
-        if (!window.confirm(`Permanently delete "${name}"? This action cannot be undone.`)) {
-            return;
-        }
-
+    const handlePermanentDelete = async (id: number) => {
         setDeletingId(id);
         setFeedback(null);
         try {
             await api.delete(`/medicines/${id}/force`);
             setFeedback({ message: "Medicine permanently deleted from the database.", type: "success" });
+            setConfirmDeleteTarget(null);
             await fetchTrashed();
         } catch (err: any) {
             console.error("Failed to permanently delete medicine:", err);
@@ -215,7 +213,7 @@ export function RestoreMedicinesModal({
                                         <button
                                             type="button"
                                             disabled={isRestoring || isDeleting}
-                                            onClick={() => handlePermanentDelete(med.id, med.medicine_name)}
+                                            onClick={() => setConfirmDeleteTarget({ id: med.id, name: med.medicine_name })}
                                             className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900/60 dark:bg-stone-900 dark:text-red-400 cursor-pointer disabled:opacity-50"
                                             title="Permanently remove from database"
                                         >
@@ -239,6 +237,20 @@ export function RestoreMedicinesModal({
                     </button>
                 </div>
             </div>
+
+            {confirmDeleteTarget && (
+                <ConfirmationModal
+                    open={Boolean(confirmDeleteTarget)}
+                    title="Permanently Delete Medicine"
+                    message={`Are you sure you want to permanently delete "${confirmDeleteTarget.name}"? This action cannot be undone.`}
+                    confirmText="Delete Permanently"
+                    cancelText="Cancel"
+                    danger={true}
+                    loading={deletingId === confirmDeleteTarget.id}
+                    onConfirm={() => handlePermanentDelete(confirmDeleteTarget.id)}
+                    onClose={() => setConfirmDeleteTarget(null)}
+                />
+            )}
         </Modal>
     );
 }

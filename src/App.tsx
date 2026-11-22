@@ -103,10 +103,6 @@ function App(): React.JSX.Element {
                                 path="/medical-records"
                                 element={<ComingSoon title="Medical Records" />}
                             />
-                            <Route
-                                path="/staff"
-                                element={<ComingSoon title="Doctors / Staff" />}
-                            />
                         </Route>
 
                         {/* Fallback Catch-all Route */}

@@ -1088,6 +1088,12 @@ export function Header({
                                                 key={item.id || item.key || item.unique_key}
                                                 onClick={() => {
                                                     if (isUnread && itemId) handleMarkOneRead(itemId);
+                                                    setBellOpen(false);
+                                                    if (item.category === "low_stock" || item.category === "expired_medicine") {
+                                                        navigate("/medicine");
+                                                    } else if (item.category === "medication_reminder" || item.category === "patient_attention") {
+                                                        navigate("/clinic-visits");
+                                                    }
                                                 }}
                                                 className={`group flex items-start gap-3 p-3.5 transition cursor-pointer ${
                                                     isUnread

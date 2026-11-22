@@ -677,29 +677,17 @@ export function StudentForms({
 
     const handleCancelStudent = () => {
         setLocalError("");
-        if (isStudentFormEmpty() || editingStudent) {
-            closeStudentForm();
-        } else {
-            resetForms();
-        }
+        handleCloseStudent();
     };
 
     const handleCancelStaff = () => {
         setLocalError("");
-        if (isStaffFormEmpty() || editingStaff) {
-            closeStaffForm();
-        } else {
-            resetForms();
-        }
+        handleCloseStaff();
     };
 
     const handleCancelFaculty = () => {
         setLocalError("");
-        if (isFacultyFormEmpty() || editingFaculty) {
-            closeFacultyForm();
-        } else {
-            resetForms();
-        }
+        handleCloseFaculty();
     };
 
     const handleCloseStudent = () => {
@@ -1004,12 +992,12 @@ export function StudentForms({
                             </div>
                         </div>
 
-                        <div className="mt-6 flex justify-end gap-3 border-t pt-5">
+                        <div className="mt-6 flex justify-end gap-3 border-t border-stone-200 dark:border-stone-800 pt-5">
                             <button
                                 type="button"
                                 onClick={handleCancelStudent}
                                 disabled={saving}
-                                className="rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                                className="rounded-xl border border-stone-300 dark:border-stone-700 px-4 py-2.5 text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition cursor-pointer"
                             >
                                 Cancel
                             </button>
@@ -1017,11 +1005,11 @@ export function StudentForms({
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-amber-700"
+                                className="rounded-xl bg-[#70091f] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#8b1505] active:scale-[0.99] cursor-pointer"
                             >
-                                {editingStudent
-                                    ? "Update Student"
-                                    : "Add Student"}
+                                {saving
+                                    ? (editingStudent ? "Updating Student..." : "Adding Student...")
+                                    : (editingStudent ? "Update Student" : "Add Student")}
                             </button>
                         </div>
                     </form>

@@ -992,7 +992,7 @@ function StudentManagement() {
 
 
 
-    const handleStudentSubmit = (e) => {
+    const handleStudentSubmit = async (e: any) => {
         e.preventDefault();
 
         if (saving) {
@@ -1085,29 +1085,64 @@ function StudentManagement() {
             return;
         }
 
-        setConfirmation({
-            type: editingStudent
-                ? "updateStudent"
-                : "addStudent",
+        await saveStudent();
+    };
 
-            title: editingStudent
-                ? "Confirm Update"
-                : "Confirm Add Student",
-
-            message: editingStudent
-                ? `Are you sure you want to update "${getFullName(
-                      editingStudent
-                  )}"?`
-                : `Are you sure you want to add "${getFullName(
-                      studentForm
-                  )}" as a new student?`,
-
-            confirmText: editingStudent
-                ? "Update Student"
-                : "Add Student",
-
-            danger: false,
-        });
+    const saveStudent = async () => {
+        setSaving(true);
+        setError("");
+        try {
+            if (editingStudent) {
+                const updatedStudentRes = await api.put(`/students/${editingStudent.id}`, studentForm);
+                const updatedStudentData = updatedStudentRes.data || { ...editingStudent, ...studentForm };
+                setStudents((prev) =>
+                    prev.map((s: any) => (s.id === editingStudent.id ? { ...s, ...updatedStudentData } : s))
+                );
+                if (viewingStudent?.id === editingStudent.id) {
+                    setViewingStudent(updatedStudentData);
+                }
+                if (medicalReportStudent?.id === editingStudent.id) {
+                    setMedicalReportStudent((prev: any) => ({ ...prev, ...updatedStudentData }));
+                }
+                closeStudentForm(true);
+                setSuccessToast("Student updated successfully.");
+                setInlineNotification({
+                    type: "edit",
+                    title: "Student Updated Successfully",
+                    message: `${getFullName(studentForm)} profile and information have been updated.`,
+                });
+                addClinicNotification({
+                    type: "edit",
+                    title: "Student Updated",
+                    description: `${getFullName(studentForm)} profile updated`,
+                    category: "patient",
+                });
+            } else {
+                await api.post("/students", studentForm);
+                closeStudentForm(true);
+                setSuccessToast("Student added successfully.");
+                setInlineNotification({
+                    type: "add",
+                    title: "Student Added Successfully",
+                    message: `${getFullName(studentForm)} (${studentForm.student_id || "Student"}) has been registered.`,
+                });
+                addClinicNotification({
+                    type: "add",
+                    title: "Student Registered",
+                    description: `${getFullName(studentForm)} (${studentForm.student_id || "Student"}) registered`,
+                    category: "patient",
+                });
+            }
+            invalidateRecordCache();
+            await fetchData();
+        } catch (err: any) {
+            console.error("Save student error:", err);
+            const validationMsg = getErrorMessage(err, "Failed to save student record.");
+            setError(validationMsg);
+            setFormError(validationMsg);
+        } finally {
+            setSaving(false);
+        }
     };
 
 
@@ -1116,7 +1151,7 @@ function StudentManagement() {
 
 
 
-    const handleStaffSubmit = (e) => {
+    const handleStaffSubmit = async (e: any) => {
         e.preventDefault();
 
         if (saving) {
@@ -1196,29 +1231,64 @@ function StudentManagement() {
             return;
         }
 
-        setConfirmation({
-            type: editingStaff
-                ? "updateStaff"
-                : "addStaff",
+        await saveStaff();
+    };
 
-            title: editingStaff
-                ? "Confirm Update Staff"
-                : "Confirm Add Staff",
-
-            message: editingStaff
-                ? `Are you sure you want to update "${getFullName(
-                      editingStaff
-                  )}"?`
-                : `Are you sure you want to add "${getFullName(
-                      staffForm
-                  )}" as a new staff record?`,
-
-            confirmText: editingStaff
-                ? "Update Staff"
-                : "Add Staff",
-
-            danger: false,
-        });
+    const saveStaff = async () => {
+        setSaving(true);
+        setError("");
+        try {
+            if (editingStaff) {
+                const updatedStaffRes = await api.put(`/staff/${editingStaff.id}`, staffForm);
+                const updatedStaffData = updatedStaffRes.data || { ...editingStaff, ...staffForm };
+                setStaff((prev) =>
+                    prev.map((st: any) => (st.id === editingStaff.id ? { ...st, ...updatedStaffData } : st))
+                );
+                if (viewingStaff?.id === editingStaff.id) {
+                    setViewingStaff(updatedStaffData);
+                }
+                if (medicalReportStudent?.id === editingStaff.id) {
+                    setMedicalReportStudent((prev: any) => ({ ...prev, ...updatedStaffData }));
+                }
+                closeStaffForm(true);
+                setSuccessToast("Staff member updated successfully.");
+                setInlineNotification({
+                    type: "edit",
+                    title: "Staff Updated Successfully",
+                    message: `${getFullName(staffForm)} profile and information have been updated.`,
+                });
+                addClinicNotification({
+                    type: "edit",
+                    title: "Staff Updated",
+                    description: `${getFullName(staffForm)} profile updated`,
+                    category: "patient",
+                });
+            } else {
+                await api.post("/staff", staffForm);
+                closeStaffForm(true);
+                setSuccessToast("Staff member added successfully.");
+                setInlineNotification({
+                    type: "add",
+                    title: "Staff Added Successfully",
+                    message: `${getFullName(staffForm)} has been registered.`,
+                });
+                addClinicNotification({
+                    type: "add",
+                    title: "Staff Registered",
+                    description: `${getFullName(staffForm)} registered`,
+                    category: "patient",
+                });
+            }
+            invalidateRecordCache();
+            await fetchData();
+        } catch (err: any) {
+            console.error("Save staff error:", err);
+            const validationMsg = getErrorMessage(err, "Failed to save staff record.");
+            setError(validationMsg);
+            setFormError(validationMsg);
+        } finally {
+            setSaving(false);
+        }
     };
 
 
@@ -1227,7 +1297,7 @@ function StudentManagement() {
 
 
 
-    const handleFacultySubmit = (e) => {
+    const handleFacultySubmit = async (e: any) => {
         e.preventDefault();
 
         if (saving) {
@@ -1309,29 +1379,64 @@ function StudentManagement() {
             }
         }
 
-        setConfirmation({
-            type: editingFaculty
-                ? "updateFaculty"
-                : "addFaculty",
+        await saveFaculty();
+    };
 
-            title: editingFaculty
-                ? "Confirm Update Faculty"
-                : "Confirm Add Faculty",
-
-            message: editingFaculty
-                ? `Are you sure you want to update "${getFullName(
-                      editingFaculty
-                  )}"?`
-                : `Are you sure you want to add "${getFullName(
-                      facultyForm
-                  )}" as a new faculty record?`,
-
-            confirmText: editingFaculty
-                ? "Update Faculty"
-                : "Add Faculty",
-
-            danger: false,
-        });
+    const saveFaculty = async () => {
+        setSaving(true);
+        setError("");
+        try {
+            if (editingFaculty) {
+                const updatedFacultyRes = await api.put(`/faculties/${editingFaculty.id}`, facultyForm);
+                const updatedFacultyData = updatedFacultyRes.data || { ...editingFaculty, ...facultyForm };
+                setFaculties((prev) =>
+                    prev.map((f: any) => (f.id === editingFaculty.id ? { ...f, ...updatedFacultyData } : f))
+                );
+                if (viewingFaculty?.id === editingFaculty.id) {
+                    setViewingFaculty(updatedFacultyData);
+                }
+                if (medicalReportStudent?.id === editingFaculty.id) {
+                    setMedicalReportStudent((prev: any) => ({ ...prev, ...updatedFacultyData }));
+                }
+                closeFacultyForm(true);
+                setSuccessToast("Faculty member updated successfully.");
+                setInlineNotification({
+                    type: "edit",
+                    title: "Faculty Updated Successfully",
+                    message: `${getFullName(facultyForm)} profile and information have been updated.`,
+                });
+                addClinicNotification({
+                    type: "edit",
+                    title: "Faculty Updated",
+                    description: `${getFullName(facultyForm)} profile updated`,
+                    category: "patient",
+                });
+            } else {
+                await api.post("/faculties", facultyForm);
+                closeFacultyForm(true);
+                setSuccessToast("Faculty member added successfully.");
+                setInlineNotification({
+                    type: "add",
+                    title: "Faculty Added Successfully",
+                    message: `${getFullName(facultyForm)} has been registered.`,
+                });
+                addClinicNotification({
+                    type: "add",
+                    title: "Faculty Registered",
+                    description: `${getFullName(facultyForm)} registered`,
+                    category: "patient",
+                });
+            }
+            invalidateRecordCache();
+            await fetchData();
+        } catch (err: any) {
+            console.error("Save faculty error:", err);
+            const validationMsg = getErrorMessage(err, "Failed to save faculty record.");
+            setError(validationMsg);
+            setFormError(validationMsg);
+        } finally {
+            setSaving(false);
+        }
     };
 
 
@@ -1453,64 +1558,6 @@ function StudentManagement() {
 
         try {
             switch (confirmation.type) {
-
-
-
-
-
-
-                case "addStudent":
-                    await api.post(
-                        "/students",
-                        studentForm
-                    );
-
-                    closeStudentForm(true);
-                    completedMessage = "Student added successfully.";
-                    setInlineNotification({
-                        type: "add",
-                        title: "Student Added Successfully",
-                        message: `${getFullName(studentForm)} (${studentForm.student_id || "Student"}) has been registered.`,
-                    });
-                    addClinicNotification({
-                        type: "add",
-                        title: "Student Registered",
-                        description: `${getFullName(studentForm)} (${studentForm.student_id || "Student"}) registered`,
-                        category: "patient",
-                    });
-                    break;
-
-                case "updateStudent":
-                    const updatedStudentRes = await api.put(
-                        `/students/${editingStudent.id}`,
-                        studentForm
-                    );
-                    const updatedStudentData = updatedStudentRes.data || { ...editingStudent, ...studentForm };
-                    setStudents((prev) =>
-                        prev.map((s: any) => (s.id === editingStudent.id ? { ...s, ...updatedStudentData } : s))
-                    );
-                    if (viewingStudent?.id === editingStudent.id) {
-                        setViewingStudent(updatedStudentData);
-                    }
-                    if (medicalReportStudent?.id === editingStudent.id) {
-                        setMedicalReportStudent((prev: any) => ({ ...prev, ...updatedStudentData }));
-                    }
-
-                    closeStudentForm(true);
-                    completedMessage = "Student updated successfully.";
-                    setInlineNotification({
-                        type: "edit",
-                        title: "Student Updated Successfully",
-                        message: `${getFullName(studentForm)} profile and information have been updated.`,
-                    });
-                    addClinicNotification({
-                        type: "edit",
-                        title: "Student Updated",
-                        description: `${getFullName(studentForm)} profile updated`,
-                        category: "patient",
-                    });
-                    break;
-
                 case "deleteStudent":
                     const deletedStudentId = confirmation.person.id;
                     await api.delete(
@@ -1546,58 +1593,6 @@ function StudentManagement() {
                     });
                     break;
 
-                case "addStaff":
-                    await api.post(
-                        "/staff",
-                        staffForm
-                    );
-
-                    closeStaffForm(true);
-                    completedMessage = "Staff member added successfully.";
-                    setInlineNotification({
-                        type: "add",
-                        title: "Staff Added Successfully",
-                        message: `${getFullName(staffForm)} has been registered.`,
-                    });
-                    addClinicNotification({
-                        type: "add",
-                        title: "Staff Registered",
-                        description: `${getFullName(staffForm)} registered`,
-                        category: "patient",
-                    });
-                    break;
-
-                case "updateStaff":
-                    const updatedStaffRes = await api.put(
-                        `/staff/${editingStaff.id}`,
-                        staffForm
-                    );
-                    const updatedStaffData = updatedStaffRes.data || { ...editingStaff, ...staffForm };
-                    setStaff((prev) =>
-                        prev.map((st: any) => (st.id === editingStaff.id ? { ...st, ...updatedStaffData } : st))
-                    );
-                    if (viewingStaff?.id === editingStaff.id) {
-                        setViewingStaff(updatedStaffData);
-                    }
-                    if (medicalReportStudent?.id === editingStaff.id) {
-                        setMedicalReportStudent((prev: any) => ({ ...prev, ...updatedStaffData }));
-                    }
-
-                    closeStaffForm(true);
-                    completedMessage = "Staff member updated successfully.";
-                    setInlineNotification({
-                        type: "edit",
-                        title: "Staff Updated Successfully",
-                        message: `${getFullName(staffForm)} profile and information have been updated.`,
-                    });
-                    addClinicNotification({
-                        type: "edit",
-                        title: "Staff Updated",
-                        description: `${getFullName(staffForm)} profile updated`,
-                        category: "patient",
-                    });
-                    break;
-
                 case "deleteStaff":
                     const deletedStaffId = confirmation.person.id;
                     await api.delete(
@@ -1629,58 +1624,6 @@ function StudentManagement() {
                         type: "delete",
                         title: "Staff Deleted",
                         description: `${getFullName(confirmation.person)} removed from staff records`,
-                        category: "patient",
-                    });
-                    break;
-
-                case "addFaculty":
-                    await api.post(
-                        "/faculties",
-                        facultyForm
-                    );
-
-                    closeFacultyForm(true);
-                    completedMessage = "Faculty member added successfully.";
-                    setInlineNotification({
-                        type: "add",
-                        title: "Faculty Added Successfully",
-                        message: `${getFullName(facultyForm)} has been registered.`,
-                    });
-                    addClinicNotification({
-                        type: "add",
-                        title: "Faculty Registered",
-                        description: `${getFullName(facultyForm)} registered`,
-                        category: "patient",
-                    });
-                    break;
-
-                case "updateFaculty":
-                    const updatedFacultyRes = await api.put(
-                        `/faculties/${editingFaculty.id}`,
-                        facultyForm
-                    );
-                    const updatedFacultyData = updatedFacultyRes.data || { ...editingFaculty, ...facultyForm };
-                    setFaculties((prev) =>
-                        prev.map((f: any) => (f.id === editingFaculty.id ? { ...f, ...updatedFacultyData } : f))
-                    );
-                    if (viewingFaculty?.id === editingFaculty.id) {
-                        setViewingFaculty(updatedFacultyData);
-                    }
-                    if (medicalReportStudent?.id === editingFaculty.id) {
-                        setMedicalReportStudent((prev: any) => ({ ...prev, ...updatedFacultyData }));
-                    }
-
-                    closeFacultyForm(true);
-                    completedMessage = "Faculty member updated successfully.";
-                    setInlineNotification({
-                        type: "edit",
-                        title: "Faculty Updated Successfully",
-                        message: `${getFullName(facultyForm)} profile and information have been updated.`,
-                    });
-                    addClinicNotification({
-                        type: "edit",
-                        title: "Faculty Updated",
-                        description: `${getFullName(facultyForm)} profile updated`,
                         category: "patient",
                     });
                     break;
@@ -3745,17 +3688,6 @@ function StudentManagement() {
                     loading={saving}
                     onClose={() => {
                         if (!saving) {
-                            const isAdd = [
-                                "addStudent",
-                                "addStaff",
-                                "addFaculty",
-                            ].includes(confirmation.type);
-
-                            if (isAdd) {
-                                // Remove only the input text; do not add patient; keep form open
-                                resetAllPatientForms();
-                            }
-
                             setConfirmation(null);
                         }
                     }}

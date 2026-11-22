@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../../services/api";
-import { Modal } from "../student-management/FieldsAndModals";
+import { Modal, ConfirmationModal } from "../student-management/FieldsAndModals";
 import { RotateCcw, Trash2, Search, AlertCircle, CheckCircle2, History } from "lucide-react";
 
 interface RestoreVisitsModalProps {
@@ -17,6 +17,7 @@ export function RestoreVisitsModal({
     const [loading, setLoading] = useState(false);
     const [restoringId, setRestoringId] = useState<number | null>(null);
     const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
     const [search, setSearch] = useState("");
     const [feedback, setFeedback] = useState<{ message: string; type: "success" | "error" } | null>(null);
     const [visits, setVisits] = useState<any[]>([]);
@@ -60,15 +61,12 @@ export function RestoreVisitsModal({
     };
 
     const handlePermanentDelete = async (id: number) => {
-        if (!window.confirm("Permanently delete this clinic visit? This cannot be undone.")) {
-            return;
-        }
-
         setDeletingId(id);
         setFeedback(null);
         try {
             await api.delete(`/clinic-visits/${id}/force`);
             setFeedback({ message: "Visit permanently deleted.", type: "success" });
+            setConfirmDeleteId(null);
             await fetchTrashed();
         } catch (err: any) {
             console.error("Failed to permanently delete visit:", err);
@@ -230,7 +228,7 @@ export function RestoreVisitsModal({
                                         <button
                                             type="button"
                                             disabled={deletingId === visit.id}
-                                            onClick={() => handlePermanentDelete(visit.id)}
+                                            onClick={() => setConfirmDeleteId(visit.id)}
                                             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 transition hover:bg-red-50 disabled:opacity-50 dark:border-red-900/60 dark:hover:bg-red-950/40 cursor-pointer"
                                             title="Delete permanently"
                                         >
@@ -247,12 +245,26 @@ export function RestoreVisitsModal({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-xl border border-stone-300 bg-white px-4 py-2 text-xs font-semibold text-stone-700 transition hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200"
+                        className="rounded-xl border border-stone-300 bg-white px-4 py-2 text-xs font-semibold text-stone-700 transition hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 cursor-pointer"
                     >
                         Close
                     </button>
                 </div>
             </div>
+
+            {confirmDeleteId !== null && (
+                <ConfirmationModal
+                    open={confirmDeleteId !== null}
+                    title="Permanently Delete Visit"
+                    message="Are you sure you want to permanently delete this clinic visit? This action cannot be undone."
+                    confirmText="Delete Permanently"
+                    cancelText="Cancel"
+                    danger={true}
+                    loading={deletingId === confirmDeleteId}
+                    onConfirm={() => handlePermanentDelete(confirmDeleteId)}
+                    onClose={() => setConfirmDeleteId(null)}
+                />
+            )}
         </Modal>
     );
 }

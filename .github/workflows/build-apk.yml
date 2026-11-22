@@ -22,7 +22,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Node.js
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -33,18 +33,18 @@ jobs:
       - name: Build Web Application
         run: npm run build
 
+      - name: Set Execution Permissions on Gradle Wrapper
+        run: chmod +x android/gradlew
+
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      - name: Build Android APK
+      - name: Build Android APK via Gradle
         working-directory: ./android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Prepare APK File
-        run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk tcc-clinic.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk tcc-clinic.apk
 
       - name: Upload APK to Artifacts
         uses: actions/upload-artifact@v4
@@ -56,7 +56,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: android-app
-          name: "TCC Clinic Android APK Release"
+          name: "TCC Clinic Android App (.apk)"
           body: |
             ## 📱 TCC Clinic Management System — Android APK
             

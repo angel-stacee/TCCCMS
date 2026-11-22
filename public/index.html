@@ -28,15 +28,15 @@
         } catch(e) {}
       })();
     </script>
-    <script type="module" crossorigin src="/assets/index-C-MGq5kg.js"></script>
+    <script type="module" crossorigin src="/assets/index-DtCN5EcW.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-hePW80VL.js">
     <link rel="modulepreload" crossorigin href="/assets/charts-B_xZ189G.js">
     <link rel="modulepreload" crossorigin href="/assets/preload-helper-BZ1Pz5am.js">
     <link rel="modulepreload" crossorigin href="/assets/chunk-BV7QT456-CGlKxZ9z.js">
     <link rel="modulepreload" crossorigin href="/assets/jsx-runtime-BvawLu0V.js">
     <link rel="modulepreload" crossorigin href="/assets/icons-DS7jueoF.js">
-    <link rel="modulepreload" crossorigin href="/assets/FieldsAndModals-BD9dkbjm.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BZa_eVNm.css">
+    <link rel="modulepreload" crossorigin href="/assets/FieldsAndModals-BbBICedD.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-REDY5vjx.css">
   </head>
   <body>
     <div id="root">
@@ -57,13 +57,29 @@
     </div>
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js').then(function(reg) {
-            console.log('TCC Clinic PWA ServiceWorker active:', reg.scope);
-          }).catch(function(err) {
-            console.warn('TCC Clinic PWA ServiceWorker registration failed:', err);
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          // In development on localhost, unregister any ServiceWorker so Vite HMR is never intercepted or cached
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            for (var r of regs) {
+              r.unregister();
+            }
           });
-        });
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              for (var n of names) {
+                caches.delete(n);
+              }
+            });
+          }
+        } else {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js').then(function(reg) {
+              console.log('TCC Clinic PWA ServiceWorker active:', reg.scope);
+            }).catch(function(err) {
+              console.warn('TCC Clinic PWA ServiceWorker registration failed:', err);
+            });
+          });
+        }
       }
     </script>
   </body>

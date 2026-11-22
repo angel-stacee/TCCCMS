@@ -333,30 +333,11 @@ export default function Login(): React.JSX.Element {
                                 )}
                             </button>
                         </div>
-                        <div className="mt-2 flex justify-end">
-                            <button
-                                type="button"
-                                disabled={loading}
-                                onClick={() => {
-                                    setForgotEmail(email.trim());
-                                    setForgotStep("email");
-                                    setForgotOtp("");
-                                    setForgotNewPassword("");
-                                    setForgotPasswordConfirm("");
-                                    setForgotError("");
-                                    setForgotSuccessMessage("");
-                                    setShowForgotPassword(true);
-                                }}
-                                className="text-xs font-medium text-[#d4a017] transition hover:text-[#f0c040] hover:underline disabled:opacity-50"
-                            >
-                                Forgot password?
-                            </button>
-                        </div>
                     </div>
 
-                    {/* Keep me signed in */}
-                    <div className="flex items-center pt-1">
-                        <label className="flex cursor-pointer items-center gap-2.5 text-xs text-white/80 sm:text-sm">
+                    {/* Keep me signed in & Forgot password on the same line */}
+                    <div className="flex items-center justify-between pt-1">
+                        <label className="flex cursor-pointer items-center gap-2 text-xs text-white/80 sm:text-sm select-none">
                             <input
                                 type="checkbox"
                                 checked={rememberMe}
@@ -366,6 +347,23 @@ export default function Login(): React.JSX.Element {
                             />
                             <span>Keep me signed in</span>
                         </label>
+                        <button
+                            type="button"
+                            disabled={loading}
+                            onClick={() => {
+                                setForgotEmail(email.trim());
+                                setForgotStep("email");
+                                setForgotOtp("");
+                                setForgotNewPassword("");
+                                setForgotPasswordConfirm("");
+                                setForgotError("");
+                                setForgotSuccessMessage("");
+                                setShowForgotPassword(true);
+                            }}
+                            className="text-xs font-medium text-[#d4a017] transition hover:text-[#f0c040] hover:underline disabled:opacity-50"
+                        >
+                            Forgot password?
+                        </button>
                     </div>
 
                     {/* Error display */}

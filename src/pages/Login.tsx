@@ -30,6 +30,33 @@ export default function Login(): React.JSX.Element {
         Boolean(localStorage.getItem("tcc-saved-email"))
     );
 
+    /* ─── Rate Limiting / Lockout State (5 Attempts Max) ────────────────── */
+    const [lockoutSeconds, setLockoutSeconds] = useState<number>(() => {
+        try {
+            const until = Number(sessionStorage.getItem("tcc-lockout-until"));
+            if (until && until > Date.now()) {
+                return Math.ceil((until - Date.now()) / 1000);
+            }
+        } catch {}
+        return 0;
+    });
+    const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (lockoutSeconds <= 0) return;
+        const timer = setInterval(() => {
+            setLockoutSeconds((prev) => {
+                if (prev <= 1) {
+                    sessionStorage.removeItem("tcc-lockout-until");
+                    clearInterval(timer);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [lockoutSeconds]);
+
     /* ─── Forgot Password State ────────────────────────────────────────── */
     const [showForgotPassword, setShowForgotPassword] = useState(false);
     const [forgotStep, setForgotStep] = useState<"email" | "otp" | "new_password" | "success">("email");
@@ -187,6 +214,10 @@ export default function Login(): React.JSX.Element {
                 password,
             });
 
+            sessionStorage.removeItem("tcc-lockout-until");
+            setLockoutSeconds(0);
+            setRemainingAttempts(null);
+
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("user", JSON.stringify(response.data.user));
 
@@ -198,10 +229,20 @@ export default function Login(): React.JSX.Element {
 
             navigate("/dashboard");
         } catch (error: any) {
-            if (error.response?.data?.message) {
-                setError(error.response.data.message);
-            } else if (error.response?.data?.error) {
-                setError(error.response.data.error);
+            const resData = error.response?.data;
+            if (resData?.retry_after) {
+                const secs = Number(resData.retry_after);
+                setLockoutSeconds(secs);
+                sessionStorage.setItem("tcc-lockout-until", String(Date.now() + secs * 1000));
+            }
+            if (typeof resData?.remaining_attempts === "number") {
+                setRemainingAttempts(resData.remaining_attempts);
+            }
+
+            if (resData?.message) {
+                setError(resData.message);
+            } else if (resData?.error) {
+                setError(resData.error);
             } else {
                 setError("Unable to connect to the server. Please check your connection.");
             }
@@ -316,13 +357,13 @@ export default function Login(): React.JSX.Element {
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Enter your password"
                                 required
-                                disabled={loading}
+                                disabled={loading || lockoutSeconds > 0}
                                 className="tcc-login-input h-11 w-full rounded-xl border border-[#70091f]/60 bg-[#160307] pl-10 pr-11 text-sm font-semibold text-white placeholder:text-[#dfcfc7]/75 outline-none transition focus:border-[#d4a017] focus:ring-1 focus:ring-[#d4a017] disabled:cursor-not-allowed disabled:opacity-60"
                             />
                             <button
                                 type="button"
                                 aria-label={showPassword ? "Hide password" : "Show password"}
-                                disabled={loading}
+                                disabled={loading || lockoutSeconds > 0}
                                 onClick={() => setShowPassword((v) => !v)}
                                 className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-[#fcebe7]/60 transition hover:text-white disabled:cursor-not-allowed"
                             >
@@ -341,7 +382,7 @@ export default function Login(): React.JSX.Element {
                             <input
                                 type="checkbox"
                                 checked={rememberMe}
-                                disabled={loading}
+                                disabled={loading || lockoutSeconds > 0}
                                 onChange={(e) => setRememberMe(e.target.checked)}
                                 className="h-4 w-4 rounded border-[#70091f] bg-[#160307] accent-[#70091f] disabled:cursor-not-allowed"
                             />
@@ -370,19 +411,41 @@ export default function Login(): React.JSX.Element {
                     {error && (
                         <div
                             role="alert"
-                            className="rounded-xl border border-red-500/40 bg-red-950/60 p-3 text-xs leading-relaxed text-red-200"
+                            className={`rounded-xl border p-3 text-xs leading-relaxed ${
+                                lockoutSeconds > 0
+                                    ? "border-amber-500/50 bg-amber-950/60 text-amber-200"
+                                    : "border-red-500/40 bg-red-950/60 text-red-200"
+                            }`}
                         >
-                            {error}
+                            <p className="font-semibold">{error}</p>
+                            {lockoutSeconds > 0 && (
+                                <p className="mt-1.5 text-[11px] text-amber-300/90">
+                                    Need instant access? Use{" "}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setForgotEmail(email.trim());
+                                            setShowForgotPassword(true);
+                                        }}
+                                        className="font-bold underline hover:text-white cursor-pointer"
+                                    >
+                                        Forgot Password
+                                    </button>{" "}
+                                    to verify and reset your account.
+                                </p>
+                            )}
                         </div>
                     )}
 
                     {/* Submit Button */}
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={loading || lockoutSeconds > 0}
                         className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#70091f] text-sm font-bold text-white shadow-lg ring-1 ring-white/20 transition-all hover:bg-[#8b1505] hover:shadow-xl active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {loading ? (
+                        {lockoutSeconds > 0 ? (
+                            <span>Account Locked ({lockoutSeconds}s)</span>
+                        ) : loading ? (
                             <>
                                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                                 <span>Signing in...</span>

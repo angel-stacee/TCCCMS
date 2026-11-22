@@ -3,6 +3,7 @@ import tccLogo from "../../assets/tcc-logo.png";
 import api from "../../services/api";
 import { invalidateRecordCache } from "../../services/recordCache";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ConfirmationModal } from "../student-management/FieldsAndModals";
 import {
     LayoutDashboard,
     Users,
@@ -45,6 +46,7 @@ function Sidebar({
     const location = useLocation();
     const navigate = useNavigate();
     const [pendingPath, setPendingPath] = React.useState<string | null>(null);
+    const [confirmLogout, setConfirmLogout] = React.useState(false);
 
     React.useEffect(() => {
         setPendingPath(null);
@@ -356,7 +358,7 @@ function Sidebar({
                 {/* Log Out Button */}
                 <button
                     type="button"
-                    onClick={handleLogout}
+                    onClick={() => setConfirmLogout(true)}
                     title="Log Out"
                     aria-label="Log Out"
                     className={`group flex h-11 items-center rounded-xl border border-white/15 bg-white/5 text-left text-[#fcebe7]/90 transition-all duration-200 hover:border-red-400/50 hover:bg-red-500/20 hover:text-white hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 active:scale-[0.98] cursor-pointer ${
@@ -374,6 +376,21 @@ function Sidebar({
                     )}
                 </button>
             </div>
+
+            {/* Confirmation Modal for Logout */}
+            <ConfirmationModal
+                open={confirmLogout}
+                title="Log Out Confirmation"
+                message="Are you sure you want to log out of the TCC Clinic Management System? Any unsaved changes may be lost."
+                confirmText="Yes, Log Out"
+                cancelText="Cancel"
+                danger={true}
+                onConfirm={() => {
+                    setConfirmLogout(false);
+                    handleLogout();
+                }}
+                onClose={() => setConfirmLogout(false)}
+            />
         </aside>
     );
 }

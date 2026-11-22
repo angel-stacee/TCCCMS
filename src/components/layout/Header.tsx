@@ -175,6 +175,9 @@ export function Header({
     const isOrgPage =
         location.pathname.toLowerCase().startsWith("/organization") ||
         location.pathname.toLowerCase().startsWith("/staff");
+    const isMedicinePage =
+        location.pathname.toLowerCase().startsWith("/medicine") ||
+        location.pathname.toLowerCase().startsWith("/medicines");
     const { isDark, toggleTheme } = useTheme();
 
     const bellRef = useRef<HTMLDivElement>(null);
@@ -579,8 +582,8 @@ export function Header({
                     />
                 </div>
 
-                {/* Global Search Bar (hidden on Settings and Organization Chart pages) */}
-                {!isSettingsPage && !isOrgPage && (
+                {/* Global Search Bar (hidden on Settings, Organization Chart, and Medicine Inventory pages) */}
+                {!isSettingsPage && !isOrgPage && !isMedicinePage && (
                     <div ref={searchContainerRef} className="relative flex-1 max-w-md lg:max-w-xl">
                         <form onSubmit={handleSearchSubmit} className="relative w-full">
                         <div className="relative flex items-center">

@@ -157,10 +157,7 @@ function Reports() {
     };
 
     const handlePrint = () => {
-        window.dispatchEvent(new Event("resize"));
-        setTimeout(() => {
-            window.print();
-        }, 120);
+        window.print();
     };
 
     const handleDownloadPDF = () => {
@@ -750,19 +747,6 @@ type ChartTabKey = keyof typeof CHART_TABS;
 function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyVisitsChartProps) {
     const [activeChart, setActiveChart] = useState<ChartTabKey>("total");
 
-    useEffect(() => {
-        const handlePrintResize = () => {
-            setActiveChart("total");
-            window.dispatchEvent(new Event("resize"));
-        };
-        window.addEventListener("beforeprint", handlePrintResize);
-        window.addEventListener("afterprint", handlePrintResize);
-        return () => {
-            window.removeEventListener("beforeprint", handlePrintResize);
-            window.removeEventListener("afterprint", handlePrintResize);
-        };
-    }, []);
-
     const daysInMonth = new Date(year, month, 0).getDate();
     const monthNamesShort = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -898,6 +882,7 @@ function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyV
                                 stroke={CHART_TABS[activeChart].color}
                                 strokeWidth={2.5}
                                 dot={false}
+                                isAnimationActive={false}
                                 activeDot={{
                                     r: 5,
                                     fill: CHART_TABS[activeChart].color,

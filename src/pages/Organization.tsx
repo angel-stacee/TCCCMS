@@ -813,20 +813,7 @@ function MemberEditModal({
                 </div>
 
                 {/* Modal Actions */}
-                <div className="flex shrink-0 items-center justify-between border-t border-stone-200 bg-stone-50/90 px-6 py-4 backdrop-blur-sm dark:border-[#382f25] dark:bg-[#1a1410]">
-                    <div>
-                        {!isNew && onDelete && member && (
-                            <button
-                                type="button"
-                                onClick={() => onDelete(member.id)}
-                                className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition active:scale-95 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
-                            >
-                                <Trash2 size={14} />
-                                <span>Remove Member</span>
-                            </button>
-                        )}
-                    </div>
-
+                <div className="flex shrink-0 items-center justify-end border-t border-stone-200 bg-stone-50/90 px-6 py-4 backdrop-blur-sm dark:border-[#382f25] dark:bg-[#1a1410]">
                     <div className="flex items-center gap-2">
                         <button
                             type="button"

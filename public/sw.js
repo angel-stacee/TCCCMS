@@ -1,10 +1,14 @@
-const CACHE_NAME = 'tcc-clinic-cache-v1';
+const CACHE_NAME = 'tcc-clinic-cache-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.png',
   '/favicon.svg',
+  '/pwa-icon-192.png',
+  '/pwa-icon-512.png',
+  '/pwa-maskable-512.png',
+  '/apple-touch-icon.png',
   '/tcc-logo.png'
 ];
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Download, Smartphone, X, Share2, PlusSquare, Check } from "lucide-react";
-import tccLogo from "../../assets/tcc-logo.png";
+import tccLogo from "../../assets/pwa-icon-512.png";
 
 interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>;

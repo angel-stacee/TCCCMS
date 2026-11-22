@@ -1018,8 +1018,15 @@ export function Header({
                     </button>
 
                     {bellOpen && (
-                        <div className="absolute right-0 top-12 z-50 w-[380px] sm:w-[440px] max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white shadow-2xl dark:border-stone-800 dark:bg-[#1a1511] animate-in fade-in zoom-in-95 duration-150">
-                            {/* Notification Header */}
+                        <>
+                            {/* Mobile dark backdrop to easily dismiss */}
+                            <div
+                                className="fixed inset-0 z-40 bg-black/25 backdrop-blur-[1px] sm:hidden"
+                                onClick={() => setBellOpen(false)}
+                                aria-hidden="true"
+                            />
+                            <div className="fixed inset-x-2.5 top-16 z-50 flex max-h-[calc(100dvh-5rem)] flex-col overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white shadow-2xl dark:border-stone-800 dark:bg-[#1a1511] animate-in fade-in zoom-in-95 duration-150 sm:absolute sm:inset-auto sm:right-0 sm:top-12 sm:w-[420px] sm:max-h-[560px]">
+                                {/* Notification Header */}
                             <div className="flex items-center justify-between border-b border-[#eee7de] bg-[#fcfaf7] px-4 py-3 dark:border-stone-800 dark:bg-[#1f1914]">
                                 <div className="flex items-center gap-2">
                                     <p className="text-sm font-bold text-stone-900 dark:text-stone-100">
@@ -1197,6 +1204,7 @@ export function Header({
                                 </div>
                             )}
                         </div>
+                    </>
                     )}
                 </div>
 

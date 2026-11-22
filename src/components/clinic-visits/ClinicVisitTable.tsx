@@ -435,7 +435,7 @@ export function ClinicVisitTable({
                 <span>
                     Page {visitPagination.current_page} of {visitPagination.last_page} ({visitPagination.total} total)
                 </span>
-                <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-2">
+                <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-2 mr-0 sm:mr-16">
                     <button
                         type="button"
                         disabled={visitPagination.current_page <= 1}

@@ -1568,7 +1568,7 @@ function Medicine() {
                         <span>
                             {pagination.total} medicine(s) · Page {pagination.current_page} of {pagination.last_page}
                         </span>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 mr-0 sm:mr-16">
                             <button
                                 type="button"
                                 disabled={pagination.current_page <= 1}

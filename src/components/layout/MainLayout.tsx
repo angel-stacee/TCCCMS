@@ -116,7 +116,7 @@ function MainLayout({ children }: MainLayoutProps): React.JSX.Element {
                 )}
 
                 {/* Page Content */}
-                <main className="flex-1 w-full max-w-full">
+                <main className="flex-1 w-full max-w-full pb-28 sm:pb-32">
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoadingContent />}>
                             {children || <Outlet />}

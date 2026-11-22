@@ -2438,7 +2438,7 @@ function StudentManagement() {
                                     <span className="text-center sm:text-left">
                                         Page {studentPagination.current_page} of {studentPagination.last_page}
                                     </span>
-                                    <div className="flex justify-center gap-2 sm:justify-end">
+                                    <div className="flex justify-center gap-2 sm:justify-end mr-0 sm:mr-16">
                                         <button
                                             type="button"
                                             disabled={studentPagination.current_page <= 1}
@@ -2714,7 +2714,7 @@ function StudentManagement() {
                                 </div>
                                 <div className="flex flex-col gap-3 border-t border-[#e8dfd4] bg-white px-5 py-4 text-sm text-[#887d70] sm:flex-row sm:items-center sm:justify-between dark:border-[#4e4234] dark:bg-[#211c17] dark:text-[#a99d8f]">
                                     <span className="text-center sm:text-left">Page {staffPagination.current_page} of {staffPagination.last_page}</span>
-                                    <div className="flex justify-center gap-2 sm:justify-end">
+                                    <div className="flex justify-center gap-2 sm:justify-end mr-0 sm:mr-16">
                                         <button type="button" disabled={staffPagination.current_page <= 1} onClick={() => loadStaffPage(staffPagination.current_page - 1, search)} className="rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-1.5 text-xs font-semibold text-[#766959] transition hover:bg-[#f3ebdf] hover:text-[#3d3329] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#4e4234] dark:bg-[#2c231a] dark:text-[#e5dcd1] dark:hover:bg-[#382f25]">Previous</button>
                                         <button type="button" disabled={staffPagination.current_page >= staffPagination.last_page} onClick={() => loadStaffPage(staffPagination.current_page + 1, search)} className="rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-1.5 text-xs font-semibold text-[#766959] transition hover:bg-[#f3ebdf] hover:text-[#3d3329] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#4e4234] dark:bg-[#2c231a] dark:text-[#e5dcd1] dark:hover:bg-[#382f25]">Next</button>
                                     </div>
@@ -2966,7 +2966,7 @@ function StudentManagement() {
                                 </div>
                                 <div className="flex flex-col gap-3 border-t border-[#e8dfd4] bg-white px-5 py-4 text-sm text-[#887d70] sm:flex-row sm:items-center sm:justify-between dark:border-[#4e4234] dark:bg-[#211c17] dark:text-[#a99d8f]">
                                     <span className="text-center sm:text-left">Page {facultyPagination.current_page} of {facultyPagination.last_page}</span>
-                                    <div className="flex justify-center gap-2 sm:justify-end">
+                                    <div className="flex justify-center gap-2 sm:justify-end mr-0 sm:mr-16">
                                         <button type="button" disabled={facultyPagination.current_page <= 1} onClick={() => loadFacultyPage(facultyPagination.current_page - 1, search)} className="rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-1.5 text-xs font-semibold text-[#766959] transition hover:bg-[#f3ebdf] hover:text-[#3d3329] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#4e4234] dark:bg-[#2c231a] dark:text-[#e5dcd1] dark:hover:bg-[#382f25]">Previous</button>
                                         <button type="button" disabled={facultyPagination.current_page >= facultyPagination.last_page} onClick={() => loadFacultyPage(facultyPagination.current_page + 1, search)} className="rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-1.5 text-xs font-semibold text-[#766959] transition hover:bg-[#f3ebdf] hover:text-[#3d3329] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#4e4234] dark:bg-[#2c231a] dark:text-[#e5dcd1] dark:hover:bg-[#382f25]">Next</button>
                                     </div>

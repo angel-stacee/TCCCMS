@@ -391,9 +391,9 @@ export function DashboardAssistant() {
     };
 
     return (
-        <div className="fixed bottom-5 right-5 z-50">
+        <div className="fixed bottom-20 right-5 sm:bottom-20 sm:right-6 z-50">
             {open && (
-                <div className="relative mb-3 flex h-[520px] w-[360px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white shadow-2xl">
+                <div className="relative mb-3 flex h-[480px] max-h-[calc(100vh-160px)] w-[360px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white shadow-2xl">
                     {/* Delete Confirmation Modal */}
                     {deleteConfirm && (
                         <div

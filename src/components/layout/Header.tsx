@@ -24,6 +24,7 @@ import {
     AlertTriangle,
     Check,
     CheckCheck,
+    LogOut,
 } from "lucide-react";
 import tccLogo from "../../assets/tcc-logo.png";
 import api from "../../services/api";
@@ -181,6 +182,7 @@ export function Header({
 
     const [bellOpen, setBellOpen] = useState(false);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+    const [confirmLogout, setConfirmLogout] = useState(false);
     const [confirmClearNotifications, setConfirmClearNotifications] = useState(false);
     const [notifToDelete, setNotifToDelete] = useState<any | null>(null);
     const [headerSearch, setHeaderSearch] = useState("");
@@ -273,6 +275,32 @@ export function Header({
             window.removeEventListener("storage", handleNotifUpdate);
         };
     }, [selectedCategory]);
+
+    const handleLogout = async () => {
+        setProfileMenuOpen(false);
+        if (setSidebarOpen) {
+            setSidebarOpen(false);
+        }
+
+        try {
+            api.post("/logout", {}, { timeout: 3000 }).catch((logoutError) => {
+                console.error("Logout error:", logoutError);
+            });
+        } catch {
+            // ignore
+        }
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("tcc-dashboard-cache");
+        try {
+            invalidateRecordCache();
+        } catch {
+            // ignore
+        }
+
+        navigate("/login", { replace: true });
+    };
 
     useOutsideClick(bellRef, () => setBellOpen(false), bellOpen);
     useOutsideClick(profileMenuRef, () => setProfileMenuOpen(false), profileMenuOpen);
@@ -1257,6 +1285,30 @@ export function Header({
                                     </div>
                                 </button>
                             </div>
+
+                            {/* Log Out Row */}
+                            <div className="border-t border-[#eee7de] p-1.5 dark:border-stone-800/80">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setProfileMenuOpen(false);
+                                        setConfirmLogout(true);
+                                    }}
+                                    className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-red-600 transition hover:bg-red-50/80 dark:text-red-400 dark:hover:bg-red-950/30 cursor-pointer"
+                                >
+                                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-400">
+                                        <LogOut size={15} strokeWidth={2.2} />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-xs font-semibold text-red-600 dark:text-red-400">
+                                            Log Out
+                                        </p>
+                                        <p className="text-[10px] text-red-400/80 dark:text-red-400/60">
+                                            Sign out of your account
+                                        </p>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -1296,6 +1348,18 @@ export function Header({
                     }
                 }}
                 onClose={() => setNotifToDelete(null)}
+            />
+
+            {/* Confirmation Modal for Logout */}
+            <ConfirmationModal
+                open={confirmLogout}
+                title="Log Out Confirmation"
+                message="Are you sure you want to log out of your session? Any unsaved changes may be lost."
+                confirmText="Log Out"
+                cancelText="Stay Logged In"
+                danger={true}
+                onConfirm={handleLogout}
+                onClose={() => setConfirmLogout(false)}
             />
         </header>
     );

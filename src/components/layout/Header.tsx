@@ -167,7 +167,6 @@ export function Header({
 }: HeaderProps): React.JSX.Element {
     const location = useLocation();
     const navigate = useNavigate();
-    const isReportsPage = location.pathname.toLowerCase().startsWith("/reports");
     const { isDark, toggleTheme } = useTheme();
 
     const bellRef = useRef<HTMLDivElement>(null);
@@ -458,24 +457,22 @@ export function Header({
     };
 
     return (
-        <header className="print:hidden sticky top-0 z-30 flex h-[68px] sm:h-[72px] w-full items-center justify-between border-b border-[#eee7de] bg-white/95 px-4 sm:px-6 lg:px-8 backdrop-blur shadow-xs transition-colors duration-200 dark:border-stone-800 dark:bg-[#16120e]/95">
-            {/* Left side: Mobile Hamburger & Logo + Global Search Bar */}
+        <header className="sticky top-0 z-30 flex h-[68px] sm:h-[72px] w-full items-center justify-between border-b border-[#eee7de] bg-white/95 px-4 sm:px-6 lg:px-8 backdrop-blur shadow-xs transition-colors duration-200 dark:border-stone-800 dark:bg-[#16120e]/95">
+            {/* Left side: Mobile Hamburger & Logo + Global Search Bar (replacing Title per user request) */}
             <div className="flex flex-1 items-center gap-2.5 sm:gap-4 min-w-0 mr-3 sm:mr-6">
-                {!isReportsPage && (
-                    <button
-                        type="button"
-                        onClick={() => setSidebarOpen((prev) => !prev)}
-                        className="flex lg:hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[#70091f] transition duration-200 hover:bg-[#fcebe7] active:scale-95 dark:text-[#f8a598] dark:hover:bg-stone-800 cursor-pointer"
-                        aria-label="Toggle Navigation Sidebar"
-                        title="Open Navigation Menu"
-                        aria-expanded={sidebarOpen}
-                    >
-                        <Menu size={22} />
-                    </button>
-                )}
+                <button
+                    type="button"
+                    onClick={() => setSidebarOpen((prev) => !prev)}
+                    className="flex lg:hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[#70091f] transition duration-200 hover:bg-[#fcebe7] active:scale-95 dark:text-[#f8a598] dark:hover:bg-stone-800 cursor-pointer"
+                    aria-label="Toggle Navigation Sidebar"
+                    title="Open Navigation Menu"
+                    aria-expanded={sidebarOpen}
+                >
+                    <Menu size={22} />
+                </button>
 
-                {/* Logo display */}
-                <div className={`flex items-center gap-2 shrink-0 ${isReportsPage ? "flex" : "lg:hidden"}`}>
+                {/* Mobile Logo display */}
+                <div className="flex items-center gap-2 lg:hidden shrink-0">
                     <img
                         src={tccLogo}
                         alt="TCC Logo"
@@ -491,16 +488,10 @@ export function Header({
                         }}
                         className="h-8 w-8 rounded-full object-contain ring-1 ring-[#70091f]/20"
                     />
-                    {isReportsPage && (
-                        <span className="text-sm font-bold text-stone-900 dark:text-stone-100 hidden sm:inline">
-                            TCC Clinic Management System
-                        </span>
-                    )}
                 </div>
 
-                {/* Global Search Bar (hidden on Reports page) */}
-                {!isReportsPage && (
-                    <div ref={searchContainerRef} className="relative flex-1 max-w-md lg:max-w-xl">
+                {/* Global Search Bar (replacing Dashboard / Page Title) */}
+                <div ref={searchContainerRef} className="relative flex-1 max-w-md lg:max-w-xl">
                     <form onSubmit={handleSearchSubmit} className="relative w-full">
                         <div className="relative flex items-center">
                             <Search size={17} className="pointer-events-none absolute left-3.5 text-stone-500 dark:text-stone-400" />
@@ -882,7 +873,6 @@ export function Header({
                         </div>
                     )}
                 </div>
-                )}
             </div>
 
             {/* Right side: Notifications Bell & Profile Dropdown */}
@@ -981,118 +971,114 @@ export function Header({
                     )}
                 </div>
 
-                {!isReportsPage && (
-                    <>
-                        <div className="h-7 w-px bg-[#eee7de] dark:bg-stone-800" />
+                <div className="h-7 w-px bg-[#eee7de] dark:bg-stone-800" />
 
-                        {/* Profile Avatar & Interactive Dropdown Menu */}
-                        <div ref={profileMenuRef} className="relative">
-                            <button
-                                type="button"
-                                onClick={() => setProfileMenuOpen((prev) => !prev)}
-                                aria-expanded={profileMenuOpen}
-                                aria-haspopup="true"
-                                aria-label="User profile menu"
-                                className="flex items-center gap-2 rounded-xl p-1 transition hover:bg-stone-100 sm:gap-2.5 sm:px-2.5 sm:py-1.5 dark:hover:bg-stone-800/60 focus:outline-none"
-                            >
-                                <Avatar user={user} size={38} iconSize={20} />
+                {/* Profile Avatar & Interactive Dropdown Menu */}
+                <div ref={profileMenuRef} className="relative">
+                    <button
+                        type="button"
+                        onClick={() => setProfileMenuOpen((prev) => !prev)}
+                        aria-expanded={profileMenuOpen}
+                        aria-haspopup="true"
+                        aria-label="User profile menu"
+                        className="flex items-center gap-2 rounded-xl p-1 transition hover:bg-stone-100 sm:gap-2.5 sm:px-2.5 sm:py-1.5 dark:hover:bg-stone-800/60 focus:outline-none"
+                    >
+                        <Avatar user={user} size={38} iconSize={20} />
 
-                                <div className="hidden text-left sm:block">
-                                    <p className="text-sm font-semibold leading-tight text-stone-800 dark:text-stone-200">
+                        <div className="hidden text-left sm:block">
+                            <p className="text-sm font-semibold leading-tight text-stone-800 dark:text-stone-200">
+                                {user?.name || "Clinic Staff"}
+                            </p>
+                            <p className="text-xs text-[#887d70] leading-tight dark:text-stone-400">
+                                {formatRole(user?.role)}
+                            </p>
+                        </div>
+
+                        <ChevronDown
+                            size={14}
+                            className={`hidden text-stone-400 transition-transform duration-200 sm:block ${
+                                profileMenuOpen ? "rotate-180" : ""
+                            }`}
+                        />
+                    </button>
+
+                    {profileMenuOpen && (
+                        <div className="absolute right-0 top-12 z-50 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-[#e8dfd4] bg-white p-2 shadow-2xl dark:border-stone-800 dark:bg-[#1f1914] animate-in fade-in zoom-in-95 duration-150">
+                            {/* User Info Header */}
+                            <div className="flex items-center gap-3 border-b border-[#eee7de] px-3 py-3 dark:border-stone-800">
+                                <Avatar user={user} size={42} iconSize={22} />
+                                <div className="min-w-0 flex-1 text-left">
+                                    <p className="truncate text-sm font-bold text-stone-900 dark:text-stone-100">
                                         {user?.name || "Clinic Staff"}
                                     </p>
-                                    <p className="text-xs text-[#887d70] leading-tight dark:text-stone-400">
-                                        {formatRole(user?.role)}
+                                    <p className="truncate text-xs text-[#887d70] dark:text-stone-400">
+                                        {user?.email || "admin.clinic.edu@gmail.com"}
                                     </p>
+                                    <span className="mt-1.5 inline-block rounded-full bg-[#70091f]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#70091f] dark:bg-[#70091f]/30 dark:text-[#f8a598]">
+                                        {formatRole(user?.role)}
+                                    </span>
                                 </div>
+                            </div>
 
-                                <ChevronDown
-                                    size={14}
-                                    className={`hidden text-stone-400 transition-transform duration-200 sm:block ${
-                                        profileMenuOpen ? "rotate-180" : ""
-                                    }`}
-                                />
-                            </button>
-
-                            {profileMenuOpen && (
-                                <div className="absolute right-0 top-12 z-50 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-[#e8dfd4] bg-white p-2 shadow-2xl dark:border-stone-800 dark:bg-[#1f1914] animate-in fade-in zoom-in-95 duration-150">
-                                    {/* User Info Header */}
-                                    <div className="flex items-center gap-3 border-b border-[#eee7de] px-3 py-3 dark:border-stone-800">
-                                        <Avatar user={user} size={42} iconSize={22} />
-                                        <div className="min-w-0 flex-1 text-left">
-                                            <p className="truncate text-sm font-bold text-stone-900 dark:text-stone-100">
-                                                {user?.name || "Clinic Staff"}
+                            {/* Dark Mode / Light Mode Switcher Row */}
+                            <div className="border-b border-[#eee7de] p-1.5 dark:border-stone-800">
+                                <button
+                                    type="button"
+                                    onClick={toggleTheme}
+                                    role="switch"
+                                    aria-checked={isDark}
+                                    aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-2 transition hover:bg-stone-50 dark:hover:bg-stone-800/50 cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400">
+                                            {isDark ? <Moon size={15} /> : <Sun size={15} />}
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-xs font-semibold text-stone-800 dark:text-stone-200">
+                                                {isDark ? "Dark Mode" : "Light Mode"}
                                             </p>
-                                            <p className="truncate text-xs text-[#887d70] dark:text-stone-400">
-                                                {user?.email || "admin.clinic.edu@gmail.com"}
+                                            <p className="text-[10px] text-[#887d70] dark:text-stone-400">
+                                                Tap to switch theme
                                             </p>
-                                            <span className="mt-1.5 inline-block rounded-full bg-[#70091f]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#70091f] dark:bg-[#70091f]/30 dark:text-[#f8a598]">
-                                                {formatRole(user?.role)}
-                                            </span>
                                         </div>
                                     </div>
-
-                                    {/* Dark Mode / Light Mode Switcher Row */}
-                                    <div className="border-b border-[#eee7de] p-1.5 dark:border-stone-800">
-                                        <button
-                                            type="button"
-                                            onClick={toggleTheme}
-                                            role="switch"
-                                            aria-checked={isDark}
-                                            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-                                            className="flex w-full items-center justify-between rounded-xl px-2.5 py-2 transition hover:bg-stone-50 dark:hover:bg-stone-800/50 cursor-pointer"
-                                        >
-                                            <div className="flex items-center gap-2.5">
-                                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400">
-                                                    {isDark ? <Moon size={15} /> : <Sun size={15} />}
-                                                </div>
-                                                <div className="text-left">
-                                                    <p className="text-xs font-semibold text-stone-800 dark:text-stone-200">
-                                                        {isDark ? "Dark Mode" : "Light Mode"}
-                                                    </p>
-                                                    <p className="text-[10px] text-[#887d70] dark:text-stone-400">
-                                                        Tap to switch theme
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div
-                                                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ${
-                                                    isDark ? "bg-[#70091f]" : "bg-stone-300 dark:bg-stone-600"
-                                                }`}
-                                            >
-                                                <span
-                                                    className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                                                        isDark ? "translate-x-4" : "translate-x-1"
-                                                    }`}
-                                                />
-                                            </div>
-                                        </button>
+                                    <div
+                                        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ${
+                                            isDark ? "bg-[#70091f]" : "bg-stone-300 dark:bg-stone-600"
+                                        }`}
+                                    >
+                                        <span
+                                            className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                                                isDark ? "translate-x-4" : "translate-x-1"
+                                            }`}
+                                        />
                                     </div>
+                                </button>
+                            </div>
 
-                                    {/* Navigation Links */}
-                                    <div className="p-1 space-y-0.5">
-                                        <Link
-                                            to="/profile"
-                                            onClick={() => setProfileMenuOpen(false)}
-                                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-stone-700 transition hover:bg-[#fcebe7]/60 hover:text-[#70091f] dark:text-stone-300 dark:hover:bg-stone-800/60 dark:hover:text-[#f8a598]"
-                                        >
-                                            <UserIcon size={15} className="text-[#70091f] dark:text-[#f8a598]" />
-                                            <span>My Profile</span>
-                                        </Link>
-                                        <Link
-                                            to="/settings"
-                                            onClick={() => setProfileMenuOpen(false)}
-                                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-stone-700 transition hover:bg-[#fcebe7]/60 hover:text-[#70091f] dark:text-stone-300 dark:hover:bg-stone-800/60 dark:hover:text-[#f8a598]"
-                                        >
-                                            <Settings size={15} className="text-[#70091f] dark:text-[#f8a598]" />
-                                            <span>Settings</span>
-                                        </Link>
-                                    </div>
-                                </div>
-                            )}
+                            {/* Navigation Links */}
+                            <div className="p-1 space-y-0.5">
+                                <Link
+                                    to="/profile"
+                                    onClick={() => setProfileMenuOpen(false)}
+                                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-stone-700 transition hover:bg-[#fcebe7]/60 hover:text-[#70091f] dark:text-stone-300 dark:hover:bg-stone-800/60 dark:hover:text-[#f8a598]"
+                                >
+                                    <UserIcon size={15} className="text-[#70091f] dark:text-[#f8a598]" />
+                                    <span>My Profile</span>
+                                </Link>
+                                <Link
+                                    to="/settings"
+                                    onClick={() => setProfileMenuOpen(false)}
+                                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-stone-700 transition hover:bg-[#fcebe7]/60 hover:text-[#70091f] dark:text-stone-300 dark:hover:bg-stone-800/60 dark:hover:text-[#f8a598]"
+                                >
+                                    <Settings size={15} className="text-[#70091f] dark:text-[#f8a598]" />
+                                    <span>Settings</span>
+                                </Link>
+                            </div>
                         </div>
-                    </>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* Confirmation Modal for Clear All Notifications */}

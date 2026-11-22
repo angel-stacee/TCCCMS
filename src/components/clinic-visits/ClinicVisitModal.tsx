@@ -1,6 +1,6 @@
-import { useState, type FormEventHandler } from "react";
+import { useState, useEffect, useRef, type FormEventHandler } from "react";
 import { createPortal } from "react-dom";
-import { Pill, Search, X, Stethoscope } from "lucide-react";
+import { Pill, Search, X, Stethoscope, ChevronDown } from "lucide-react";
 import type { VisitRecord } from "./ClinicVisitTable";
 import { parseAndNormalizeTemperature } from "../../utils/formatters";
 
@@ -194,6 +194,30 @@ export function ClinicVisitModal({
     selectedMedicine,
 }: ClinicVisitModalProps) {
     const [customFields, setCustomFields] = useState<Record<string, boolean>>({});
+    const patientDropdownRef = useRef<HTMLDivElement>(null);
+    const medicineDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                patientDropdownRef.current &&
+                !patientDropdownRef.current.contains(event.target as Node)
+            ) {
+                setShowPatientDropdown(false);
+            }
+            if (
+                medicineDropdownRef.current &&
+                !medicineDropdownRef.current.contains(event.target as Node)
+            ) {
+                setShowMedicineDropdown(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [setShowPatientDropdown, setShowMedicineDropdown]);
 
     if (!showForm) return null;
     if (typeof document === "undefined") return null;
@@ -252,7 +276,7 @@ export function ClinicVisitModal({
                     <div className="flex-1 overflow-y-auto p-5 sm:p-6">
                         <div className="grid gap-4 md:grid-cols-2">
                         {/* 1. Patient Selection (Left) */}
-                        <div className="relative flex flex-col gap-1">
+                        <div ref={patientDropdownRef} className="relative flex flex-col gap-1">
                             <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Patient
                                 <span className="ml-1 text-red-500">*</span>
@@ -699,7 +723,7 @@ export function ClinicVisitModal({
                         </div>
 
                         {/* 10. Medicine / Supply (Right) */}
-                        <div className="relative flex flex-col gap-1">
+                        <div ref={medicineDropdownRef} className="relative flex flex-col gap-1">
                             <div className="flex items-center justify-between">
                                 <label className="flex items-center gap-1.5 text-sm font-bold text-stone-900 dark:text-stone-100">
                                     <Pill size={15} />
@@ -719,57 +743,156 @@ export function ClinicVisitModal({
                                                 medicine_quantity: "",
                                             }));
                                             setMedicineSearch("");
+                                            setShowMedicineDropdown(false);
                                         }}
-                                        className="text-xs font-semibold text-red-600 hover:underline"
+                                        className="text-xs font-semibold text-red-600 hover:underline cursor-pointer"
                                     >
                                         Clear
                                     </button>
                                 )}
                             </div>
 
-                            <select
-                                value={formData.medicine_id ? String(formData.medicine_id) : ""}
-                                onChange={(event) => {
-                                    const val = event.target.value;
-                                    if (!val) {
-                                        setFormData((previous: any) => ({
-                                            ...previous,
-                                            medicine_id: "",
-                                            medicine_quantity: "",
-                                        }));
-                                        setMedicineSearch("");
-                                    } else {
-                                        const medicine = filteredMedicines.find(
-                                            (m: any) => String(m.id) === String(val)
-                                        );
-                                        if (medicine) {
-                                            selectMedicine(medicine);
-                                        }
-                                    }
-                                }}
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
-                            >
-                                <option value="">Select Medicine / Supply</option>
-                                {filteredMedicines.map((medicine: any) => {
-                                    const name = getMedicineName(medicine);
-                                    const unit = getMedicineUnit(medicine);
-                                    const stock = getMedicineStock(medicine);
-                                    const outOfStock = stock <= 0;
-                                    const isCurrentlySelected =
-                                        String(formData.medicine_id) === String(medicine.id);
-                                    const disableMedicine = outOfStock && !isCurrentlySelected;
+                            {/* Type-to-Search Medicine Input with Toggle */}
+                            <div className="relative">
+                                <Search
+                                    size={16}
+                                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
+                                />
 
-                                    return (
-                                        <option
-                                            key={medicine.id}
-                                            value={medicine.id}
-                                            disabled={disableMedicine}
+                                <input
+                                    type="text"
+                                    value={medicineSearch || (selectedMedicine ? getMedicineName(selectedMedicine) : "")}
+                                    onChange={(event) => {
+                                        const nextValue = event.target.value;
+                                        setMedicineSearch(nextValue);
+                                        setShowMedicineDropdown(true);
+
+                                        if (!nextValue.trim()) {
+                                            setFormData((previous: any) => ({
+                                                ...previous,
+                                                medicine_id: "",
+                                                medicine_quantity: "",
+                                            }));
+                                        }
+                                    }}
+                                    onFocus={() => setShowMedicineDropdown(true)}
+                                    placeholder="Type to search medicine or supply..."
+                                    required={treatmentNeedsMedicine(formData.treatment) && !formData.medicine_id}
+                                    className="w-full rounded-lg border border-stone-300 bg-white py-2.5 pl-9 pr-14 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                />
+
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                                    {(medicineSearch || formData.medicine_id) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setMedicineSearch("");
+                                                setFormData((previous: any) => ({
+                                                    ...previous,
+                                                    medicine_id: "",
+                                                    medicine_quantity: "",
+                                                }));
+                                                setShowMedicineDropdown(true);
+                                            }}
+                                            aria-label="Clear medicine search"
+                                            className="flex h-6 w-6 items-center justify-center rounded text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 cursor-pointer"
                                         >
-                                            {name} {stock > 0 ? `(${stock} ${unit} left)` : "(Out of stock)"}
-                                        </option>
-                                    );
-                                })}
-                            </select>
+                                            <X size={14} />
+                                        </button>
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        tabIndex={-1}
+                                        onClick={() => setShowMedicineDropdown(!showMedicineDropdown)}
+                                        aria-label="Toggle medicine dropdown"
+                                        className="flex h-6 w-6 items-center justify-center rounded text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 cursor-pointer"
+                                    >
+                                        <ChevronDown
+                                            size={16}
+                                            className={`transition-transform duration-200 ${
+                                                showMedicineDropdown ? "rotate-180" : ""
+                                            }`}
+                                        />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Dropdown Options List */}
+                            {showMedicineDropdown && (
+                                <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-xl border border-stone-200 bg-white shadow-xl dark:border-stone-700 dark:bg-stone-800 animate-in fade-in zoom-in-95 duration-100">
+                                    <div className="sticky top-0 z-10 flex items-center justify-between border-b border-stone-100 bg-stone-50/95 px-3 py-1.5 text-[11px] font-bold text-stone-500 backdrop-blur-sm dark:border-stone-700/60 dark:bg-stone-800/95 dark:text-stone-400">
+                                        <span>Select Medicine / Supply</span>
+                                        <span className="text-[10px] text-amber-600 dark:text-amber-400">
+                                            {filteredMedicines.length} Available
+                                        </span>
+                                    </div>
+
+                                    {filteredMedicines.length === 0 ? (
+                                        <div className="px-4 py-5 text-center text-xs text-stone-500 dark:text-stone-400">
+                                            No matching medicine or supply found.
+                                        </div>
+                                    ) : (
+                                        filteredMedicines.map((medicine: any) => {
+                                            const name = getMedicineName(medicine);
+                                            const unit = getMedicineUnit(medicine);
+                                            const stock = getMedicineStock(medicine);
+                                            const outOfStock = stock <= 0;
+                                            const isCurrentlySelected =
+                                                String(formData.medicine_id) === String(medicine.id);
+                                            const disableMedicine = outOfStock && !isCurrentlySelected;
+
+                                            return (
+                                                <button
+                                                    key={medicine.id}
+                                                    type="button"
+                                                    disabled={disableMedicine}
+                                                    onClick={() => {
+                                                        selectMedicine(medicine);
+                                                        setShowMedicineDropdown(false);
+                                                    }}
+                                                    className={`w-full border-b border-stone-100 px-3.5 py-2.5 text-left transition last:border-b-0 dark:border-stone-700/60 ${
+                                                        disableMedicine
+                                                            ? "cursor-not-allowed bg-stone-50/50 opacity-50 dark:bg-stone-900/30"
+                                                            : isCurrentlySelected
+                                                              ? "bg-amber-50 font-bold text-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+                                                              : "cursor-pointer hover:bg-amber-50/60 dark:hover:bg-stone-700/50"
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="truncate text-xs font-bold text-stone-800 dark:text-stone-100">
+                                                                {name}
+                                                            </p>
+                                                            {medicine.category && (
+                                                                <p className="truncate text-[10px] text-stone-500 dark:text-stone-400">
+                                                                    {medicine.category}
+                                                                </p>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="shrink-0 text-right">
+                                                            <span
+                                                                className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                                                    outOfStock
+                                                                        ? "bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400"
+                                                                        : stock <= 10
+                                                                          ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"
+                                                                          : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                                                                }`}
+                                                            >
+                                                                {stock > 0
+                                                                    ? `${stock} ${unit} left`
+                                                                    : "Out of stock"}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            )}
 
                             {selectedMedicine && (
                                 <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50/50 p-2.5 dark:border-amber-900/40 dark:bg-amber-950/20">

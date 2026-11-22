@@ -12,6 +12,7 @@
 
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *, .tcc-dark, .tcc-dark *));
+@custom-variant print (@media print);
 
 
 
@@ -862,9 +863,17 @@ html.dark .tcc-module-page table tbody tr:hover {
         padding: 0 !important;
     }
 
+    .print\:hidden,
+    header,
+    aside,
+    nav,
+    .tcc-sidebar,
+    .tcc-sidebar-overlay,
+    .tcc-chatbot,
+    #root header,
+    #root:has(#reports-page) header,
     #root:has(#reports-page) .tcc-sidebar,
     #root:has(#reports-page) .tcc-sidebar-overlay,
-    #root:has(#reports-page) header.fixed,
     #reports-page [class~="print:hidden"] {
         display: none !important;
     }

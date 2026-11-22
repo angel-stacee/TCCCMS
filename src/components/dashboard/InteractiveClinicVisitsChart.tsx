@@ -275,7 +275,7 @@ export function InteractiveClinicVisitsChart({
 
                                 <Line
                                     dataKey={activeChart}
-                                    type="linear"
+                                    type="monotone"
                                     stroke={activeConfig.color}
                                     strokeWidth={2.5}
                                     dot={false}

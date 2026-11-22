@@ -5,7 +5,6 @@ import {
     Line,
     CartesianGrid,
     XAxis,
-    YAxis,
     Tooltip,
 } from "recharts";
 import api from "../services/api";
@@ -1250,24 +1249,24 @@ type DailyVisitsChartProps = {
 };
 
 const CHART_TABS = {
-    total: {
-        label: "Total Visits",
-        color: "#70091f",
-    },
     students: {
         label: "Students",
         color: "#0284c7",
     },
     employees: {
         label: "Faculty & Staff",
-        color: "#059669",
+        color: "#0284c7",
+    },
+    total: {
+        label: "Total Visits",
+        color: "#0284c7",
     },
 } as const;
 
 type ChartTabKey = keyof typeof CHART_TABS;
 
 function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyVisitsChartProps) {
-    const [activeChart, setActiveChart] = useState<ChartTabKey>("total");
+    const [activeChart, setActiveChart] = useState<ChartTabKey>("students");
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const monthNamesShort = [
@@ -1345,7 +1344,7 @@ function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyV
                 </div>
 
                 <div className="flex border-t border-[#e8dfd4] sm:border-t-0 sm:border-l sm:border-[#e8dfd4] dark:border-[#382f25]">
-                    {(["total", "students", "employees"] as ChartTabKey[]).map((key) => {
+                    {(["students", "employees", "total"] as ChartTabKey[]).map((key) => {
                         const isActive = activeChart === key;
                         const config = CHART_TABS[key];
                         return (
@@ -1383,15 +1382,6 @@ function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyV
                                 stroke="#e8dfd4"
                                 strokeDasharray="3 3"
                             />
-                            <YAxis
-                                allowDecimals={false}
-                                stroke="#a8a29e"
-                                tick={{ fill: "#78716c", fontSize: 11 }}
-                                tickLine={false}
-                                axisLine={false}
-                                width={24}
-                                domain={[0, (dataMax) => Math.max(dataMax + 1, 3)]}
-                            />
                             <XAxis
                                 dataKey="formattedDate"
                                 tickLine={false}
@@ -1410,7 +1400,7 @@ function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyV
                                             <p className="font-semibold text-stone-800 dark:text-stone-200">
                                                 {item.date} ({item.formattedDate})
                                             </p>
-                                            <p className="mt-1 font-bold" style={{ color: CHART_TABS[activeChart].color }}>
+                                            <p className="mt-1 font-bold text-sky-600 dark:text-sky-400">
                                                 {CHART_TABS[activeChart].label}: {Number(item[activeChart] || 0).toLocaleString()} visits
                                             </p>
                                         </div>
@@ -1419,17 +1409,12 @@ function DailyVisitsChart({ data, visits, summary, month, year, period }: DailyV
                             />
                             <Line
                                 dataKey={activeChart}
-                                type="linear"
+                                type="monotone"
                                 stroke={CHART_TABS[activeChart].color}
                                 strokeWidth={2.5}
-                                dot={{
-                                    r: 3.5,
-                                    fill: CHART_TABS[activeChart].color,
-                                    stroke: "#ffffff",
-                                    strokeWidth: 1.5,
-                                }}
+                                dot={false}
                                 activeDot={{
-                                    r: 6,
+                                    r: 5,
                                     fill: CHART_TABS[activeChart].color,
                                     stroke: "#ffffff",
                                     strokeWidth: 2,

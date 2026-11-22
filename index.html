@@ -116,13 +116,29 @@
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js').then(function(reg) {
-            console.log('TCC Clinic PWA ServiceWorker active:', reg.scope);
-          }).catch(function(err) {
-            console.warn('TCC Clinic PWA ServiceWorker registration failed:', err);
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          // In development on localhost, unregister any ServiceWorker so Vite HMR is never intercepted or cached
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            for (var r of regs) {
+              r.unregister();
+            }
           });
-        });
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              for (var n of names) {
+                caches.delete(n);
+              }
+            });
+          }
+        } else {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js').then(function(reg) {
+              console.log('TCC Clinic PWA ServiceWorker active:', reg.scope);
+            }).catch(function(err) {
+              console.warn('TCC Clinic PWA ServiceWorker registration failed:', err);
+            });
+          });
+        }
       }
     </script>
   </body>

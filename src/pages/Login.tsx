@@ -298,23 +298,6 @@ export default function Login(): React.JSX.Element {
                             >
                                 Password
                             </label>
-                            <button
-                                type="button"
-                                disabled={loading}
-                                onClick={() => {
-                                    setForgotEmail(email.trim());
-                                    setForgotStep("email");
-                                    setForgotOtp("");
-                                    setForgotNewPassword("");
-                                    setForgotPasswordConfirm("");
-                                    setForgotError("");
-                                    setForgotSuccessMessage("");
-                                    setShowForgotPassword(true);
-                                }}
-                                className="text-xs font-medium text-[#d4a017] transition hover:text-[#f0c040] hover:underline disabled:opacity-50"
-                            >
-                                Forgot password?
-                            </button>
                         </div>
                         <div className="relative">
                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#fcebe7]/60">
@@ -344,6 +327,25 @@ export default function Login(): React.JSX.Element {
                                 ) : (
                                     <Eye className="h-4 w-4" />
                                 )}
+                            </button>
+                        </div>
+                        <div className="mt-2 flex justify-end">
+                            <button
+                                type="button"
+                                disabled={loading}
+                                onClick={() => {
+                                    setForgotEmail(email.trim());
+                                    setForgotStep("email");
+                                    setForgotOtp("");
+                                    setForgotNewPassword("");
+                                    setForgotPasswordConfirm("");
+                                    setForgotError("");
+                                    setForgotSuccessMessage("");
+                                    setShowForgotPassword(true);
+                                }}
+                                className="text-xs font-medium text-[#d4a017] transition hover:text-[#f0c040] hover:underline disabled:opacity-50"
+                            >
+                                Forgot password?
                             </button>
                         </div>
                     </div>

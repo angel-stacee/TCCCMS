@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-icon-192.png?v=3" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/pwa-icon-512.png?v=3" />
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#70091f" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TCC Clinic" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>TCC Clinic Management System</title>
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('tcc-theme');
+          if (theme === 'dark') {
+            document.documentElement.classList.add('tcc-dark', 'dark');
+          } else {
+            document.documentElement.classList.remove('tcc-dark', 'dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-CJLB9fD4.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-hePW80VL.js">
+    <link rel="modulepreload" crossorigin href="/assets/charts-B_xZ189G.js">
+    <link rel="modulepreload" crossorigin href="/assets/preload-helper-BZ1Pz5am.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-BV7QT456-CGlKxZ9z.js">
+    <link rel="modulepreload" crossorigin href="/assets/jsx-runtime-BvawLu0V.js">
+    <link rel="modulepreload" crossorigin href="/assets/icons-DS7jueoF.js">
+    <link rel="modulepreload" crossorigin href="/assets/FieldsAndModals-BD9dkbjm.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-BZa_eVNm.css">
+  </head>
+  <body>
+    <div id="root">
+      <style>.tcc-boot-screen{color:#3d3329;box-sizing:border-box;background:#f7f2eb;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:24px;font-family:system-ui,-apple-system,sans-serif;display:flex}.tcc-boot-card{text-align:center;flex-direction:column;align-items:center;display:flex}.tcc-boot-logo{object-fit:cover;border-radius:16px;width:72px;height:72px;margin-bottom:16px;animation:1.8s ease-in-out infinite tcc-pulse;box-shadow:0 4px 12px #00000014}.tcc-boot-title{color:#3d3329;margin:0 0 6px;font-size:18px;font-weight:700}.tcc-boot-sub{color:#887d70;margin:0 0 20px;font-size:13px}.tcc-boot-bar{background:#e8dfd4;border-radius:999px;width:180px;height:5px;position:relative;overflow:hidden}.tcc-boot-bar:after{content:"";background:#8a6f50;border-radius:999px;width:50%;height:100%;animation:1.4s ease-in-out infinite tcc-shim;position:absolute;top:0;left:0}@keyframes tcc-shim{0%{transform:translate(-100%)}to{transform:translate(250%)}}@keyframes tcc-pulse{0%,to{opacity:1;transform:scale(1)}50%{opacity:.9;transform:scale(1.05)}}</style>
+      <div class="tcc-boot-screen">
+        <div class="tcc-boot-card">
+          <img 
+            src="/tcc-logo.png" 
+            alt="TCC Logo" 
+            class="tcc-boot-logo"
+            onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='/tcc-logo.jpg';}"
+          />
+          <h1 class="tcc-boot-title">Tagoloan Community College</h1>
+          <p class="tcc-boot-sub">Clinic Management System</p>
+          <div class="tcc-boot-bar"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(reg) {
+            console.log('TCC Clinic PWA ServiceWorker active:', reg.scope);
+          }).catch(function(err) {
+            console.warn('TCC Clinic PWA ServiceWorker registration failed:', err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

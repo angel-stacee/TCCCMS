@@ -1,149 +1,185 @@
+import api from "./api";
+
 export interface ClinicNotification {
-    id: string;
-    key: string;
-    type: "add" | "delete" | "edit" | "info";
+    id: number | string;
+    key?: string;
+    user_id?: number | null;
+    category: "medication_reminder" | "patient_attention" | "low_stock" | "expired_medicine" | "general" | string;
+    type: "info" | "warning" | "danger" | "success" | string;
     title: string;
     description: string;
-    timestamp: number;
-    date: string;
-    category?: "visit" | "patient" | "medicine" | "system";
+    metadata?: Record<string, any> | null;
+    unique_key?: string | null;
+    is_read: boolean;
+    read_at?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    // Compatibility fields with previous mock
+    date?: string;
     read?: boolean;
 }
 
-const STORAGE_KEY = "tcc-clinic-notifications-v1";
-const MAX_NOTIFICATIONS = 30;
+export interface NotificationResponse {
+    status: string;
+    unread_count: number;
+    counts: {
+        total: number;
+        unread: number;
+        medication_reminders: number;
+        patient_attention: number;
+        low_stock: number;
+        expired_medicine: number;
+    };
+    data: ClinicNotification[];
+}
+
+const STORAGE_KEY = "tcc-clinic-notifications-cache-v2";
+
+export async function fetchClinicNotifications(category?: string): Promise<NotificationResponse> {
+    try {
+        const params: Record<string, any> = {};
+        if (category && category !== "all") {
+            params.category = category;
+        }
+        const res = await api.get<NotificationResponse>("/notifications", { params });
+        if (res.data && Array.isArray(res.data.data)) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(res.data));
+            } catch {}
+            return res.data;
+        }
+    } catch (e) {
+        console.warn("Unable to fetch notifications from backend, using cache:", e);
+    }
+
+    // Fallback to cache if offline
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            return parsed;
+        }
+    } catch {}
+
+    return {
+        status: "fallback",
+        unread_count: 0,
+        counts: {
+            total: 0,
+            unread: 0,
+            medication_reminders: 0,
+            patient_attention: 0,
+            low_stock: 0,
+            expired_medicine: 0,
+        },
+        data: [],
+    };
+}
+
+export async function markNotificationAsRead(id: number | string): Promise<void> {
+    try {
+        await api.put(`/notifications/${id}/read`);
+    } catch (e) {
+        console.warn("Failed to mark notification as read on backend:", e);
+    }
+
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("tcc-notifications-updated"));
+    }
+}
+
+export async function markAllNotificationsAsRead(): Promise<void> {
+    try {
+        await api.put("/notifications/read-all");
+    } catch (e) {
+        console.warn("Failed to mark all as read on backend:", e);
+    }
+
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("tcc-notifications-updated"));
+    }
+}
+
+export async function deleteClinicNotification(id: number | string): Promise<void> {
+    try {
+        await api.delete(`/notifications/${id}`);
+    } catch (e) {
+        console.warn("Failed to delete notification on backend:", e);
+    }
+
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("tcc-notifications-updated"));
+    }
+}
+
+export async function clearAllClinicNotifications(): Promise<void> {
+    try {
+        await api.delete("/notifications");
+    } catch (e) {
+        console.warn("Failed to clear all notifications on backend:", e);
+    }
+
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("tcc-notifications-updated"));
+    }
+}
+
+// Retain legacy helpers for any modules that call addClinicNotification
+export function addClinicNotification(item: {
+    type: "add" | "delete" | "edit" | "info" | string;
+    title: string;
+    description: string;
+    category?: string;
+}): void {
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("tcc-notifications-updated"));
+    }
+}
 
 export function getStoredNotifications(): ClinicNotification[] {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-            return parsed;
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            return parsed.data || [];
         }
-    } catch (e) {
-        console.warn("Failed to load stored notifications:", e);
-    }
+    } catch {}
     return [];
 }
 
-export function saveNotifications(notifications: ClinicNotification[]): void {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications.slice(0, MAX_NOTIFICATIONS)));
-    } catch (e) {
-        console.warn("Failed to save notifications to storage:", e);
-    }
-}
-
-export function addClinicNotification(item: {
-    type: "add" | "delete" | "edit" | "info";
-    title: string;
-    description: string;
-    category?: "visit" | "patient" | "medicine" | "system";
-}): ClinicNotification {
-    const now = Date.now();
-    const newNotification: ClinicNotification = {
-        id: `notif-${now}-${Math.random().toString(36).slice(2, 7)}`,
-        key: `notif-${now}-${Math.random().toString(36).slice(2, 7)}`,
-        type: item.type,
-        title: item.title,
-        description: item.description,
-        timestamp: now,
-        date: new Date(now).toISOString(),
-        category: item.category || "system",
-        read: false,
-    };
-
-    const current = getStoredNotifications();
-    const updated = [newNotification, ...current].slice(0, MAX_NOTIFICATIONS);
-    saveNotifications(updated);
-
-    if (typeof window !== "undefined") {
-        window.dispatchEvent(
-            new CustomEvent("tcc-notifications-updated", { detail: updated })
-        );
-    }
-
-    return newNotification;
-}
-
-export function clearAllClinicNotifications(): void {
-    saveNotifications([]);
-    if (typeof window !== "undefined") {
-        window.dispatchEvent(
-            new CustomEvent("tcc-notifications-updated", { detail: [] })
-        );
-    }
-}
-
-export function deleteClinicNotification(idOrKey: string): void {
-    const current = getStoredNotifications();
-    const updated = current.filter((n) => n.id !== idOrKey && n.key !== idOrKey);
-    saveNotifications(updated);
-    if (typeof window !== "undefined") {
-        window.dispatchEvent(
-            new CustomEvent("tcc-notifications-updated", { detail: updated })
-        );
-    }
-}
-
-const DISMISSED_ACTIVITIES_KEY = "tcc-dismissed-activities-v1";
+const DISMISSED_ACTIVITIES_KEY = "tcc-dismissed-activities";
 
 export function getDismissedActivityKeys(): string[] {
     try {
         const raw = localStorage.getItem(DISMISSED_ACTIVITIES_KEY);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-            return parsed;
+        if (raw) {
+            return JSON.parse(raw);
         }
-    } catch (e) {
-        console.warn("Failed to load dismissed activity keys:", e);
-    }
+    } catch {}
     return [];
 }
 
 export function dismissActivity(key: string): void {
     try {
-        const current = getDismissedActivityKeys();
-        if (!current.includes(key)) {
-            const updated = [...current, key].slice(-200);
-            localStorage.setItem(DISMISSED_ACTIVITIES_KEY, JSON.stringify(updated));
-            if (typeof window !== "undefined") {
-                window.dispatchEvent(
-                    new CustomEvent("tcc-dismissed-activities-updated", { detail: updated })
-                );
-            }
+        const keys = getDismissedActivityKeys();
+        if (!keys.includes(key)) {
+            keys.push(key);
+            localStorage.setItem(DISMISSED_ACTIVITIES_KEY, JSON.stringify(keys));
         }
-    } catch (e) {
-        console.warn("Failed to dismiss activity:", e);
-    }
-}
-
-export function dismissAllActivities(keys: string[]): void {
-    try {
-        const current = getDismissedActivityKeys();
-        const combined = Array.from(new Set([...current, ...keys])).slice(-200);
-        localStorage.setItem(DISMISSED_ACTIVITIES_KEY, JSON.stringify(combined));
-        if (typeof window !== "undefined") {
-            window.dispatchEvent(
-                new CustomEvent("tcc-dismissed-activities-updated", { detail: combined })
-            );
-        }
-    } catch (e) {
-        console.warn("Failed to dismiss all activities:", e);
-    }
-}
-
-export function markAllNotificationsAsRead(): void {
-    const current = getStoredNotifications();
-    const updated = current.map((n) => ({ ...n, read: true }));
-    saveNotifications(updated);
+    } catch {}
     if (typeof window !== "undefined") {
-        window.dispatchEvent(
-            new CustomEvent("tcc-notifications-updated", { detail: updated })
-        );
+        window.dispatchEvent(new CustomEvent("tcc-dismissed-activities-updated"));
     }
 }
 
+export function dismissAllActivities(keysToAdd: string[]): void {
+    try {
+        const keys = getDismissedActivityKeys();
+        const merged = Array.from(new Set([...keys, ...keysToAdd]));
+        localStorage.setItem(DISMISSED_ACTIVITIES_KEY, JSON.stringify(merged));
+    } catch {}
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("tcc-dismissed-activities-updated"));
+    }
+}
 

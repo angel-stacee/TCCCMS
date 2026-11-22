@@ -22,16 +22,22 @@ import {
     ArrowLeft,
     FileText,
     ChevronRight,
+    Clock,
+    AlertTriangle,
+    Check,
+    CheckCheck,
 } from "lucide-react";
 import tccLogo from "../../assets/tcc-logo.png";
 import api from "../../services/api";
 import { invalidateRecordCache } from "../../services/recordCache";
 import {
     type ClinicNotification,
-    clearAllClinicNotifications,
-    deleteClinicNotification,
-    getStoredNotifications,
+    fetchClinicNotifications,
+    markNotificationAsRead,
     markAllNotificationsAsRead,
+    deleteClinicNotification,
+    clearAllClinicNotifications,
+    getStoredNotifications,
 } from "../../services/notifications";
 import { useTheme } from "../../utils/theme";
 import { Avatar, StudentDetail, Skeleton } from "../dashboard/DashboardWidgets";
@@ -191,9 +197,20 @@ export function Header({
         staff: any[];
         faculties: any[];
     }>({ students: [], staff: [], faculties: [] });
+    const [selectedCategory, setSelectedCategory] = useState<string>("all");
+    const [unreadCount, setUnreadCount] = useState<number>(0);
     const [notifications, setNotifications] = useState<ClinicNotification[]>(() =>
         getStoredNotifications()
     );
+    const [categoryCounts, setCategoryCounts] = useState({
+        total: 0,
+        unread: 0,
+        medication_reminders: 0,
+        patient_attention: 0,
+        low_stock: 0,
+        expired_medicine: 0,
+    });
+    const [loadingNotifs, setLoadingNotifs] = useState(false);
 
     const [user, setUser] = useState<any>(() => {
         try {
@@ -203,6 +220,24 @@ export function Header({
             return null;
         }
     });
+
+    const loadNotifications = async (cat?: string) => {
+        try {
+            setLoadingNotifs(true);
+            const res = await fetchClinicNotifications(cat !== undefined ? cat : selectedCategory);
+            if (res && Array.isArray(res.data)) {
+                setNotifications(res.data);
+                setUnreadCount(res.unread_count ?? res.counts?.unread ?? 0);
+                if (res.counts) {
+                    setCategoryCounts(res.counts);
+                }
+            }
+        } catch (e) {
+            console.warn("Error loading notifications:", e);
+        } finally {
+            setLoadingNotifs(false);
+        }
+    };
 
     // Listen to user changes (e.g. Profile updates)
     useEffect(() => {
@@ -222,18 +257,24 @@ export function Header({
         };
     }, []);
 
-    // Listen to notifications update events
+    // Listen to notifications update events and sync periodically
     useEffect(() => {
+        loadNotifications(selectedCategory);
+        const interval = setInterval(() => {
+            loadNotifications(selectedCategory);
+        }, 20000);
+
         const handleNotifUpdate = () => {
-            setNotifications(getStoredNotifications());
+            loadNotifications(selectedCategory);
         };
         window.addEventListener("tcc-notifications-updated", handleNotifUpdate);
         window.addEventListener("storage", handleNotifUpdate);
         return () => {
+            clearInterval(interval);
             window.removeEventListener("tcc-notifications-updated", handleNotifUpdate);
             window.removeEventListener("storage", handleNotifUpdate);
         };
-    }, []);
+    }, [selectedCategory]);
 
     useOutsideClick(bellRef, () => setBellOpen(false), bellOpen);
     useOutsideClick(profileMenuRef, () => setProfileMenuOpen(false), profileMenuOpen);
@@ -404,10 +445,6 @@ export function Header({
         };
     }, [selectedPerson]);
 
-    const unreadCount = useMemo(() => {
-        return notifications.filter((n) => !n.read).length;
-    }, [notifications]);
-
     const currentMeta = useMemo(() => {
         const path = location.pathname.toLowerCase();
         for (const key of Object.keys(PAGE_META)) {
@@ -421,14 +458,33 @@ export function Header({
         };
     }, [location.pathname]);
 
-    const handleClearAll = () => {
-        clearAllClinicNotifications();
+    const handleClearAll = async () => {
+        await clearAllClinicNotifications();
         setNotifications([]);
+        setUnreadCount(0);
+        setConfirmClearNotifications(false);
     };
 
-    const handleDeleteOne = (idOrKey: string) => {
-        deleteClinicNotification(idOrKey);
+    const handleDeleteOne = async (idOrKey: string | number) => {
+        await deleteClinicNotification(idOrKey);
         setNotifications((prev) => prev.filter((n) => n.id !== idOrKey && n.key !== idOrKey));
+        loadNotifications(selectedCategory);
+    };
+
+    const handleMarkOneRead = async (idOrKey: string | number) => {
+        await markNotificationAsRead(idOrKey);
+        setNotifications((prev) =>
+            prev.map((n) => (n.id === idOrKey || n.key === idOrKey ? { ...n, is_read: true, read: true } : n))
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+    };
+
+    const handleMarkAllRead = async () => {
+        await markAllNotificationsAsRead();
+        setNotifications((prev) =>
+            prev.map((n) => ({ ...n, is_read: true, read: true }))
+        );
+        setUnreadCount(0);
     };
 
     const handleLogout = async () => {
@@ -448,13 +504,44 @@ export function Header({
         navigate("/login", { replace: true });
     };
 
-    const getNotificationIcon = (category?: string, type?: string) => {
-        if (category === "patient") return <Users size={15} />;
-        if (category === "visit") return <Stethoscope size={15} />;
-        if (category === "medicine") return <Pill size={15} />;
-        if (type === "add") return <CheckCircle2 size={15} />;
-        if (type === "delete") return <AlertCircle size={15} />;
-        return <Activity size={15} />;
+    const getNotificationVisuals = (category?: string, type?: string) => {
+        switch (category) {
+            case "medication_reminder":
+                return {
+                    label: "Medication Reminder",
+                    icon: <Clock size={15} />,
+                    iconBg: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+                    badge: "bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/60",
+                };
+            case "patient_attention":
+                return {
+                    label: "Patient Attention",
+                    icon: <Stethoscope size={15} />,
+                    iconBg: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300",
+                    badge: "bg-indigo-50 text-indigo-800 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900/60",
+                };
+            case "low_stock":
+                return {
+                    label: "Low Stock Alert",
+                    icon: <AlertTriangle size={15} />,
+                    iconBg: "bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300",
+                    badge: "bg-orange-50 text-orange-800 border border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-900/60",
+                };
+            case "expired_medicine":
+                return {
+                    label: "Expired Medicine",
+                    icon: <AlertCircle size={15} />,
+                    iconBg: "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300",
+                    badge: "bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60",
+                };
+            default:
+                return {
+                    label: "Clinic Alert",
+                    icon: <Activity size={15} />,
+                    iconBg: "bg-[#fcebe7] text-[#70091f] dark:bg-[#70091f]/30 dark:text-[#f8a598]",
+                    badge: "bg-stone-50 text-stone-700 border border-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:border-stone-700",
+                };
+        }
     };
 
     return (
@@ -888,87 +975,195 @@ export function Header({
                             setBellOpen((prev) => {
                                 const next = !prev;
                                 if (next) {
-                                    markAllNotificationsAsRead();
-                                    setNotifications((items) =>
-                                        items.map((n) => ({ ...n, read: true }))
-                                    );
+                                    loadNotifications(selectedCategory);
                                 }
                                 return next;
                             });
                         }}
                         aria-label="Notifications"
                         aria-expanded={bellOpen}
-                        className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#766959] transition duration-200 hover:bg-[#fcebe7] hover:text-[#70091f] focus:outline-none dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-[#f8a598]"
+                        className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#766959] transition duration-200 hover:bg-[#fcebe7] hover:text-[#70091f] focus:outline-none dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-[#f8a598] cursor-pointer"
                     >
                         <Bell size={20} />
                         {unreadCount > 0 && (
-                            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#70091f] ring-2 ring-white dark:ring-stone-900 animate-pulse" />
+                            <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#70091f] px-1 text-[10px] font-black text-white ring-2 ring-white dark:ring-stone-900 shadow-sm animate-pulse">
+                                {unreadCount > 99 ? "99+" : unreadCount}
+                            </span>
                         )}
                     </button>
 
                     {bellOpen && (
-                        <div className="absolute right-0 top-12 z-50 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white shadow-2xl dark:border-stone-800 dark:bg-[#1f1914] animate-in fade-in zoom-in-95 duration-150">
-                            <div className="flex items-center justify-between border-b border-[#eee7de] px-4 py-3 dark:border-stone-800">
-                                <div>
+                        <div className="absolute right-0 top-12 z-50 w-[380px] sm:w-[440px] max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white shadow-2xl dark:border-stone-800 dark:bg-[#1a1511] animate-in fade-in zoom-in-95 duration-150">
+                            {/* Notification Header */}
+                            <div className="flex items-center justify-between border-b border-[#eee7de] bg-[#fcfaf7] px-4 py-3 dark:border-stone-800 dark:bg-[#1f1914]">
+                                <div className="flex items-center gap-2">
                                     <p className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                         Notifications
                                     </p>
-                                    <p className="text-[11px] text-[#887d70] dark:text-stone-400">
-                                        {notifications.length} recent system event{notifications.length === 1 ? "" : "s"}
-                                    </p>
+                                    {unreadCount > 0 ? (
+                                        <span className="rounded-full bg-[#70091f]/10 px-2 py-0.5 text-[10px] font-bold text-[#70091f] dark:bg-[#70091f]/30 dark:text-[#f8a598]">
+                                            {unreadCount} unread
+                                        </span>
+                                    ) : (
+                                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                            All caught up
+                                        </span>
+                                    )}
                                 </div>
-                                {notifications.length > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setConfirmClearNotifications(true)}
-                                        className="text-xs font-semibold text-[#70091f] hover:underline dark:text-[#f8a598] cursor-pointer"
-                                    >
-                                        Clear all
-                                    </button>
-                                )}
+
+                                <div className="flex items-center gap-2">
+                                    {unreadCount > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={handleMarkAllRead}
+                                            title="Mark all as read"
+                                            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-[#70091f] hover:bg-[#fcebe7] dark:text-[#f8a598] dark:hover:bg-stone-800 transition cursor-pointer"
+                                        >
+                                            <CheckCheck size={14} />
+                                            <span>Mark read</span>
+                                        </button>
+                                    )}
+                                    {notifications.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setConfirmClearNotifications(true)}
+                                            className="text-xs font-semibold text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer"
+                                        >
+                                            Clear all
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
-                            {notifications.length ? (
-                                <ul className="max-h-80 overflow-y-auto divide-y divide-[#eee7de] dark:divide-stone-800/80">
-                                    {notifications.map((item) => (
-                                        <li
-                                            key={item.id || item.key}
-                                            className="group flex items-start gap-3 px-4 py-3 transition hover:bg-stone-50 dark:hover:bg-stone-800/40"
-                                        >
-                                            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#fcebe7] text-[#70091f] dark:bg-[#70091f]/30 dark:text-[#f8a598]">
-                                                {getNotificationIcon(item.category, item.type)}
-                                            </div>
+                            {/* Category Filter Tabs */}
+                            <div className="flex items-center gap-1.5 overflow-x-auto border-b border-[#eee7de] bg-[#faf7f4] px-3 py-2 text-xs dark:border-stone-800 dark:bg-[#18130f] scrollbar-none">
+                                {[
+                                    { id: "all", label: "All", count: categoryCounts.total },
+                                    { id: "medication_reminder", label: "Medication", count: categoryCounts.medication_reminders },
+                                    { id: "patient_attention", label: "Patient Care", count: categoryCounts.patient_attention },
+                                    { id: "low_stock", label: "Low Stock", count: categoryCounts.low_stock },
+                                    { id: "expired_medicine", label: "Expired", count: categoryCounts.expired_medicine },
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedCategory(tab.id);
+                                            loadNotifications(tab.id);
+                                        }}
+                                        className={`flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                                            selectedCategory === tab.id
+                                                ? "bg-[#70091f] text-white shadow-xs"
+                                                : "text-stone-600 hover:bg-stone-200/60 dark:text-stone-400 dark:hover:bg-stone-800"
+                                        }`}
+                                    >
+                                        <span>{tab.label}</span>
+                                        {tab.count > 0 && (
+                                            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                                                selectedCategory === tab.id
+                                                    ? "bg-white/20 text-white"
+                                                    : "bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300"
+                                            }`}>
+                                                {tab.count}
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
 
-                                            <div className="min-w-0 flex-1 text-left">
-                                                <p className="truncate text-xs font-bold text-stone-900 dark:text-stone-100">
-                                                    {item.title}
-                                                </p>
-                                                <p className="line-clamp-2 text-[11px] text-[#887d70] dark:text-stone-400">
-                                                    {item.description}
-                                                </p>
-                                                <span className="mt-1 inline-block text-[10px] text-[#a99d8f] dark:text-stone-500">
-                                                    {formatRelative(item.date)}
-                                                </span>
-                                            </div>
+                            {/* Notifications List */}
+                            {loadingNotifs && notifications.length === 0 ? (
+                                <div className="p-8 text-center text-xs text-stone-400">
+                                    <Loader2 size={20} className="animate-spin mx-auto mb-2 text-[#70091f]" />
+                                    <span>Updating alerts...</span>
+                                </div>
+                            ) : notifications.length ? (
+                                <ul className="max-h-[380px] overflow-y-auto divide-y divide-[#eee7de] dark:divide-stone-800/80">
+                                    {notifications.map((item) => {
+                                        const isUnread = !item.is_read && !item.read;
+                                        const visuals = getNotificationVisuals(item.category, item.type);
+                                        const dateStr = item.created_at || item.date || item.updated_at;
+                                        const itemId = item.id || item.key;
 
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setNotifToDelete(item);
+                                        return (
+                                            <li
+                                                key={item.id || item.key || item.unique_key}
+                                                onClick={() => {
+                                                    if (isUnread && itemId) handleMarkOneRead(itemId);
                                                 }}
-                                                title="Delete notification"
-                                                className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-stone-400 opacity-60 transition hover:bg-rose-50 hover:text-rose-600 hover:opacity-100 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 cursor-pointer"
+                                                className={`group flex items-start gap-3 p-3.5 transition cursor-pointer ${
+                                                    isUnread
+                                                        ? "bg-[#fffdfa] dark:bg-[#251e18] hover:bg-[#fcf8f2] dark:hover:bg-[#2a221b]"
+                                                        : "hover:bg-stone-50 dark:hover:bg-stone-800/40"
+                                                }`}
                                             >
-                                                <Trash2 size={13} />
-                                            </button>
-                                        </li>
-                                    ))}
+                                                {/* Category Icon */}
+                                                <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-xs ${visuals.iconBg}`}>
+                                                    {visuals.icon}
+                                                </div>
+
+                                                {/* Content */}
+                                                <div className="min-w-0 flex-1 text-left">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className={`inline-block rounded-md px-1.5 py-0.5 text-[10px] font-bold ${visuals.badge}`}>
+                                                            {visuals.label}
+                                                        </span>
+                                                        {isUnread && (
+                                                            <span className="flex h-2 w-2 rounded-full bg-[#70091f] dark:bg-rose-500 animate-pulse" title="Unread" />
+                                                        )}
+                                                        <span className="ml-auto text-[10px] text-stone-400 dark:text-stone-500 shrink-0">
+                                                            {formatRelative(dateStr)}
+                                                        </span>
+                                                    </div>
+
+                                                    <p className={`text-xs font-bold leading-snug ${
+                                                        isUnread ? "text-stone-900 dark:text-stone-100" : "text-stone-700 dark:text-stone-300"
+                                                    }`}>
+                                                        {item.title}
+                                                    </p>
+
+                                                    <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-stone-600 dark:text-stone-400">
+                                                        {item.description}
+                                                    </p>
+                                                </div>
+
+                                                {/* Actions */}
+                                                <div className="flex flex-col items-center gap-1 shrink-0 ml-1">
+                                                    {isUnread && itemId && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleMarkOneRead(itemId);
+                                                            }}
+                                                            title="Mark as read"
+                                                            className="flex h-6 w-6 items-center justify-center rounded-md text-stone-400 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400 transition cursor-pointer"
+                                                        >
+                                                            <Check size={13} />
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setNotifToDelete(item);
+                                                        }}
+                                                        title="Delete notification"
+                                                        className="flex h-6 w-6 items-center justify-center rounded-md text-stone-400 opacity-0 group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 transition cursor-pointer"
+                                                    >
+                                                        <Trash2 size={13} />
+                                                    </button>
+                                                </div>
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
                             ) : (
-                                <p className="px-4 py-8 text-center text-xs text-[#a99d8f] dark:text-stone-500">
-                                    You're all caught up! No new notifications.
-                                </p>
+                                <div className="p-8 text-center text-xs text-stone-500 dark:text-stone-400">
+                                    <CheckCircle2 size={24} className="mx-auto text-emerald-500 mb-2 opacity-80" />
+                                    <p className="font-semibold text-stone-700 dark:text-stone-300">You're all caught up!</p>
+                                    <p className="mt-0.5 text-[11px]">No active notifications in this category.</p>
+                                </div>
                             )}
                         </div>
                     )}

@@ -13,7 +13,8 @@ import {
     Settings,
     LogOut,
     X,
-    Menu,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -144,16 +145,35 @@ function Sidebar({
         }
     };
 
+    const sidebarRef = React.useRef<HTMLElement | null>(null);
+
+    // Close on mobile outside click
+    React.useEffect(() => {
+        if (!sidebarOpen) return;
+        const handleOutside = (e: MouseEvent | TouchEvent) => {
+            if (window.innerWidth < 1024 && sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
+                setSidebarOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleOutside);
+        document.addEventListener("touchstart", handleOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleOutside);
+            document.removeEventListener("touchstart", handleOutside);
+        };
+    }, [sidebarOpen, setSidebarOpen]);
+
     return (
         <aside
+            ref={sidebarRef}
             id="primary-navigation"
             className={`
                 tcc-sidebar
                 ${sidebarOpen ? "is-open" : ""}
-                fixed inset-y-0 left-0 z-30 lg:z-20
+                fixed inset-y-0 left-0 z-50 lg:z-20
                 flex flex-col
                 ${sidebarCollapsed ? "lg:w-[78px]" : "lg:w-[264px]"}
-                w-[264px]
+                w-[280px] max-w-[85vw]
                 bg-gradient-to-b from-[#5c0819] via-[#480613] to-[#2e030c]
                 text-white
                 shadow-[8px_0_30px_rgba(0,0,0,0.35)]
@@ -161,44 +181,33 @@ function Sidebar({
                 lg:translate-x-0
                 ${
                     sidebarOpen
-                        ? "translate-x-0 !z-50"
+                        ? "translate-x-0"
                         : "-translate-x-full"
                 }
             `}
         >
-            {/* Mobile close button */}
-            <div className="flex justify-end px-4 pt-4 lg:hidden">
-                <button
-                    onClick={() => setSidebarOpen(false)}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-white/80 transition duration-200 hover:rotate-90 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcebe7] cursor-pointer"
-                    aria-label="Close sidebar"
-                >
-                    <X size={22} />
-                </button>
-            </div>
-
             {/* Logo and Brand Header */}
-            <div className={`transition-all duration-300 ${sidebarCollapsed ? "px-2 pb-4 pt-5" : "px-5 pb-6 pt-7"}`}>
+            <div className={`transition-all duration-300 ${sidebarCollapsed ? "px-2 pb-4 pt-5" : "px-5 pb-5 pt-6"}`}>
                 {sidebarCollapsed ? (
-                    /* Collapsed view: centered hamburger button to expand */
+                    /* Collapsed view (Desktop): Arrow pointing Right to expand */
                     <div className="flex items-center justify-center">
                         {onToggleSidebar && (
                             <button
                                 type="button"
                                 onClick={onToggleSidebar}
-                                className="hidden lg:flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-[#fcebe7] transition-all duration-200 hover:bg-white/20 hover:text-white hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+                                className="hidden lg:flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-[#fcebe7] transition-all duration-300 hover:bg-white/20 hover:text-white hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
                                 title="Expand sidebar"
                                 aria-label="Expand sidebar"
                             >
-                                <Menu size={22} />
+                                <ChevronRight size={20} />
                             </button>
                         )}
                     </div>
                 ) : (
-                    /* Expanded view: Logo + Title + collapse hamburger button */
-                    <div className="flex items-center justify-between">
+                    /* Expanded view: Logo + Brand Title + Toggle Button (Desktop: Arrow Left to collapse; Mobile: X button to close) */
+                    <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-3 min-w-0">
-                            <div className="flex shrink-0 items-center justify-center rounded-full bg-white/10 p-1 transition-all duration-300 h-13 w-13">
+                            <div className="flex shrink-0 items-center justify-center rounded-full bg-white/10 p-1 transition-all duration-300 h-11 w-11 sm:h-12 sm:w-12">
                                 <img
                                     src={tccLogo}
                                     alt="TCC Logo"
@@ -212,33 +221,47 @@ function Sidebar({
                                             target.src = "/tcc-logo.jpg";
                                         }
                                     }}
-                                    className="h-11 w-11 rounded-full object-contain transition-all duration-300 hover:rotate-6 hover:scale-105"
+                                    className="h-9 w-9 sm:h-10 sm:w-10 rounded-full object-contain transition-all duration-300 hover:rotate-6 hover:scale-105"
                                 />
                             </div>
 
                             <div className="min-w-0">
-                                <p className="truncate text-base font-bold text-[#fcebe7]">
+                                <p className="truncate text-sm sm:text-base font-bold text-[#fcebe7]">
                                     TCC Clinic
                                 </p>
 
-                                <p className="truncate text-xs font-medium text-[#fcebe7]/75">
+                                <p className="truncate text-[11px] sm:text-xs font-medium text-[#fcebe7]/75">
                                     Management System
                                 </p>
                             </div>
                         </div>
 
-                        {/* Toggle Button inside sidebar on desktop */}
+                        {/* Desktop: Clear Arrow Left to Collapse */}
                         {onToggleSidebar && (
                             <button
                                 type="button"
                                 onClick={onToggleSidebar}
-                                className="hidden lg:flex h-9 w-9 items-center justify-center rounded-lg text-white/70 transition hover:bg-white/10 hover:text-white cursor-pointer"
+                                className="hidden lg:flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#fcebe7] transition-all duration-200 hover:bg-white/20 hover:text-white active:scale-95 cursor-pointer shadow-xs"
                                 title="Collapse sidebar"
                                 aria-label="Collapse sidebar"
                             >
-                                <Menu size={20} />
+                                <ChevronLeft size={19} />
                             </button>
                         )}
+
+                        {/* Mobile: Properly positioned and responsive Close (X) button */}
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSidebarOpen(false);
+                            }}
+                            className="flex lg:hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white shadow-xs transition duration-200 hover:bg-white/25 active:scale-90 cursor-pointer"
+                            aria-label="Close sidebar"
+                            title="Close sidebar"
+                        >
+                            <X size={20} />
+                        </button>
                     </div>
                 )}
             </div>

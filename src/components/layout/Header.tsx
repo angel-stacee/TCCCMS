@@ -6,7 +6,6 @@ import {
     Bell,
     Trash2,
     ChevronDown,
-    LogOut,
     Settings,
     User as UserIcon,
     Sun,
@@ -1076,18 +1075,6 @@ export function Header({
                                     <Settings size={15} className="text-[#70091f] dark:text-[#f8a598]" />
                                     <span>Settings</span>
                                 </Link>
-
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setProfileMenuOpen(false);
-                                        handleLogout();
-                                    }}
-                                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40 cursor-pointer text-left"
-                                >
-                                    <LogOut size={15} />
-                                    <span>Log Out</span>
-                                </button>
                             </div>
                         </div>
                     )}

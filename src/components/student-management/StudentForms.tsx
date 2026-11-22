@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, type Dispatch, type FormEventHandler, type SetStateAction } from "react";
 import { GraduationCap, BookOpen, Briefcase } from "lucide-react";
-import { Modal, InputField, SelectField, DateOfBirthField } from "./FieldsAndModals";
+import { Modal, InputField, SelectField, DateOfBirthField, AddressAutocompleteField } from "./FieldsAndModals";
 import api from "../../services/api";
 
 export interface StudentFormValues { student_id: string; first_name: string; middle_name: string; last_name: string; course: string; year_level: string; section: string; sex: string; birth_date: string; contact_number: string; address: string; }
@@ -975,16 +975,13 @@ export function StudentForms({
                             />
 
                             <div className="md:col-span-2">
-                                <InputField
+                                <AddressAutocompleteField
                                     label="Address"
-                                    value={
-                                        studentForm.address
-                                    }
-                                    onChange={(e) =>
+                                    value={studentForm.address}
+                                    onChange={(val) =>
                                         setStudentForm({
                                             ...studentForm,
-                                            address:
-                                                e.target.value,
+                                            address: val,
                                         })
                                     }
                                     required
@@ -1245,16 +1242,13 @@ export function StudentForms({
                             />
 
                             <div className="md:col-span-2">
-                                <InputField
+                                <AddressAutocompleteField
                                     label="Address"
-                                    value={
-                                        staffForm.address
-                                    }
-                                    onChange={(e) =>
+                                    value={staffForm.address}
+                                    onChange={(val) =>
                                         setStaffForm({
                                             ...staffForm,
-                                            address:
-                                                e.target.value,
+                                            address: val,
                                         })
                                     }
                                 />
@@ -1518,16 +1512,13 @@ export function StudentForms({
 
 
                             <div className="md:col-span-2">
-                                <InputField
+                                <AddressAutocompleteField
                                     label="Address"
-                                    value={
-                                        facultyForm.address
-                                    }
-                                    onChange={(e) =>
+                                    value={facultyForm.address}
+                                    onChange={(val) =>
                                         setFacultyForm({
                                             ...facultyForm,
-                                            address:
-                                                e.target.value,
+                                            address: val,
                                         })
                                     }
                                 />

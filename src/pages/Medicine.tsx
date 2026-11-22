@@ -54,7 +54,7 @@ function Medicine() {
         current_page: 1,
         last_page: 1,
         total: 0,
-        per_page: 15,
+        per_page: 10,
     });
     const [summary, setSummary] = useState({
         total_medicines: 0,
@@ -100,7 +100,7 @@ function Medicine() {
             const response = await api.get("/medicines", {
                 params: {
                     page,
-                    per_page: 15,
+                    per_page: 10,
                     include_summary: 1,
                     search: searchTerm.trim() || undefined,
                     status_filter: statusFilterParam !== "all" ? statusFilterParam : undefined,
@@ -113,7 +113,7 @@ function Medicine() {
                 current_page: response.data?.current_page || 1,
                 last_page: response.data?.last_page || 1,
                 total: response.data?.total || 0,
-                per_page: response.data?.per_page || 15,
+                per_page: response.data?.per_page || 10,
             });
             const sum = response.data?.summary || {
                 total_medicines: 0,

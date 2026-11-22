@@ -172,6 +172,9 @@ export function Header({
     const location = useLocation();
     const navigate = useNavigate();
     const isSettingsPage = location.pathname.toLowerCase().startsWith("/settings");
+    const isOrgPage =
+        location.pathname.toLowerCase().startsWith("/organization") ||
+        location.pathname.toLowerCase().startsWith("/staff");
     const { isDark, toggleTheme } = useTheme();
 
     const bellRef = useRef<HTMLDivElement>(null);
@@ -576,8 +579,8 @@ export function Header({
                     />
                 </div>
 
-                {/* Global Search Bar (hidden on Settings page) */}
-                {!isSettingsPage && (
+                {/* Global Search Bar (hidden on Settings and Organization Chart pages) */}
+                {!isSettingsPage && !isOrgPage && (
                     <div ref={searchContainerRef} className="relative flex-1 max-w-md lg:max-w-xl">
                         <form onSubmit={handleSearchSubmit} className="relative w-full">
                         <div className="relative flex items-center">

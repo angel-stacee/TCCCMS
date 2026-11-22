@@ -911,3 +911,257 @@ export async function exportMedicalCertificatePDF(cert: MedicalCertificateData) 
     const safeId = (cert.student_id || cert.patient_name || "Patient").replace(/[^a-zA-Z0-9]/g, "_");
     doc.save(`TCC_Medical_Certificate_${safeId}.pdf`);
 }
+
+/**
+ * ── OFFICIAL MEDICINE INVENTORY & DISPENSING PDF REPORT ──
+ */
+export async function exportMedicineInventoryReportPDF(data: {
+    summary?: {
+        total_items?: number;
+        total_medicines?: number;
+        total_units_in_stock?: number;
+        out_of_stock?: number;
+        out_of_stock_count?: number;
+        low_stock?: number;
+        low_stock_count?: number;
+        expired?: number;
+        expired_count?: number;
+        expiring_soon?: number;
+        expiring_soon_count?: number;
+        total_units_dispensed?: number;
+    };
+    medicines?: Array<{
+        id: number | string;
+        medicine_name?: string;
+        name?: string;
+        treatment_type?: string;
+        category?: string;
+        unit?: string;
+        stock?: number;
+        current_stock?: number;
+        minimum_stock?: number;
+        alert_threshold?: number;
+        expiration_date?: string | null;
+        total_dispensed?: number;
+        status?: string;
+    }>;
+    generated_at?: string;
+}) {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // 1. TCC Official Seal
+    const logoData = await loadLogoDataUrl();
+    if (logoData) {
+        try {
+            doc.addImage(logoData, "PNG", 14, 10, 19, 19);
+        } catch {
+            // fallback gracefully
+        }
+    }
+
+    // Official Header Text
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(112, 9, 31);
+    doc.text("TAGOLOAN COMMUNITY COLLEGE", 36, 15);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(80, 80, 80);
+    doc.text("College Health Services Clinic · Campus Clinic Management System", 36, 19.5);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(30, 30, 30);
+    doc.text("MEDICINE INVENTORY & DISPENSING REPORT", 36, 26);
+
+    // Meta Box on the Upper Right
+    doc.setDrawColor(232, 223, 212);
+    doc.setFillColor(252, 250, 246);
+    doc.roundedRect(pageWidth - 14 - 45, 12, 45, 14, 1.5, 1.5, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    doc.setTextColor(130, 130, 130);
+    doc.text("INVENTORY STATUS", pageWidth - 14 - 22.5, 17, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(112, 9, 31);
+    doc.text("OFFICIAL AUDIT", pageWidth - 14 - 22.5, 22, { align: "center" });
+
+    // Meta Divider Line
+    doc.setDrawColor(220, 212, 202);
+    doc.setLineWidth(0.4);
+    doc.line(14, 32, pageWidth - 14, 32);
+
+    const genDate = data.generated_at
+        ? new Date(data.generated_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
+        : new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+
+    const summary = {
+        total_items: data.summary?.total_items ?? data.summary?.total_medicines ?? 0,
+        total_units_in_stock: data.summary?.total_units_in_stock ?? 0,
+        out_of_stock: data.summary?.out_of_stock ?? data.summary?.out_of_stock_count ?? 0,
+        low_stock: data.summary?.low_stock ?? data.summary?.low_stock_count ?? 0,
+        expired: data.summary?.expired ?? data.summary?.expired_count ?? 0,
+        expiring_soon: data.summary?.expiring_soon ?? data.summary?.expiring_soon_count ?? 0,
+    };
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(115, 115, 115);
+    doc.text(`Generated: ${genDate}   |   Catalog Items: ${summary.total_items}   |   Total Units in Stock: ${summary.total_units_in_stock}`, 14, 36);
+
+    // 2. Summary Metric Table
+    autoTable(doc, {
+        startY: 40,
+        head: [["Catalog Items", "Units In Stock", "Low Stock Alert", "Expired Items", "Expiring Soon"]],
+        body: [[
+            String(summary.total_items),
+            String(summary.total_units_in_stock),
+            String(summary.low_stock),
+            String(summary.expired),
+            String(summary.expiring_soon),
+        ]],
+        theme: "plain",
+        headStyles: {
+            fillColor: [248, 244, 238],
+            textColor: [112, 9, 31],
+            fontStyle: "bold",
+            fontSize: 8,
+            halign: "center",
+        },
+        bodyStyles: {
+            textColor: [30, 30, 30],
+            fontSize: 11,
+            fontStyle: "bold",
+            halign: "center",
+        },
+        styles: {
+            cellPadding: 2.5,
+            lineColor: [225, 215, 205],
+            lineWidth: 0.25,
+        },
+        margin: { left: 14, right: 14 },
+    });
+
+    const currentY = (doc as any).lastAutoTable.finalY + 6;
+
+    // 3. Detailed Medicines Table
+    const medicinesList = data.medicines || [];
+    const tableRows = medicinesList.map((m, idx) => [
+        String(idx + 1),
+        m.name || m.medicine_name || "Unnamed Medicine",
+        m.category || m.treatment_type || "General",
+        m.unit || "Unit",
+        String(m.current_stock ?? m.stock ?? 0),
+        String(m.alert_threshold ?? m.minimum_stock ?? 10),
+        formatDate(m.expiration_date),
+        String(m.total_dispensed ?? 0),
+        m.status || "In Stock",
+    ]);
+
+    autoTable(doc, {
+        startY: currentY,
+        head: [["#", "Medicine Name", "Category", "Unit", "In Stock", "Alert Level", "Expiration", "Dispensed", "Status"]],
+        body: tableRows.length > 0 ? tableRows : [["-", "No medicine records in inventory", "-", "-", "-", "-", "-", "-", "-"]],
+        theme: "striped",
+        headStyles: {
+            fillColor: BRAND_BURGUNDY,
+            textColor: [255, 255, 255],
+            fontStyle: "bold",
+            fontSize: 7.5,
+            halign: "left",
+        },
+        bodyStyles: {
+            fontSize: 7.5,
+            textColor: [35, 35, 35],
+        },
+        alternateRowStyles: {
+            fillColor: [253, 251, 248],
+        },
+        columnStyles: {
+            0: { cellWidth: 8, halign: "center" },
+            1: { cellWidth: 42, fontStyle: "bold" },
+            2: { cellWidth: 26 },
+            3: { cellWidth: 16 },
+            4: { cellWidth: 16, halign: "center", fontStyle: "bold" },
+            5: { cellWidth: 16, halign: "center" },
+            6: { cellWidth: 20 },
+            7: { cellWidth: 16, halign: "center" },
+            8: { cellWidth: 22, fontStyle: "bold" },
+        },
+        styles: {
+            cellPadding: 2.2,
+            overflow: "linebreak",
+        },
+        margin: { left: 14, right: 14 },
+        didDrawPage: (pageData) => {
+            // Footer on each page
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.setTextColor(150, 150, 150);
+            doc.text(
+                "TCC Health Services Clinic · Campus Clinic Management System · Confidential Inventory Record",
+                14,
+                pageHeight - 8
+            );
+            doc.text(
+                `Page ${pageData.pageNumber}`,
+                pageWidth - 14,
+                pageHeight - 8,
+                { align: "right" }
+            );
+        },
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY + 12;
+
+    // Check if we need a new page for signatures
+    if (finalY > pageHeight - 35) {
+        doc.addPage();
+    }
+    const sigBaseY = finalY > pageHeight - 35 ? 30 : finalY;
+
+    // Official Endorsements & Signatures (straight & aligned)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(112, 9, 31);
+    doc.text("OFFICIAL ENDORSEMENT & SIGNATURES", 14, sigBaseY);
+
+    const sigColWidth = 65;
+    const rightSigX = pageWidth - 14 - sigColWidth;
+
+    // Prepared by
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(70, 70, 70);
+    doc.text("Prepared by:", 14, sigBaseY + 6);
+    doc.line(14, sigBaseY + 18, 14 + sigColWidth, sigBaseY + 18);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(20, 20, 20);
+    doc.text("Clinic Staff / Attending Nurse", 14, sigBaseY + 22);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Health Services Clinic · Tagoloan Community College", 14, sigBaseY + 25.5);
+
+    // Noted by
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(70, 70, 70);
+    doc.text("Noted by:", rightSigX, sigBaseY + 6);
+    doc.line(rightSigX, sigBaseY + 18, rightSigX + sigColWidth, sigBaseY + 18);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(20, 20, 20);
+    doc.text("College Administration", rightSigX, sigBaseY + 22);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Tagoloan Community College", rightSigX, sigBaseY + 25.5);
+
+    doc.save(`TCC_Medicine_Inventory_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+}

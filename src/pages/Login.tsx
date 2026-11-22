@@ -389,7 +389,7 @@ export default function Login(): React.JSX.Element {
                             </>
                         ) : (
                             <>
-                                <span>Sign In to Clinic Portal</span>
+                                <span>Sign In</span>
                                 <ArrowRight size={16} />
                             </>
                         )}

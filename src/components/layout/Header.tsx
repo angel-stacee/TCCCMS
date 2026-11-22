@@ -613,57 +613,66 @@ export function Header({
 
                     {/* Instant Search Results Dropdown & Rich Patient Flyout Card */}
                     {searchOpen && (headerSearch.trim().length >= 2 || selectedPerson) && (
-                        <div className="absolute left-0 top-full z-50 mt-2 max-h-[calc(100vh-90px)] w-[min(880px,calc(100vw-32px))] overflow-y-auto rounded-2xl border border-stone-200 bg-white p-4 shadow-2xl transition-all duration-200 dark:border-stone-800 dark:bg-[#1a1511]">
-                            {selectedPerson ? (
-                                <div>
-                                    {/* Patient Header Row matching preview card */}
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={() => setSelectedPerson(null)}
-                                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-200 bg-[#faf7f4] text-stone-600 transition hover:bg-[#fcebe7] hover:text-[#70091f] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 cursor-pointer"
-                                            aria-label="Back to search results"
-                                            title="Back to search results"
-                                        >
-                                            <ArrowLeft size={16} />
-                                        </button>
+                        <>
+                            {/* Mobile overlay backdrop */}
+                            <div
+                                className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] sm:hidden"
+                                onClick={() => {
+                                    setSearchOpen(false);
+                                    setSelectedPerson(null);
+                                }}
+                            />
+                            <div className="fixed inset-x-2.5 top-16 z-50 mt-1 max-h-[calc(100dvh-76px)] overflow-y-auto rounded-2xl border border-stone-200 bg-white p-3.5 shadow-2xl transition-all duration-200 dark:border-stone-800 dark:bg-[#1a1511] sm:absolute sm:inset-x-auto sm:left-0 sm:top-full sm:mt-2 sm:max-h-[calc(100vh-90px)] sm:w-[min(840px,calc(100vw-48px))] sm:p-4">
+                                {selectedPerson ? (
+                                    <div>
+                                        {/* Patient Header Row matching preview card */}
+                                        <div className="flex items-center gap-2.5 sm:gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setSelectedPerson(null)}
+                                                className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg border border-stone-200 bg-[#faf7f4] text-stone-600 transition hover:bg-[#fcebe7] hover:text-[#70091f] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 cursor-pointer"
+                                                aria-label="Back to search results"
+                                                title="Back to search results"
+                                            >
+                                                <ArrowLeft size={16} />
+                                            </button>
 
-                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#fcebe7] text-sm font-bold text-[#70091f] dark:bg-[#70091f]/30 dark:text-[#f8a598]">
-                                            {getInitials(getPersonName(selectedPerson))}
-                                        </div>
-
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 truncate">
-                                                    {getPersonName(selectedPerson)}
-                                                </h3>
-                                                <span className="rounded-full bg-[#fcebe7] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#70091f] dark:bg-[#70091f]/30 dark:text-[#f8a598]">
-                                                    {selectedPerson._type || "Student"}
-                                                </span>
+                                            <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full bg-[#fcebe7] text-xs sm:text-sm font-bold text-[#70091f] dark:bg-[#70091f]/30 dark:text-[#f8a598]">
+                                                {getInitials(getPersonName(selectedPerson))}
                                             </div>
-                                            <p className="text-xs text-stone-500 dark:text-stone-400">
-                                                {selectedPerson._type === "faculty"
-                                                    ? "Faculty ID"
-                                                    : selectedPerson._type === "staff"
-                                                    ? "Staff ID"
-                                                    : "Student ID"}
-                                                : {getPersonId(selectedPerson)}
-                                            </p>
-                                        </div>
 
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setSearchOpen(false);
-                                                setSelectedPerson(null);
-                                                setHeaderSearch("");
-                                            }}
-                                            className="flex h-8 w-8 items-center justify-center rounded-full text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-stone-800 dark:hover:text-stone-200 cursor-pointer"
-                                            aria-label="Close search preview"
-                                        >
-                                            <X size={17} />
-                                        </button>
-                                    </div>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                                    <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 truncate">
+                                                        {getPersonName(selectedPerson)}
+                                                    </h3>
+                                                    <span className="rounded-full bg-[#fcebe7] px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#70091f] dark:bg-[#70091f]/30 dark:text-[#f8a598]">
+                                                        {selectedPerson._type || "Student"}
+                                                    </span>
+                                                </div>
+                                                <p className="text-[11px] sm:text-xs text-stone-500 dark:text-stone-400">
+                                                    {selectedPerson._type === "faculty"
+                                                        ? "Faculty ID"
+                                                        : selectedPerson._type === "staff"
+                                                        ? "Staff ID"
+                                                        : "Student ID"}
+                                                    : {getPersonId(selectedPerson)}
+                                                </p>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSearchOpen(false);
+                                                    setSelectedPerson(null);
+                                                    setHeaderSearch("");
+                                                }}
+                                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-stone-800 dark:hover:text-stone-200 cursor-pointer"
+                                                aria-label="Close search preview"
+                                            >
+                                                <X size={17} />
+                                            </button>
+                                        </div>
 
                                     {/* Demographics Details Grid */}
                                     <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
@@ -947,6 +956,7 @@ export function Header({
                                 </div>
                             )}
                         </div>
+                    </>
                     )}
                 </div>
                 )}

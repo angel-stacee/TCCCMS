@@ -24,7 +24,6 @@ import {
     AlertTriangle,
     Check,
     CheckCheck,
-    LogOut,
 } from "lucide-react";
 import tccLogo from "../../assets/tcc-logo.png";
 import api from "../../services/api";
@@ -183,7 +182,6 @@ export function Header({
     const [bellOpen, setBellOpen] = useState(false);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const [confirmClearNotifications, setConfirmClearNotifications] = useState(false);
-    const [confirmLogout, setConfirmLogout] = useState(false);
     const [notifToDelete, setNotifToDelete] = useState<any | null>(null);
     const [headerSearch, setHeaderSearch] = useState("");
     const [isSearching, setIsSearching] = useState(false);
@@ -486,23 +484,6 @@ export function Header({
             prev.map((n) => ({ ...n, is_read: true, read: true }))
         );
         setUnreadCount(0);
-    };
-
-    const handleLogout = async () => {
-        try {
-            api.post("/logout", {}, { timeout: 3000 }).catch(() => {});
-        } catch {
-            // ignore
-        }
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("tcc-dashboard-cache");
-        try {
-            invalidateRecordCache();
-        } catch {
-            // ignore
-        }
-        navigate("/login", { replace: true });
     };
 
     const getNotificationVisuals = (category?: string, type?: string) => {
@@ -1261,40 +1242,10 @@ export function Header({
                                     </div>
                                 </button>
                             </div>
-
-                            {/* Log Out Option */}
-                            <div className="border-t border-[#eee7de] p-1.5 dark:border-stone-800">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setProfileMenuOpen(false);
-                                        setConfirmLogout(true);
-                                    }}
-                                    className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40 cursor-pointer text-left"
-                                >
-                                    <LogOut size={15} />
-                                    <span>Log Out</span>
-                                </button>
-                            </div>
                         </div>
                     )}
                 </div>
             </div>
-
-            {/* Confirmation Modal for Logout */}
-            <ConfirmationModal
-                open={confirmLogout}
-                title="Log Out Confirmation"
-                message="Are you sure you want to log out of the TCC Clinic Management System? Any unsaved changes may be lost."
-                confirmText="Yes, Log Out"
-                cancelText="Cancel"
-                danger={true}
-                onConfirm={() => {
-                    setConfirmLogout(false);
-                    handleLogout();
-                }}
-                onClose={() => setConfirmLogout(false)}
-            />
 
             {/* Confirmation Modal for Clear All Notifications */}
             <ConfirmationModal

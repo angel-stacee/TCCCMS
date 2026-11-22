@@ -558,9 +558,11 @@ export function Header({
                         }}
                         className="h-8 w-8 rounded-full object-contain ring-1 ring-[#70091f]/20"
                     />
-                    <span className="text-sm sm:text-base font-bold tracking-tight text-[#70091f] dark:text-[#f8a598] whitespace-nowrap">
-                        TCC Clinic
-                    </span>
+                    {!isDashboardPage && (
+                        <span className="text-sm sm:text-base font-bold tracking-tight text-[#70091f] dark:text-[#f8a598] whitespace-nowrap">
+                            TCC Clinic
+                        </span>
+                    )}
                 </div>
 
                 {/* Global Search Bar (ONLY displayed on the Dashboard) */}

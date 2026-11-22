@@ -167,7 +167,7 @@ export async function exportMonthlyReportPDF(reportData: {
     const periodText = reportData.report?.period || `${reportData.report?.month_name || "Monthly"} ${reportData.report?.year || ""}`;
 
     // ── 1. OFFICIAL INSTITUTIONAL LETTERHEAD ──
-    const logoSize = 20;
+    const logoSize = 18;
     const logoX = pageWidth - 14 - logoSize;
     const logoY = 12;
     if (logoData) {
@@ -181,39 +181,20 @@ export async function exportMonthlyReportPDF(reportData: {
     // Header Titles
     doc.setTextColor(112, 9, 31); // #70091f
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text("TAGOLOAN COMMUNITY COLLEGE", 14, 15);
-
-    doc.setTextColor(70, 70, 70);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.5);
-    doc.text("HEALTH SERVICES CLINIC — CAMPUS CLINIC MANAGEMENT SYSTEM", 14, 20.5);
-
-    doc.setTextColor(120, 120, 120);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.text("Baluarte, Tagoloan, Misamis Oriental · clinic@tcc.edu.ph", 14, 25);
+    doc.setFontSize(14);
+    doc.text("TAGOLOAN COMMUNITY COLLEGE", 14, 18);
 
     // Document Title
     doc.setTextColor(25, 25, 25);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text("MONTHLY CLINIC ACTIVITY & HEALTH REPORT", 14, 33);
-
-    // Reporting Period Label
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text("Report Period: ", 14, 38);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(112, 9, 31);
-    doc.text(periodText.toUpperCase(), 34, 38);
+    doc.setFontSize(12.5);
+    doc.text("MONTHLY CLINIC ACTIVITY & HEALTH REPORT", 14, 26);
 
     // Reporting Period Box on the Upper Right (placed to the left of the Logo without overlapping)
     const boxWidth = 38;
-    const boxHeight = 13;
+    const boxHeight = 12;
     const boxX = logoX - 5 - boxWidth;
-    const boxY = 15.5;
+    const boxY = 15;
     doc.setDrawColor(232, 223, 212);
     doc.setFillColor(252, 250, 246);
     doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 1.5, 1.5, "FD");
@@ -222,17 +203,17 @@ export async function exportMonthlyReportPDF(reportData: {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(6.5);
     doc.setTextColor(130, 130, 130);
-    doc.text("REPORTING PERIOD", boxCenterX, boxY + 4.5, { align: "center" });
+    doc.text("REPORTING PERIOD", boxCenterX, boxY + 4.2, { align: "center" });
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
     doc.setTextColor(112, 9, 31);
-    doc.text(periodText.toUpperCase(), boxCenterX, boxY + 9.5, { align: "center" });
+    doc.text(periodText.toUpperCase(), boxCenterX, boxY + 9, { align: "center" });
 
     // Meta Divider Bar
     doc.setDrawColor(220, 212, 202);
     doc.setLineWidth(0.4);
-    doc.line(14, 42, pageWidth - 14, 42);
+    doc.line(14, 32, pageWidth - 14, 32);
 
     const genDate = reportData.report?.generated_at
         ? new Date(reportData.report.generated_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
@@ -242,9 +223,9 @@ export async function exportMonthlyReportPDF(reportData: {
     doc.setFontSize(7.5);
     doc.setTextColor(115, 115, 115);
     const totalRecords = reportData.visits?.length || 0;
-    doc.text(`Generated: ${genDate}   |   Total Visits: ${totalRecords}   |   Scope: All clinic visits recorded for ${periodText}`, 14, 46);
+    doc.text(`Generated: ${genDate}   |   Total Visits: ${totalRecords}   |   Scope: All clinic visits recorded for ${periodText}`, 14, 37);
 
-    let currentY = 50;
+    let currentY = 42;
 
     // ── 2. SUMMARY STATISTICS CARDS (5 Columns matching Print Report) ──
     const summary = reportData.summary || {};

@@ -253,7 +253,7 @@ export function ClinicVisitModal({
                         <div className="grid gap-4 md:grid-cols-2">
                         {/* 1. Patient Selection (Left) */}
                         <div className="relative flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Patient
                                 <span className="ml-1 text-red-500">*</span>
                             </label>
@@ -283,7 +283,7 @@ export function ClinicVisitModal({
                                     }}
                                     onFocus={() => setShowPatientDropdown(true)}
                                     placeholder="Search student, faculty, or staff..."
-                                    className="w-full rounded-lg border border-stone-300 bg-white py-2.5 pl-9 pr-8 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                    className="w-full rounded-lg border border-stone-300 bg-white py-2.5 pl-9 pr-8 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                                 />
 
                                 {patientSearch && (
@@ -351,7 +351,7 @@ export function ClinicVisitModal({
 
                         {/* 2. Nurse on Duty (Right) */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Nurse on Duty
                                 <span className="ml-1 text-red-500">*</span>
                             </label>
@@ -361,7 +361,7 @@ export function ClinicVisitModal({
                                 value={formData.nurse_id}
                                 onChange={handleChange}
                                 required
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 disabled:cursor-not-allowed disabled:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 disabled:cursor-not-allowed disabled:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                             >
                                 <option value="">Select Nurse on Duty</option>
                                 {nurses.map((nurse) => (
@@ -374,7 +374,7 @@ export function ClinicVisitModal({
 
                         {/* 3. Visit Date (Left) */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Visit Date
                                 <span className="ml-1 text-red-500">*</span>
                             </label>
@@ -386,13 +386,13 @@ export function ClinicVisitModal({
                                 onChange={handleChange}
                                 min={!editingVisit ? getToday() : undefined}
                                 required
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                             />
                         </div>
 
                         {/* Department (Right) */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Department
                             </label>
 
@@ -402,7 +402,7 @@ export function ClinicVisitModal({
                                 value={formData.department || ""}
                                 onChange={handleChange}
                                 placeholder="e.g. College of Information Technology (BSIT)"
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                             />
                             <p className="text-[10px] text-stone-400">
                                 Auto-retrieved from patient record (editable)
@@ -411,7 +411,7 @@ export function ClinicVisitModal({
 
                         {/* 4. Reason for Visit (Left) */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Reason for Visit
                                 <span className="ml-1 text-red-500">*</span>
                             </label>
@@ -436,7 +436,7 @@ export function ClinicVisitModal({
                                         setFormData((prev: any) => ({ ...prev, reason: val }));
                                     }
                                 }}
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                                 required
                             >
                                 <option value="">Select Reason</option>
@@ -468,7 +468,7 @@ export function ClinicVisitModal({
 
                         {/* 5. Temperature (Left) */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Temperature
                             </label>
                             <select
@@ -491,7 +491,7 @@ export function ClinicVisitModal({
                                         setFormData((prev: any) => ({ ...prev, temperature: val }));
                                     }
                                 }}
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                             >
                                 <option value="">Select Temperature</option>
                                 {TEMPERATURE_OPTIONS.map((opt) => (
@@ -523,7 +523,7 @@ export function ClinicVisitModal({
                                             }
                                         }}
                                         placeholder="e.g. 36.5 °C or 98.6 °F"
-                                        className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                        className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                                     />
                                     <p className="text-[10px] text-stone-500 mt-0.5">
                                         Auto-standardized to °C. Fahrenheit (°F) converts automatically.
@@ -534,7 +534,7 @@ export function ClinicVisitModal({
 
                         {/* 6. Blood Pressure (Right) */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Blood Pressure
                             </label>
                             <select
@@ -557,7 +557,7 @@ export function ClinicVisitModal({
                                         setFormData((prev: any) => ({ ...prev, blood_pressure: val }));
                                     }
                                 }}
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                             >
                                 <option value="">Select Blood Pressure</option>
                                 {BLOOD_PRESSURE_OPTIONS.map((opt) => (
@@ -576,14 +576,14 @@ export function ClinicVisitModal({
                                     value={formData.blood_pressure}
                                     onChange={handleChange}
                                     placeholder="e.g. 120/80"
-                                    className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                    className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                                 />
                             )}
                         </div>
 
                         {/* 7. Symptoms (Left) */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Symptoms
                             </label>
                             <select
@@ -606,7 +606,7 @@ export function ClinicVisitModal({
                                         setFormData((prev: any) => ({ ...prev, symptoms: val }));
                                     }
                                 }}
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                             >
                                 <option value="">Select Symptoms</option>
                                 {SYMPTOMS_OPTIONS.map((opt) => (
@@ -624,14 +624,14 @@ export function ClinicVisitModal({
                                     value={formData.symptoms}
                                     onChange={handleChange}
                                     placeholder="Describe custom symptoms..."
-                                    className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                    className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                                 />
                             )}
                         </div>
 
                         {/* 8. Assessment (Right) */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Assessment
                             </label>
                             <select
@@ -654,7 +654,7 @@ export function ClinicVisitModal({
                                         setFormData((prev: any) => ({ ...prev, assessment: val }));
                                     }
                                 }}
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                             >
                                 <option value="">Select Assessment</option>
                                 {ASSESSMENT_OPTIONS.map((opt) => (
@@ -672,14 +672,14 @@ export function ClinicVisitModal({
                                     value={formData.assessment}
                                     onChange={handleChange}
                                     placeholder="Describe custom assessment..."
-                                    className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                    className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                                 />
                             )}
                         </div>
 
                         {/* 9. Treatment (Left) */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Treatment
                             </label>
 
@@ -687,7 +687,7 @@ export function ClinicVisitModal({
                                 name="treatment"
                                 value={formData.treatment}
                                 onChange={handleTreatmentChange}
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                             >
                                 <option value="">Select Treatment</option>
                                 {treatments.map((treatment) => (
@@ -701,7 +701,7 @@ export function ClinicVisitModal({
                         {/* 10. Medicine / Supply (Right) */}
                         <div className="relative flex flex-col gap-1">
                             <div className="flex items-center justify-between">
-                                <label className="flex items-center gap-1.5 text-sm font-medium text-stone-700 dark:text-stone-300">
+                                <label className="flex items-center gap-1.5 text-sm font-bold text-stone-900 dark:text-stone-100">
                                     <Pill size={15} />
                                     Medicine / Supply
                                     {treatmentNeedsMedicine(formData.treatment) && (
@@ -720,7 +720,7 @@ export function ClinicVisitModal({
                                             }));
                                             setMedicineSearch("");
                                         }}
-                                        className="text-xs font-medium text-red-600 hover:underline"
+                                        className="text-xs font-semibold text-red-600 hover:underline"
                                     >
                                         Clear
                                     </button>
@@ -747,7 +747,7 @@ export function ClinicVisitModal({
                                         }
                                     }
                                 }}
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                             >
                                 <option value="">Select Medicine / Supply</option>
                                 {filteredMedicines.map((medicine: any) => {
@@ -786,7 +786,7 @@ export function ClinicVisitModal({
                                     </div>
 
                                     <div className="mt-2">
-                                        <label className="text-xs font-medium text-stone-700 dark:text-stone-300">
+                                        <label className="text-xs font-bold text-stone-900 dark:text-stone-100">
                                             Quantity Used
                                             <span className="ml-1 text-red-500">*</span>
                                         </label>
@@ -799,7 +799,7 @@ export function ClinicVisitModal({
                                             onChange={handleChange}
                                             required
                                             placeholder="Enter quantity used"
-                                            className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                            className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                                         />
                                     </div>
                                 </div>
@@ -808,7 +808,7 @@ export function ClinicVisitModal({
 
                         {/* 11. Remarks (Full width md:col-span-2) */}
                         <div className="flex flex-col gap-1 md:col-span-2">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
                                 Remarks
                             </label>
                             <select
@@ -831,7 +831,7 @@ export function ClinicVisitModal({
                                         setFormData((prev: any) => ({ ...prev, remarks: val }));
                                     }
                                 }}
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                             >
                                 <option value="">Select Remarks</option>
                                 {REMARKS_OPTIONS.map((opt) => (
@@ -848,8 +848,8 @@ export function ClinicVisitModal({
                                     name="remarks"
                                     value={formData.remarks}
                                     onChange={handleChange}
-                                    placeholder="Additional remarks..."
-                                    className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                    placeholder="Enter custom remarks..."
+                                    className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                                 />
                             )}
                         </div>

@@ -5,7 +5,6 @@ import {
     LayoutList,
     LoaderCircle,
     LockKeyhole,
-    LogOut,
     Moon,
     Sun,
     UserRound,
@@ -24,7 +23,6 @@ function Settings() {
     const [reducedMotion, setReducedMotion] = useState(() =>
         localStorage.getItem("tcc-reduced-motion") === "true"
     );
-    const [loggingOut, setLoggingOut] = useState(false);
     const [passwordForm, setPasswordForm] = useState({
         current_password: "",
         password: "",
@@ -79,25 +77,6 @@ function Settings() {
         setReducedMotion(enabled);
         localStorage.setItem("tcc-reduced-motion", String(enabled));
         document.documentElement.classList.toggle("tcc-reduced-motion", enabled);
-    };
-
-    const handleLogout = async () => {
-        if (loggingOut) return;
-        setLoggingOut(true);
-        applyTheme("light");
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("tcc-dashboard-cache");
-        invalidateRecordCache();
-        sessionStorage.clear();
-        navigate("/login", { replace: true });
-        try {
-            api.post("/logout").catch((err) => {
-                console.warn("Logout request failed in background:", err);
-            });
-        } catch {
-            // ignore
-        }
     };
 
     return (
@@ -271,32 +250,6 @@ function Settings() {
                             checked={reducedMotion}
                             onChange={updateReducedMotion}
                         />
-                    </div>
-                </section>
-
-                {/* Account / Logout */}
-                <section className="tcc-settings-card mt-5 rounded-2xl border border-[#e8dfd4] bg-white p-5 shadow-sm sm:p-6">
-                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h2 className="text-base font-bold text-[#302820]">Account</h2>
-                            <p className="mt-1 text-sm text-[#887d70]">
-                                Sign out of your clinic management account on this device.
-                            </p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={handleLogout}
-                            disabled={loggingOut}
-                            aria-busy={loggingOut}
-                            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-red-200 px-4 text-sm font-semibold text-red-700 transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-50 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
-                        >
-                            {loggingOut ? (
-                                <LoaderCircle size={18} aria-hidden="true" className="animate-spin" />
-                            ) : (
-                                <LogOut size={18} aria-hidden="true" />
-                            )}
-                            {loggingOut ? "Logging out..." : "Log out"}
-                        </button>
                     </div>
                 </section>
             </main>

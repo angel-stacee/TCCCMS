@@ -247,10 +247,12 @@ export function ReasonBadge({
     reason,
     symptoms,
     className = "",
+    showSymptoms = false,
 }: {
     reason: string | null | undefined;
     symptoms?: string | null;
     className?: string;
+    showSymptoms?: boolean;
 }) {
     if (!reason || reason === "-") {
         return <span className="text-xs text-stone-400 italic">N/A</span>;
@@ -261,9 +263,12 @@ export function ReasonBadge({
     const displayText = lower === "other" && symptoms ? symptoms : reason.trim();
 
     const colorClasses = `${style.bg} ${style.text} ${style.border} ${style.darkBg} ${style.darkText} ${style.darkBorder}`;
+    const tooltipText = symptoms && symptoms.trim() && symptoms.trim() !== displayText
+        ? `Reason: ${displayText} • Symptoms: ${symptoms.trim()}`
+        : displayText;
 
     return (
-        <div className={`flex flex-col items-start gap-1 ${className}`}>
+        <div className={`inline-flex flex-col items-start ${className}`} title={tooltipText}>
             <span
                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold tracking-tight shadow-xs transition-colors duration-150 ${colorClasses}`}
             >
@@ -274,7 +279,7 @@ export function ReasonBadge({
                 />
                 <span className="truncate max-w-[190px]">{displayText}</span>
             </span>
-            {lower !== "other" && symptoms && symptoms.trim() !== "" && symptoms.trim() !== reason.trim() && (
+            {showSymptoms && lower !== "other" && symptoms && symptoms.trim() !== "" && symptoms.trim() !== reason.trim() && (
                 <span
                     className="max-w-[200px] truncate text-xs font-medium text-stone-600 dark:text-stone-300 pl-1"
                     title={symptoms}

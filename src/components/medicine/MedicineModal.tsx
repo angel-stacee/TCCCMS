@@ -150,6 +150,16 @@ export function MedicineModal({
         return list;
     }, [form.medicine_name, existingMedicines]);
 
+    // Detect if medicine with identical name already exists in inventory (must be called unconditionally)
+    const matchedExistingMedicine = useMemo(() => {
+        if (editingMedicine) return null;
+        const query = (form.medicine_name || "").toLowerCase().trim();
+        if (!query) return null;
+        return (existingMedicines || []).find(
+            (m: any) => (m.medicine_name || "").toLowerCase().trim() === query
+        );
+    }, [form.medicine_name, existingMedicines, editingMedicine]);
+
     const handleChooseMedicine = (item: any) => {
         if (onSelectMedicineTemplate) {
             onSelectMedicineTemplate(item);
@@ -188,16 +198,6 @@ export function MedicineModal({
     const minStock = Number(form.minimum_stock || 0);
     const isOutOfStock = form.stock !== "" && currentStock <= 0;
     const isLowStock = !isOutOfStock && form.stock !== "" && currentStock <= minStock;
-
-    // Detect if medicine with identical name already exists in inventory
-    const matchedExistingMedicine = useMemo(() => {
-        if (editingMedicine) return null;
-        const query = (form.medicine_name || "").toLowerCase().trim();
-        if (!query) return null;
-        return (existingMedicines || []).find(
-            (m: any) => (m.medicine_name || "").toLowerCase().trim() === query
-        );
-    }, [form.medicine_name, existingMedicines, editingMedicine]);
 
     // Live preview of 4-Tier expiration status:
     // Expired (< 0 days)

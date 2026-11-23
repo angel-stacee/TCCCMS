@@ -70,6 +70,9 @@ function Medicine() {
         out_of_stock_count: 0,
         expired_count: 0,
         expiring_soon_count: 0,
+        near_expiration_count: 0,
+        good_count: 0,
+        earliest_expiration_date: null as string | null,
         expired_medicines: [] as any[],
         expiring_soon_medicines: [] as any[],
     });
@@ -1149,12 +1152,24 @@ function Medicine() {
                                 </div>
 
                                 <div>
-                                    <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-[#f4ecdf]">
-                                        Medicine List &amp; Formulary
-                                    </h2>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-[#f4ecdf]">
+                                            Medicine List &amp; Formulary
+                                        </h2>
+                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e8dfd4] bg-white px-2.5 py-0.5 text-xs font-bold text-[#70091f] shadow-xs dark:border-stone-700 dark:bg-stone-800 dark:text-[#f8a598]">
+                                            <Package size={13} />
+                                            Total Stock: {summary.total_stock?.toLocaleString() || 0}
+                                        </span>
+                                        {summary.earliest_expiration_date && (
+                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-800 shadow-xs dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300">
+                                                <Calendar size={13} />
+                                                Earliest Expiration: {summary.earliest_expiration_date}
+                                            </span>
+                                        )}
+                                    </div>
 
-                                    <p className="text-xs text-[#887d70] dark:text-stone-400">
-                                        Showing {pagination.total || medicines.length} registered clinic medications
+                                    <p className="mt-1 text-xs text-[#887d70] dark:text-stone-400">
+                                        Total registered items: <strong className="text-stone-800 dark:text-stone-200">{pagination.total || medicines.length}</strong> • Total stock: <strong className="text-stone-800 dark:text-stone-200">{summary.total_stock?.toLocaleString() || 0} units</strong> • Next expiration: <strong className="text-stone-800 dark:text-stone-200">{summary.earliest_expiration_date || "No upcoming expiration"}</strong>
                                     </p>
                                 </div>
                             </div>
@@ -1295,7 +1310,7 @@ function Medicine() {
                         <div className="flex flex-wrap items-center gap-1.5">
                             <span className="mr-1 text-[11px] font-semibold text-[#887d70]">Status:</span>
                             {[
-                                { key: "all", label: "All Items" },
+                                { key: "all", label: `All Items (${pagination.total || medicines.length})` },
                                 { key: "expired", label: `Expired (${summary.expired_count || 0})`, isDanger: summary.expired_count > 0 },
                                 { key: "expiring_soon", label: `Expiring Soon (${summary.expiring_soon_count || 0})`, isWarning: summary.expiring_soon_count > 0 },
                                 { key: "low_stock", label: `Low Stock (${summary.low_stock_count || 0})` },
@@ -1347,7 +1362,7 @@ function Medicine() {
                                     </th>
 
                                     <th className="px-4 py-2.5 text-[10px] font-bold text-[#887d70]">
-                                        Stock
+                                        Total Stock
                                     </th>
 
                                     <th className="px-4 py-2.5 text-[10px] font-bold text-[#887d70]">
@@ -1471,8 +1486,11 @@ function Medicine() {
 
 
                                                     <td className="px-4 py-2.5">
-                                                        <span className="text-xs font-bold">
+                                                        <span className="text-xs font-bold text-stone-900 dark:text-stone-100">
                                                             {medicine.stock}
+                                                        </span>
+                                                        <span className="text-[10px] text-stone-500 dark:text-stone-400 ml-1">
+                                                            {medicine.unit}
                                                         </span>
                                                     </td>
 

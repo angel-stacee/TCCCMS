@@ -5,6 +5,12 @@ import { exportMonthlyReportPDF } from "../utils/pdfExport";
 import { formatNA, formatDate } from "../utils/formatters";
 import { ReasonBadge } from "../utils/reasonColors";
 import tccLogo from "../assets/tcc-logo.png";
+import { AnalyticsFilterBar } from "../components/reports/AnalyticsFilterBar";
+import { AnalyticsSummaryCards } from "../components/reports/AnalyticsSummaryCards";
+import { DepartmentVisitsChart } from "../components/reports/DepartmentVisitsChart";
+import { CommonSymptomsChart } from "../components/reports/CommonSymptomsChart";
+import { DepartmentSymptomsSection } from "../components/reports/DepartmentSymptomsSection";
+import type { AnalyticsReport, AnalyticsFilterState } from "../types/analytics";
 
 import {
     FileText,
@@ -21,6 +27,7 @@ import {
     Calendar,
     Building2,
     Briefcase,
+    BarChart3,
 } from "lucide-react";
 
 type ReportPeriod = {
@@ -81,10 +88,26 @@ type MonthlyReport = {
 function Reports() {
     const currentDate = new Date();
 
+    // View Tab: Overview All | Analytics & Graphs | Monthly Report
+    const [viewTab, setViewTab] = useState<"all" | "analytics" | "monthly">("all");
+
     // Monthly selector state
     const [month, setMonth] = useState(currentDate.getMonth() + 1);
     const [year, setYear] = useState(currentDate.getFullYear());
     const [visitSearch, setVisitSearch] = useState<string>("");
+
+    // Analytics Data State
+    const [analyticsData, setAnalyticsData] = useState<AnalyticsReport | null>(null);
+    const [analyticsLoading, setAnalyticsLoading] = useState(false);
+    const [analyticsFilters, setAnalyticsFilters] = useState<AnalyticsFilterState>({
+        periodType: "monthly",
+        date: currentDate.toISOString().slice(0, 10),
+        month: currentDate.getMonth() + 1,
+        year: currentDate.getFullYear(),
+        startDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().slice(0, 10),
+        endDate: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString().slice(0, 10),
+        patientType: "all",
+    });
 
     // Monthly Data State
     const [report, setReport] = useState<MonthlyReport | null>(null);
@@ -95,6 +118,29 @@ function Reports() {
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December",
     ];
+
+    // Fetch Department & Symptom Analytics
+    const fetchAnalytics = async (filters: AnalyticsFilterState = analyticsFilters) => {
+        setAnalyticsLoading(true);
+        try {
+            const res = await api.get<AnalyticsReport>("/reports/analytics", {
+                params: {
+                    period_type: filters.periodType,
+                    date: filters.date,
+                    month: filters.month,
+                    year: filters.year,
+                    start_date: filters.startDate,
+                    end_date: filters.endDate,
+                    patient_type: filters.patientType,
+                },
+            });
+            setAnalyticsData(res.data);
+        } catch (err: any) {
+            console.error("ANALYTICS ERROR:", err);
+        } finally {
+            setAnalyticsLoading(false);
+        }
+    };
 
     // Fetch Monthly Report
     const generateMonthlyReport = async (targetMonth = month, targetYear = year, force = false) => {
@@ -136,16 +182,42 @@ function Reports() {
 
     useEffect(() => {
         generateMonthlyReport();
+        fetchAnalytics();
     }, []);
+
+    const handleFilterChange = (newFilters: AnalyticsFilterState) => {
+        setAnalyticsFilters(newFilters);
+        fetchAnalytics(newFilters);
+        if (newFilters.periodType === "monthly") {
+            setMonth(newFilters.month);
+            setYear(newFilters.year);
+            generateMonthlyReport(newFilters.month, newFilters.year);
+        }
+    };
+
+    const handleRefreshAnalytics = () => {
+        fetchAnalytics(analyticsFilters);
+        generateMonthlyReport(month, year, true);
+    };
 
     const handleMonthChange = (newMonth: number) => {
         setMonth(newMonth);
         generateMonthlyReport(newMonth, year, true);
+        if (analyticsFilters.periodType === "monthly") {
+            const updated = { ...analyticsFilters, month: newMonth };
+            setAnalyticsFilters(updated);
+            fetchAnalytics(updated);
+        }
     };
 
     const handleYearChange = (newYear: number) => {
         setYear(newYear);
         generateMonthlyReport(month, newYear, true);
+        if (analyticsFilters.periodType === "monthly") {
+            const updated = { ...analyticsFilters, year: newYear };
+            setAnalyticsFilters(updated);
+            fetchAnalytics(updated);
+        }
     };
 
     const handlePrint = () => {
@@ -213,6 +285,39 @@ function Reports() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
+                    {/* View Switcher: All, Analytics, Monthly */}
+                    <div className="flex items-center rounded-xl bg-stone-100 p-1 border border-stone-200">
+                        <button
+                            type="button"
+                            onClick={() => setViewTab("all")}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                                viewTab === "all" ? "bg-[#70091f] text-white shadow-sm" : "text-stone-600 hover:text-stone-900"
+                            }`}
+                        >
+                            All Overview
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setViewTab("analytics")}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                                viewTab === "analytics" ? "bg-[#70091f] text-white shadow-sm" : "text-stone-600 hover:text-stone-900"
+                            }`}
+                        >
+                            <BarChart3 size={14} />
+                            Department & Symptoms
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setViewTab("monthly")}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                                viewTab === "monthly" ? "bg-[#70091f] text-white shadow-sm" : "text-stone-600 hover:text-stone-900"
+                            }`}
+                        >
+                            <FileText size={14} />
+                            Monthly Report
+                        </button>
+                    </div>
+
                     <button
                         onClick={handleDownloadPDF}
                         disabled={!report || loading}
@@ -233,8 +338,60 @@ function Reports() {
                 </div>
             </div>
 
-            {/* Monthly Controls */}
-            <div className="mb-6 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm print:hidden">
+            {/* VISUAL ANALYTICS SECTION (Department-Based Visits, Common Symptoms, Dept vs Symptoms) */}
+            {(viewTab === "all" || viewTab === "analytics") && (
+                <div className="space-y-6 mb-8 print:hidden">
+                    {/* Analytics Date & Population Filter Bar */}
+                    <AnalyticsFilterBar
+                        filters={analyticsFilters}
+                        onChange={handleFilterChange}
+                        onRefresh={handleRefreshAnalytics}
+                        loading={analyticsLoading}
+                    />
+
+                    {/* Analytics Summary Cards */}
+                    <AnalyticsSummaryCards
+                        summary={analyticsData?.summary ?? {
+                            total_visits: 0,
+                            top_department: { department: "None", short_name: "None", visits: 0, percentage: 0 },
+                            top_symptom: { symptom: "None", count: 0, percentage: 0 },
+                            total_departments: 0,
+                            patient_type_counts: { student_visits: 0, faculty_visits: 0, staff_visits: 0 },
+                        }}
+                        loading={analyticsLoading}
+                    />
+
+                    {/* Department-Based Clinic Visit Graph & Common Symptoms Analytics */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        {/* Clinic Visits by Department (Bar Chart) */}
+                        <DepartmentVisitsChart
+                            data={analyticsData?.visits_by_department || []}
+                            loading={analyticsLoading}
+                            periodLabel={analyticsData?.period?.label}
+                        />
+
+                        {/* Most Common Symptoms (Bar or Doughnut Chart) */}
+                        <CommonSymptomsChart
+                            data={analyticsData?.common_symptoms || []}
+                            loading={analyticsLoading}
+                        />
+                    </div>
+
+                    {/* Department vs. Common Symptoms (Grouped Bar Chart & Dept Selector) */}
+                    <DepartmentSymptomsSection
+                        departmentSymptoms={analyticsData?.department_symptoms || []}
+                        groupedComparison={analyticsData?.grouped_comparison || { data: [], symptom_keys: [] }}
+                        allDepartments={analyticsData?.all_departments || []}
+                        loading={analyticsLoading}
+                    />
+                </div>
+            )}
+
+            {/* MONTHLY REPORT CONTENT & PRINTABLE PATIENT LOG */}
+            {(viewTab === "all" || viewTab === "monthly") && (
+                <>
+                    {/* Monthly Controls */}
+                    <div className="mb-6 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm print:hidden">
                 <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Calendar size={18} className="text-[#8a6f50]" />
@@ -630,6 +787,8 @@ function Reports() {
                     {/* Official Signatures Block */}
                     <ReportSignatureBlock periodLabel={report.report?.period} />
                 </div>
+            )}
+                </>
             )}
         </div>
     );

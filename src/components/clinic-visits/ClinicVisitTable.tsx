@@ -1,4 +1,4 @@
-import { useState, useMemo, type Dispatch, type SetStateAction } from "react";
+import { useState, useMemo, Fragment, type Dispatch, type SetStateAction } from "react";
 import { createPortal } from "react-dom";
 import {
     CalendarDays,
@@ -178,7 +178,7 @@ export function ClinicVisitTable({
                     </div>
                 </div>
 
-                {/* VIEW 1: GROUPED BY PATIENT (Zero redundancy: Grace Tocmohan shown once with nested visits) */}
+                {/* VIEW 1: GROUPED BY PATIENT (Single unified table: perfect column alignment across all patients) */}
                 {viewMode === "grouped" && (
                     <div>
                         {pageLoading ? (
@@ -196,213 +196,219 @@ export function ClinicVisitTable({
                                 </p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-[#eee7de] dark:divide-stone-800">
-                                {patientGroups.map((group) => {
-                                    const isExpanded = expandedGroups[group.key] !== false; // default open
-                                    const initials = group.patient.name
-                                        ? group.patient.name
-                                              .split(" ")
-                                              .filter(Boolean)
-                                              .map((n) => n[0])
-                                              .slice(0, 2)
-                                              .join("")
-                                              .toUpperCase()
-                                        : "PT";
+                            <div className="overflow-x-auto scrollbar-thin">
+                                <table className="w-full text-left border-collapse min-w-[1080px] table-fixed">
+                                    {/* Strict Colgroup for 100% Guaranteed Column Alignment Across All Patients */}
+                                    <colgroup>
+                                        <col className="w-[170px]" />
+                                        <col className="w-[180px]" />
+                                        <col className="w-[200px]" />
+                                        <col className="w-[150px]" />
+                                        <col className="w-[130px]" />
+                                        <col className="w-[180px]" />
+                                        <col className="w-[180px]" />
+                                    </colgroup>
+                                    <thead>
+                                        <tr className="border-b border-[#e8dfd4] bg-[#fcfaf6] text-[10px] font-bold uppercase tracking-wider text-[#887d70] dark:border-stone-800 dark:bg-[#261f19] dark:text-[#a99d8f]">
+                                            <th className="py-3 px-4 whitespace-nowrap">Visit # &amp; Date</th>
+                                            <th className="py-3 px-4 whitespace-nowrap">Attending Nurse</th>
+                                            <th className="py-3 px-4">Reason &amp; Symptoms</th>
+                                            <th className="py-3 px-4 whitespace-nowrap">Vital Signs</th>
+                                            <th className="py-3 px-4">Treatment</th>
+                                            <th className="py-3 px-4">Medicine Dispensed</th>
+                                            <th className="py-3 px-4 text-right whitespace-nowrap">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#eee7de] dark:divide-stone-800">
+                                        {patientGroups.map((group) => {
+                                            const isExpanded = expandedGroups[group.key] !== false; // default open
+                                            const initials = group.patient.name
+                                                ? group.patient.name
+                                                      .split(" ")
+                                                      .filter(Boolean)
+                                                      .map((n) => n[0])
+                                                      .slice(0, 2)
+                                                      .join("")
+                                                      .toUpperCase()
+                                                : "PT";
 
-                                    return (
-                                        <div key={group.key} className="transition">
-                                            {/* Patient Master Card Header */}
-                                            <div
-                                                onClick={() => toggleGroup(group.key)}
-                                                className="flex flex-wrap items-center justify-between gap-3 bg-[#fcfaf6] px-4 py-3 sm:px-5 hover:bg-[#f7f2eb] dark:bg-[#261f19] dark:hover:bg-[#2f261f] cursor-pointer transition border-l-4 border-l-[#70091f]"
-                                            >
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#70091f]/10 text-xs font-bold text-[#70091f] dark:bg-[#70091f]/25 dark:text-[#dc667a]">
-                                                        {initials}
-                                                    </div>
+                                            return (
+                                                <Fragment key={group.key}>
+                                                    {/* Full-width Patient Master Header Row */}
+                                                    <tr
+                                                        onClick={() => toggleGroup(group.key)}
+                                                        className="bg-[#fcfaf6] hover:bg-[#f6efe6] dark:bg-[#261f19] dark:hover:bg-[#2f261f] cursor-pointer transition border-t-2 border-stone-200 dark:border-stone-700"
+                                                    >
+                                                        <td colSpan={7} className="py-2.5 px-4 border-l-4 border-l-[#70091f]">
+                                                            <div className="flex items-center justify-between gap-3">
+                                                                <div className="flex items-center gap-3 min-w-0">
+                                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#70091f]/10 text-xs font-bold text-[#70091f] dark:bg-[#70091f]/25 dark:text-[#dc667a]">
+                                                                        {initials}
+                                                                    </div>
 
-                                                    <div className="min-w-0">
-                                                        <div className="flex flex-wrap items-center gap-2">
-                                                            <h3 className="text-sm font-bold text-[#3c332a] dark:text-stone-100 truncate">
-                                                                {formatNA(group.patient.name)}
-                                                            </h3>
-                                                            <span className="rounded-md bg-stone-200/80 px-2 py-0.5 text-[10px] font-bold uppercase text-stone-700 dark:bg-stone-700 dark:text-stone-300">
-                                                                {group.patient.type || "Patient"}{" "}
-                                                                {group.patient.id ? `• ${group.patient.id}` : ""}
-                                                            </span>
-                                                            {group.department && (
-                                                                <span className="hidden sm:inline-block text-xs text-[#887d70] dark:text-stone-400 truncate max-w-[280px]">
-                                                                    • {group.department}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        {group.department && (
-                                                            <p className="sm:hidden text-[11px] text-[#887d70] dark:text-stone-400 mt-0.5 truncate">
-                                                                {group.department}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-2.5 shrink-0">
-                                                    <span className="rounded-full bg-[#70091f] px-2.5 py-0.5 text-xs font-bold text-white shadow-xs">
-                                                        {group.visits.length}{" "}
-                                                        {group.visits.length === 1 ? "Consultation" : "Consultations"}
-                                                    </span>
-
-                                                    <span className="text-xs font-semibold text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 flex items-center gap-1">
-                                                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Nested Consultations Table */}
-                                            {isExpanded && (
-                                                <div className="overflow-x-auto bg-white dark:bg-[#211c17] pl-3 sm:pl-10 pr-3 sm:pr-5 py-2.5">
-                                                    <table className="w-full text-left border-collapse min-w-[950px] table-auto">
-                                                        <thead>
-                                                            <tr className="border-b border-stone-100 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:border-stone-800">
-                                                                <th className="py-2.5 px-3 whitespace-nowrap">Visit # & Date</th>
-                                                                <th className="py-2.5 px-3 whitespace-nowrap">Attending Nurse</th>
-                                                                <th className="py-2.5 px-3 whitespace-nowrap">Reason & Symptoms</th>
-                                                                <th className="py-2.5 px-3 whitespace-nowrap">Vital Signs</th>
-                                                                <th className="py-2.5 px-3">Treatment</th>
-                                                                <th className="py-2.5 px-3">Medicine Dispensed</th>
-                                                                <th className="py-2.5 px-3 text-right whitespace-nowrap">Actions</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-stone-100 dark:divide-stone-800/60">
-                                                            {group.visits.map((visit, vIdx) => {
-                                                                const medicineName = getMedicineName(visit.medicine);
-                                                                const visitNum = group.visits.length - vIdx;
-
-                                                                return (
-                                                                    <tr
-                                                                        key={visit.id}
-                                                                        className="hover:bg-stone-50/60 dark:hover:bg-stone-800/40 transition text-xs"
-                                                                    >
-                                                                        <td className="py-2.5 px-3 whitespace-nowrap">
-                                                                            <div className="flex items-center gap-2">
-                                                                                <span className="rounded-md bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950/40 dark:border-amber-900/60 dark:text-amber-300">
-                                                                                    Visit #{visitNum}
+                                                                    <div className="min-w-0">
+                                                                        <div className="flex flex-wrap items-center gap-2">
+                                                                            <h3 className="text-sm font-bold text-[#3c332a] dark:text-stone-100 truncate">
+                                                                                {formatNA(group.patient.name)}
+                                                                            </h3>
+                                                                            <span className="rounded-md bg-stone-200/80 px-2 py-0.5 text-[10px] font-bold uppercase text-stone-700 dark:bg-stone-700 dark:text-stone-300">
+                                                                                {group.patient.type || "Patient"}{" "}
+                                                                                {group.patient.id ? `• ${group.patient.id}` : ""}
+                                                                            </span>
+                                                                            {group.department && (
+                                                                                <span className="text-xs text-[#887d70] dark:text-stone-400 truncate max-w-[340px]">
+                                                                                    • {group.department}
                                                                                 </span>
-                                                                                <span className="font-semibold text-stone-700 dark:text-stone-300">
-                                                                                    {formatDate(visit.visit_date)}
-                                                                                </span>
-                                                                            </div>
-                                                                        </td>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
 
-                                                                        <td className="py-2.5 px-3 whitespace-nowrap">
-                                                                            <p className="font-medium text-[#3c332a] dark:text-stone-200">
-                                                                                {formatNA(getNurseName(visit.nurse))}
+                                                                <div className="flex items-center gap-2.5 shrink-0">
+                                                                    <span className="rounded-full bg-[#70091f] px-2.5 py-0.5 text-xs font-bold text-white shadow-xs">
+                                                                        {group.visits.length}{" "}
+                                                                        {group.visits.length === 1 ? "Consultation" : "Consultations"}
+                                                                    </span>
+
+                                                                    <span className="text-xs font-semibold text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 flex items-center gap-1">
+                                                                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+
+                                                    {/* Nested Consultations - Rows align with master table columns */}
+                                                    {isExpanded &&
+                                                        group.visits.map((visit, vIdx) => {
+                                                            const medicineName = getMedicineName(visit.medicine);
+                                                            const visitNum = group.visits.length - vIdx;
+
+                                                            return (
+                                                                <tr
+                                                                    key={visit.id}
+                                                                    className="bg-white hover:bg-stone-50/70 dark:bg-[#211c17] dark:hover:bg-stone-800/40 transition text-xs border-b border-stone-100 dark:border-stone-800/60"
+                                                                >
+                                                                    <td className="py-2.5 px-4 whitespace-nowrap">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="rounded-md bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950/40 dark:border-amber-900/60 dark:text-amber-300">
+                                                                                Visit #{visitNum}
+                                                                            </span>
+                                                                            <span className="font-semibold text-stone-700 dark:text-stone-300">
+                                                                                {formatDate(visit.visit_date)}
+                                                                            </span>
+                                                                        </div>
+                                                                    </td>
+
+                                                                    <td className="py-2.5 px-4 whitespace-nowrap">
+                                                                        <p className="font-medium text-[#3c332a] dark:text-stone-200 truncate">
+                                                                            {formatNA(getNurseName(visit.nurse))}
+                                                                        </p>
+                                                                        {visit.nurse?.role && (
+                                                                            <p className="text-[10px] text-[#887d70] dark:text-stone-400">
+                                                                                {visit.nurse.role}
                                                                             </p>
-                                                                            {visit.nurse?.role && (
-                                                                                <p className="text-[10px] text-[#887d70] dark:text-stone-400">
-                                                                                    {visit.nurse.role}
+                                                                        )}
+                                                                    </td>
+
+                                                                    <td className="py-2.5 px-4">
+                                                                        <ReasonBadge reason={visit.reason} symptoms={visit.symptoms} />
+                                                                    </td>
+
+                                                                    <td className="py-2.5 px-4 whitespace-nowrap">
+                                                                        <div className="text-stone-700 dark:text-stone-300 text-xs">
+                                                                            <span className="font-medium">{formatTemperature(visit.temperature)}</span>
+                                                                            <span className="mx-1 text-stone-300 dark:text-stone-600">•</span>
+                                                                            <span>{formatNA(visit.blood_pressure)}</span>
+                                                                        </div>
+                                                                    </td>
+
+                                                                    <td
+                                                                        className="py-2.5 px-4 truncate text-stone-700 dark:text-stone-300"
+                                                                        title={visit.treatment || ""}
+                                                                    >
+                                                                        {formatNA(visit.treatment)}
+                                                                    </td>
+
+                                                                    <td className="py-2.5 px-4">
+                                                                        {medicineName ? (
+                                                                            <div className="space-y-0.5">
+                                                                                <p
+                                                                                    className="font-semibold text-[#3d3329] dark:text-stone-100 truncate"
+                                                                                    title={medicineName}
+                                                                                >
+                                                                                    {medicineName}
                                                                                 </p>
-                                                                            )}
-                                                                        </td>
-
-                                                                        <td className="py-2.5 px-3 whitespace-nowrap">
-                                                                            <ReasonBadge reason={visit.reason} symptoms={visit.symptoms} />
-                                                                        </td>
-
-                                                                        <td className="py-2.5 px-3 whitespace-nowrap">
-                                                                            <div className="text-stone-700 dark:text-stone-300 text-xs">
-                                                                                <span className="font-medium">{formatTemperature(visit.temperature)}</span>
-                                                                                <span className="mx-1 text-stone-300 dark:text-stone-600">•</span>
-                                                                                <span>{formatNA(visit.blood_pressure)}</span>
-                                                                            </div>
-                                                                        </td>
-
-                                                                        <td
-                                                                            className="py-2.5 px-3 max-w-[130px] truncate text-stone-700 dark:text-stone-300"
-                                                                            title={visit.treatment || ""}
-                                                                        >
-                                                                            {formatNA(visit.treatment)}
-                                                                        </td>
-
-                                                                        <td className="py-2.5 px-3 min-w-[140px]">
-                                                                            {medicineName ? (
-                                                                                <div className="space-y-0.5">
-                                                                                    <p
-                                                                                        className="font-semibold text-[#3d3329] dark:text-stone-100 truncate"
-                                                                                        title={medicineName}
-                                                                                    >
-                                                                                        {medicineName}
-                                                                                    </p>
-                                                                                    <div className="flex flex-wrap items-center gap-1">
-                                                                                        {visit.medicine?.unit && (
-                                                                                            <span className="rounded-md border border-[#e8dfd4] bg-[#fcfaf6] px-1.5 py-0.2 text-[9px] font-medium text-[#766959] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
-                                                                                                Unit: {visit.medicine.unit}
-                                                                                            </span>
-                                                                                        )}
-                                                                                        {visit.medicine_quantity && (
-                                                                                            <span className="rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.2 text-[9px] font-bold text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300">
-                                                                                                Qty: {visit.medicine_quantity}
-                                                                                            </span>
-                                                                                        )}
-                                                                                    </div>
+                                                                                <div className="flex flex-wrap items-center gap-1">
+                                                                                    {visit.medicine?.unit && (
+                                                                                        <span className="rounded-md border border-[#e8dfd4] bg-[#fcfaf6] px-1.5 py-0.2 text-[9px] font-medium text-[#766959] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
+                                                                                            Unit: {visit.medicine.unit}
+                                                                                        </span>
+                                                                                    )}
+                                                                                    {visit.medicine_quantity && (
+                                                                                        <span className="rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.2 text-[9px] font-bold text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300">
+                                                                                            Qty: {visit.medicine_quantity}
+                                                                                        </span>
+                                                                                    )}
                                                                                 </div>
-                                                                            ) : (
-                                                                                <span className="text-[#a99d8f] dark:text-stone-500">-</span>
-                                                                            )}
-                                                                        </td>
-
-                                                                        <td className="py-2.5 px-3 text-right">
-                                                                            <div className="flex items-center justify-end gap-1">
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => onOpenMedicalReport?.(visit)}
-                                                                                    className="inline-flex h-7.5 items-center gap-1 whitespace-nowrap rounded-lg border border-[#70091f]/40 bg-[#fdf5f3] px-2 text-xs font-semibold text-[#70091f] shadow-xs transition hover:bg-[#70091f] hover:text-white dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598] cursor-pointer"
-                                                                                    title="View Referral Form"
-                                                                                >
-                                                                                    <FileText size={13} className="shrink-0" />
-                                                                                    <span>Referral</span>
-                                                                                </button>
-
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() =>
-                                                                                        onViewVisit
-                                                                                            ? onViewVisit(visit)
-                                                                                            : onOpenMedicalReport?.(visit)
-                                                                                    }
-                                                                                    className="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] text-[#766959] hover:bg-[#f3ebdf] hover:text-[#3d3329] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 cursor-pointer"
-                                                                                    title="View details"
-                                                                                >
-                                                                                    <Eye size={14} />
-                                                                                </button>
-
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => handleEdit(visit)}
-                                                                                    className="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-amber-200/80 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:border-amber-900/60 dark:bg-stone-800 dark:text-amber-400 cursor-pointer"
-                                                                                    title="Edit visit"
-                                                                                >
-                                                                                    <Pencil size={14} />
-                                                                                </button>
-
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => setDeleteVisit(visit)}
-                                                                                    className="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-red-200/80 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 dark:border-red-900/60 dark:bg-stone-800 dark:text-red-400 cursor-pointer"
-                                                                                    title="Delete visit"
-                                                                                >
-                                                                                    <Trash2 size={14} />
-                                                                                </button>
                                                                             </div>
-                                                                        </td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                                                                        ) : (
+                                                                            <span className="text-[#a99d8f] dark:text-stone-500">-</span>
+                                                                        )}
+                                                                    </td>
+
+                                                                    <td className="py-2.5 px-4 text-right whitespace-nowrap">
+                                                                        <div className="flex items-center justify-end gap-1">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => onOpenMedicalReport?.(visit)}
+                                                                                className="inline-flex h-7.5 items-center gap-1 whitespace-nowrap rounded-lg border border-[#70091f]/40 bg-[#fdf5f3] px-2 text-xs font-semibold text-[#70091f] shadow-xs transition hover:bg-[#70091f] hover:text-white dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598] cursor-pointer"
+                                                                                title="View Referral Form"
+                                                                            >
+                                                                                <FileText size={13} className="shrink-0" />
+                                                                                <span>Referral</span>
+                                                                            </button>
+
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    onViewVisit
+                                                                                        ? onViewVisit(visit)
+                                                                                        : onOpenMedicalReport?.(visit)
+                                                                                }
+                                                                                className="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] text-[#766959] hover:bg-[#f3ebdf] hover:text-[#3d3329] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 cursor-pointer"
+                                                                                title="View details"
+                                                                            >
+                                                                                <Eye size={14} />
+                                                                            </button>
+
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleEdit(visit)}
+                                                                                className="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-amber-200/80 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:border-amber-900/60 dark:bg-stone-800 dark:text-amber-400 cursor-pointer"
+                                                                                title="Edit visit"
+                                                                            >
+                                                                                <Pencil size={14} />
+                                                                            </button>
+
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => setDeleteVisit(visit)}
+                                                                                className="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-red-200/80 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 dark:border-red-900/60 dark:bg-stone-800 dark:text-red-400 cursor-pointer"
+                                                                                title="Delete visit"
+                                                                            >
+                                                                                <Trash2 size={14} />
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                </Fragment>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
                             </div>
                         )}
                     </div>

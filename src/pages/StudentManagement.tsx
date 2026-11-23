@@ -8,7 +8,7 @@ import { RestorePatientsModal } from "../components/student-management/RestorePa
 import { StudentForms, validateContactNumber, type StudentFormValues, type StaffFormValues, type FacultyFormValues } from "../components/student-management/StudentForms";
 import FloatingToast from "../components/common/FloatingToast";
 import { addClinicNotification } from "../services/notifications";
-import { exportMedicalCertificatePDF, exportPatientMedicalReportPDF } from "../utils/pdfExport";
+import { exportMedicalCertificatePDF, exportPatientMedicalReportPDF, exportReferralFormPDF } from "../utils/pdfExport";
 import { formatNA, formatTemperature, formatDate, mapCourseToDepartment } from "../utils/formatters";
 import { ReasonBadge } from "../utils/reasonColors";
 
@@ -833,20 +833,30 @@ function StudentManagement() {
             ? `Staff (${patientInfo.position || "Staff"} - ${patientInfo.department || "Office"})`
             : `Student (${patientInfo.course || ""})`;
 
-        exportMedicalCertificatePDF({
+        const courseAndYear = medicalReportType === "student"
+            ? `${patientInfo.course || ""}${patientInfo.year_level ? ` - ${patientInfo.year_level}` : ""}${patientInfo.section ? ` (${patientInfo.section})` : ""}`
+            : medicalReportType === "faculty"
+            ? `Faculty (${patientInfo.position || "Instructor"} - ${patientInfo.department || "College"})`
+            : `Staff (${patientInfo.position || "Staff"} - ${patientInfo.department || "Office"})`;
+
+        exportReferralFormPDF({
             patient_name: patientInfo.full_name || getFullName(patientInfo),
             student_id: patientInfo.student_id || patientInfo.employee_id || patientInfo.staff_id,
             role_label: roleLabel,
+            course_and_year: courseAndYear,
+            birth_date: patientInfo.birth_date,
             address: patientInfo.address,
             visit_date: visit.visit_date || new Date().toISOString(),
             diagnosis: visit.assessment || visit.symptoms || visit.reason || "Clinical Consultation & Treatment",
             reason: visit.reason,
             symptoms: visit.symptoms,
+            reason_for_care: visit.reason || visit.symptoms || visit.assessment || "Clinical Consultation",
             temperature: visit.temperature,
             blood_pressure: visit.blood_pressure,
             treatment: visit.treatment,
+            interventions: visit.treatment || (visit.medicine?.name ? `Dispensed ${visit.medicine.name} (${visit.quantity || 1} ${visit.medicine.unit || "pcs"})` : undefined),
             remarks: visit.remarks,
-            attending_nurse: visit.nurse?.name || visit.nurse_name || (typeof visit.nurse === "string" ? visit.nurse : "Angel Stacee Sabandal"),
+            attending_nurse: visit.nurse?.name || visit.nurse_name || (typeof visit.nurse === "string" ? visit.nurse : "Desiree Joy P. Velez, RN"),
         });
     };
 
@@ -2303,11 +2313,11 @@ function StudentManagement() {
                                                                             )
                                                                         }
                                                                         className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#70091f]/40 bg-[#fdf5f3] px-2.5 sm:px-3 text-xs font-semibold text-[#70091f] shadow-xs transition hover:bg-[#70091f] hover:text-white dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598] cursor-pointer"
-                                                                        title="Individual Student Medical Certificate"
-                                                                        aria-label="Individual Student Medical Certificate"
+                                                                        title="Individual Student Referral Form"
+                                                                        aria-label="Individual Student Referral Form"
                                                                     >
-                                                                        <FileBadge size={14} className="shrink-0" />
-                                                                        <span>Medical Certificate</span>
+                                                                        <FileText size={14} className="shrink-0" />
+                                                                        <span>Referral Form</span>
                                                                     </button>
 
                                                                     <button
@@ -2402,8 +2412,8 @@ function StudentManagement() {
                                                         onClick={() => openMedicalReport(student)}
                                                         className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#70091f]/40 bg-[#fdf5f3] px-2.5 text-xs font-semibold text-[#70091f] transition hover:bg-[#70091f] hover:text-white dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598]"
                                                     >
-                                                        <FileBadge size={14} className="shrink-0" />
-                                                        <span>Medical Certificate</span>
+                                                        <FileText size={14} className="shrink-0" />
+                                                        <span>Referral Form</span>
                                                     </button>
 
                                                     <div className="flex items-center gap-1.5">
@@ -2554,11 +2564,11 @@ function StudentManagement() {
                                                                             )
                                                                         }
                                                                         className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#70091f]/40 bg-[#fdf5f3] px-2.5 sm:px-3 text-xs font-semibold text-[#70091f] shadow-xs transition hover:bg-[#70091f] hover:text-white dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598] cursor-pointer"
-                                                                        title="Individual Staff Medical Certificate"
-                                                                        aria-label="Individual Staff Medical Certificate"
+                                                                        title="Individual Staff Referral Form"
+                                                                        aria-label="Individual Staff Referral Form"
                                                                     >
-                                                                        <FileBadge size={14} className="shrink-0" />
-                                                                        <span>Medical Certificate</span>
+                                                                        <FileText size={14} className="shrink-0" />
+                                                                        <span>Referral Form</span>
                                                                     </button>
 
                                                                     <button
@@ -2653,8 +2663,8 @@ function StudentManagement() {
                                                         onClick={() => openMedicalReport(person, "staff")}
                                                         className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#70091f]/40 bg-[#fdf5f3] px-2.5 text-xs font-semibold text-[#70091f] transition hover:bg-[#70091f] hover:text-white dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598]"
                                                     >
-                                                        <FileBadge size={14} className="shrink-0" />
-                                                        <span>Medical Certificate</span>
+                                                        <FileText size={14} className="shrink-0" />
+                                                        <span>Referral Form</span>
                                                     </button>
 
                                                     <div className="flex items-center gap-1.5">
@@ -2805,11 +2815,11 @@ function StudentManagement() {
                                                                             )
                                                                         }
                                                                         className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#70091f]/40 bg-[#fdf5f3] px-2.5 sm:px-3 text-xs font-semibold text-[#70091f] shadow-xs transition hover:bg-[#70091f] hover:text-white dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598] cursor-pointer"
-                                                                        title="Individual Faculty Medical Certificate"
-                                                                        aria-label="Individual Faculty Medical Certificate"
+                                                                        title="Individual Faculty Referral Form"
+                                                                        aria-label="Individual Faculty Referral Form"
                                                                     >
-                                                                        <FileBadge size={14} className="shrink-0" />
-                                                                        <span>Medical Certificate</span>
+                                                                        <FileText size={14} className="shrink-0" />
+                                                                        <span>Referral Form</span>
                                                                     </button>
 
                                                                     <button
@@ -2904,8 +2914,8 @@ function StudentManagement() {
                                                         onClick={() => openMedicalReport(faculty, "faculty")}
                                                         className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#70091f]/40 bg-[#fdf5f3] px-2.5 text-xs font-semibold text-[#70091f] transition hover:bg-[#70091f] hover:text-white dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598]"
                                                     >
-                                                        <FileBadge size={14} className="shrink-0" />
-                                                        <span>Medical Certificate</span>
+                                                        <FileText size={14} className="shrink-0" />
+                                                        <span>Referral Form</span>
                                                     </button>
 
                                                     <div className="flex items-center gap-1.5">
@@ -3051,9 +3061,10 @@ function StudentManagement() {
                                         openMedicalReport(s);
                                     }}
                                     className="inline-flex items-center gap-1.5 rounded-lg bg-[#70091f] px-3 py-1.5 text-xs font-semibold text-white shadow transition hover:bg-[#8b1505] cursor-pointer"
+                                    title="Open Referral Form"
                                 >
-                                    <FileBadge size={14} className="shrink-0" />
-                                    Medical Certificate
+                                    <FileText size={14} className="shrink-0" />
+                                    Referral Form
                                 </button>
                                 <span className="inline-flex w-fit items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
                                     ID:{" "}
@@ -3492,10 +3503,10 @@ function StudentManagement() {
                 </Modal>
             )}
 
-            {/* Individual Patient Medical Certificate Modal */}
+            {/* Individual Patient Referral Form Modal */}
             {medicalReportStudent && (
                 <Modal
-                    title={`Individual ${medicalReportType === "faculty" ? "Faculty" : medicalReportType === "staff" ? "Staff" : "Student"} Medical Certificate`}
+                    title={`Individual ${medicalReportType === "faculty" ? "Faculty" : medicalReportType === "staff" ? "Staff" : "Student"} Referral Form`}
                     onClose={closeMedicalReport}
                     maxWidth="max-w-5xl"
                 >
@@ -3504,7 +3515,7 @@ function StudentManagement() {
                         <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-[#70091f]/30 bg-gradient-to-r from-[#70091f]/10 via-[#8b1505]/5 to-transparent p-5 sm:flex-row sm:items-center sm:justify-between dark:border-[#70091f]/50 dark:from-[#70091f]/20">
                             <div className="flex items-center gap-4">
                                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#70091f] text-white shadow-md shadow-[#70091f]/30">
-                                    <Stethoscope size={24} />
+                                    <FileText size={24} />
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-[#2d050d] dark:text-white">
@@ -3525,10 +3536,10 @@ function StudentManagement() {
                                     onClick={() => handleDownloadCertificate()}
                                     disabled={loadingMedicalReport}
                                     className="inline-flex items-center gap-2 rounded-xl bg-[#70091f] px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-md shadow-[#70091f]/20 transition hover:bg-[#8b1505] active:scale-95 disabled:opacity-50 cursor-pointer"
-                                    title="Download Official Medical Certificate"
+                                    title="Download Official Referral Form (Appendix D)"
                                 >
-                                    <FileBadge size={16} className="shrink-0" />
-                                    Download Medical Certificate
+                                    <FileText size={16} className="shrink-0" />
+                                    Download Referral Form
                                 </button>
                             </div>
                         </div>

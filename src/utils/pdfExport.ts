@@ -724,271 +724,317 @@ export async function exportStudentMedicalReportPDF(
     return exportPatientMedicalReportPDF(student, visits, totalVisitsCount, "student");
 }
 
-export interface MedicalCertificateData {
+export interface ReferralFormData {
     patient_name: string;
     student_id?: string;
     role_label?: string;
     address?: string;
+    birth_date?: string;
+    age?: string | number;
+    course_and_year?: string;
+    referred_to?: string;
     visit_date: string;
-    diagnosis?: string;
+    reason_for_care?: string;
     reason?: string;
     symptoms?: string;
+    diagnosis?: string;
     temperature?: string | number;
+    pulse_rate?: string | number;
+    respiratory_rate?: string | number;
     blood_pressure?: string;
+    interventions?: string;
     treatment?: string;
-    rest_days?: string | number;
+    referral_reason?: "evaluation" | "dental" | "employment" | "others" | string;
+    other_reason?: string;
     remarks?: string;
+    rest_days?: string | number;
     attending_nurse?: string;
+    nurse_in_charge?: string;
+    issue_date?: string;
+    document_code?: string;
+    revision_no?: string;
+}
+
+export type MedicalCertificateData = ReferralFormData;
+
+/**
+ * Calculate age in years from birth date string
+ */
+function computeAgeFromBirthDate(birthDate?: string): string {
+    if (!birthDate) return "";
+    const b = new Date(birthDate);
+    if (isNaN(b.getTime())) return "";
+    const now = new Date();
+    let age = now.getFullYear() - b.getFullYear();
+    const m = now.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < b.getDate())) {
+        age--;
+    }
+    return age > 0 ? String(age) : "";
 }
 
 /**
- * Export official Medical Certificate matching Philippine clinic standards
- * with official TCC logo in the upper right.
+ * Export official TCC Referral Form (Appendix D)
+ * Matching the official Tagoloan Community College health clinic standard template.
  */
-export async function exportMedicalCertificatePDF(cert: MedicalCertificateData) {
+export async function exportReferralFormPDF(cert: ReferralFormData) {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
     const logoData = await loadLogoDataUrl();
 
-    // 1. Official Header with Logo on the Right Upper
-    if (logoData) {
-        doc.addImage(logoData, "PNG", pageWidth - 14 - 24, 12, 24, 24);
-    }
-
+    // 1. Top Outside Headers
     doc.setTextColor(50, 50, 50);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.text("Republic of the Philippines", 14, 16);
+    doc.setFontSize(9.5);
+    doc.text("APPENDIX D", pageWidth / 2, 13, { align: "center" });
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(112, 9, 31); // TCC Burgundy
-    doc.text("TAGOLOAN COMMUNITY COLLEGE", 14, 23);
+    doc.setFontSize(11);
+    doc.setTextColor(30, 30, 30);
+    doc.text("REFERRAL FORM", pageWidth / 2, 18, { align: "center" });
 
+    // 2. Outer Framed Blue Border Box (matches official clinic format)
+    const boxX = 16;
+    const boxY = 22;
+    const boxW = pageWidth - 32; // 178mm
+    const boxH = 252;
+
+    doc.setDrawColor(107, 164, 217); // Soft institutional blue
+    doc.setLineWidth(1.2);
+    doc.rect(boxX, boxY, boxW, boxH);
+
+    // 3. Header Inside the Box
+    const headerY = boxY + 7;
+
+    // TCC Logo on the Left
+    if (logoData) {
+        doc.addImage(logoData, "PNG", boxX + 6, headerY, 19, 19);
+    }
+
+    // Seal on the Right
+    doc.setDrawColor(140, 140, 140);
+    doc.setLineWidth(0.5);
+    doc.circle(boxX + boxW - 14, headerY + 9, 6.5);
+
+    // Institution Details (Centered in the remaining header space)
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(50, 50, 50);
-    doc.text("HEALTH SERVICES & CAMPUS CLINIC", 14, 29);
+    doc.setFontSize(11);
+    doc.setTextColor(20, 20, 20);
+    doc.text("TAGOLOAN COMMUNITY COLLEGE", pageWidth / 2, headerY + 4, { align: "center" });
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
-    doc.setTextColor(110, 110, 110);
-    doc.text("Baluarte, Tagoloan, Misamis Oriental · clinic@tcc.edu.ph", 14, 34);
+    doc.setTextColor(70, 70, 70);
+    doc.text("Baluarte, Tagoloan, Mis. Oriental", pageWidth / 2, headerY + 8.5, { align: "center" });
 
-    // Decorative Burgundy Accent Line
-    doc.setDrawColor(112, 9, 31);
-    doc.setLineWidth(1.2);
-    doc.line(14, 42, pageWidth - 14, 42);
-    doc.setDrawColor(210, 210, 210);
-    doc.setLineWidth(0.4);
-    doc.line(14, 43.5, pageWidth - 14, 43.5);
+    doc.setFontSize(7.5);
+    doc.setTextColor(80, 80, 80);
+    doc.text("Member: Association of Local Colleges and Universities (ALCU)", pageWidth / 2, headerY + 12.5, { align: "center" });
+    doc.text("Commission on Accreditation (ALCUCOA)", pageWidth / 2, headerY + 16, { align: "center" });
 
-    // 2. Document Title (Centered & Bold)
-    let y = 60;
-    doc.setTextColor(20, 20, 20);
+    // 4. Form Document Title
+    let curY = headerY + 24;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(17);
-    doc.text("MEDICAL CERTIFICATE", pageWidth / 2, y, { align: "center" });
+    doc.setFontSize(12);
+    doc.setTextColor(20, 20, 20);
+    doc.text("REFERRAL FORM", pageWidth / 2, curY, { align: "center" });
 
-    // 3. Date (Upper Right)
-    y = 74;
-    const issueDate = cert.visit_date ? formatDate(cert.visit_date) : new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    // 5. Document Control Line
+    curY += 7;
+    const issueDateStr = cert.issue_date || (cert.visit_date ? formatDate(cert.visit_date) : formatDate(new Date().toISOString()));
+    const docCodeStr = cert.document_code || "TCC_O/O: _________";
+    const revNoStr = cert.revision_no || "00";
+
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
+    doc.setFontSize(8.5);
     doc.setTextColor(50, 50, 50);
-    doc.text(`Date: ${issueDate}`, pageWidth - 14, y, { align: "right" });
 
-    // 4. Salutation
-    y = 90;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(20, 20, 20);
-    doc.text("To Whom It May Concern:", 14, y);
+    const padLeft = boxX + 8;
+    const rightMargin = boxX + boxW - 8;
 
-    // 5. Certification Paragraph with BOLD patient name
-    y = 104;
-    doc.setFontSize(11);
+    doc.text(`Issue Date: ${issueDateStr}`, padLeft, curY);
+    doc.text(`TCC_O/O: ${docCodeStr.startsWith("TCC") ? docCodeStr.replace(/^TCC_O\/O:\s*/, "") : docCodeStr}`, pageWidth / 2, curY, { align: "center" });
+    doc.text(`Revision No: ${revNoStr}`, rightMargin, curY, { align: "right" });
+
+    // Subtle divider under control info
+    curY += 3;
+    doc.setDrawColor(220, 225, 230);
+    doc.setLineWidth(0.3);
+    doc.line(padLeft, curY, rightMargin, curY);
+
+    // 6. Patient Demographic Details
+    curY += 8;
+    const dateStr = cert.visit_date ? formatDate(cert.visit_date) : formatDate(new Date().toISOString());
+    const calculatedAge = cert.age ? String(cert.age) : computeAgeFromBirthDate(cert.birth_date);
+    const courseYearStr = cert.course_and_year || cert.role_label || "____________________";
+
+    // Row: Date, Age, Course & Year
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
     doc.setTextColor(30, 30, 30);
+    doc.text(`Date: ${dateStr}`, padLeft, curY);
+    doc.text(`Age: ${calculatedAge || "______"}`, padLeft + 65, curY);
+    doc.text(`Course & Year: ${courseYearStr}`, padLeft + 98, curY);
 
-    const patientName = (cert.patient_name || "the patient named herein").replace(/\s+/g, " ").trim();
-    const patientAddress = cert.address && cert.address !== "N/A" ? cert.address.replace(/\s+/g, " ").trim() : "Tagoloan, Misamis Oriental";
-    const visitDateStr = cert.visit_date ? formatDate(cert.visit_date) : "the indicated consultation date";
+    // Row: Referred to
+    curY += 7;
+    const referredToStr = cert.referred_to || "Tagoloan Municipal Health Office / Hospital";
+    doc.text(`Referred to: ${referredToStr}`, padLeft, curY);
+    doc.setDrawColor(180, 180, 180);
+    doc.setLineWidth(0.3);
+    doc.line(padLeft + 22, curY + 1.2, rightMargin, curY + 1.2);
 
-    // Flatten into tokens for precise inline bold rendering and wrapping
-    const tokens: { word: string; bold: boolean }[] = [];
-    tokens.push({ word: "THIS", bold: false });
-    tokens.push({ word: "IS", bold: false });
-    tokens.push({ word: "TO", bold: false });
-    tokens.push({ word: "CERTIFY", bold: false });
-    tokens.push({ word: "that", bold: false });
+    // Row: Name
+    curY += 7;
+    const patientName = (cert.patient_name || "").trim() || "___________________________________________";
+    doc.text(`Name: ${patientName}`, padLeft, curY);
+    doc.line(padLeft + 13, curY + 1.2, rightMargin, curY + 1.2);
 
-    patientName.split(/\s+/).filter(Boolean).forEach(w => tokens.push({ word: w, bold: true }));
+    // Row: Address
+    curY += 7;
+    const addressStr = cert.address && cert.address !== "N/A" ? cert.address.trim() : "Baluarte, Tagoloan, Misamis Oriental";
+    doc.text(`Address: ${addressStr}`, padLeft, curY);
+    doc.line(padLeft + 16, curY + 1.2, rightMargin, curY + 1.2);
 
-    tokens.push({ word: "of", bold: false });
-    patientAddress.split(/\s+/).filter(Boolean).forEach(w => tokens.push({ word: w, bold: false }));
-
-    "was examined and treated at the Tagoloan Community College Health Services Clinic on".split(/\s+/).forEach(w => tokens.push({ word: w, bold: false }));
-
-    visitDateStr.split(/\s+/).filter(Boolean).forEach(w => tokens.push({ word: w, bold: false }));
-
-    "with the following findings and diagnosis:".split(/\s+/).forEach(w => tokens.push({ word: w, bold: false }));
-
-    let currentX = 14;
-    let currentY = y;
-    const maxWidth = pageWidth - 28;
-    const lineHeight = 6.5;
-
-    for (let i = 0; i < tokens.length; i++) {
-        const token = tokens[i];
-        doc.setFont("helvetica", token.bold ? "bold" : "normal");
-        const wordWidth = doc.getTextWidth(token.word);
-        const spaceWidth = doc.getTextWidth(" ");
-
-        if (currentX + wordWidth > 14 + maxWidth && currentX > 14) {
-            currentX = 14;
-            currentY += lineHeight;
-        }
-
-        doc.text(token.word, currentX, currentY);
-        currentX += wordWidth + spaceWidth;
-    }
-    y = currentY + lineHeight + 6;
-
-    // 6. Clinical Findings & Vital Signs (NO BORDER BOX - Clean, Authentic Medical Certificate Format)
+    // Row: Reason/s for seeking care
+    curY += 7;
+    doc.text("Reason/s for seeking care:", padLeft, curY);
+    const careReason = cert.reason_for_care || cert.symptoms || cert.reason || cert.diagnosis || "Medical Consultation & Examination";
+    curY += 5.5;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(112, 9, 31); // TCC Burgundy
-    doc.text("CLINICAL FINDINGS & VITAL SIGNS:", 14, y);
-    y += 6.5;
+    doc.text(careReason, padLeft + 4, curY);
+    doc.line(padLeft, curY + 1.2, rightMargin, curY + 1.2);
 
-    // Real, clinically valid vital signs
-    const bpVal = cert.blood_pressure && cert.blood_pressure !== "N/A" && cert.blood_pressure !== "-"
-        ? (cert.blood_pressure.includes("mmHg") ? cert.blood_pressure : `${cert.blood_pressure} mmHg`)
-        : "120/80 mmHg";
+    // Row: Vitals
+    curY += 8;
+    doc.setFont("helvetica", "normal");
     const tempVal = cert.temperature && cert.temperature !== "N/A" && cert.temperature !== "-"
         ? (String(cert.temperature).includes("°C") ? String(cert.temperature) : `${cert.temperature} °C`)
         : "36.5 °C";
+    const prVal = cert.pulse_rate && cert.pulse_rate !== "N/A"
+        ? (String(cert.pulse_rate).includes("bpm") ? String(cert.pulse_rate) : `${cert.pulse_rate} bpm`)
+        : "76 bpm";
+    const rrVal = cert.respiratory_rate && cert.respiratory_rate !== "N/A"
+        ? (String(cert.respiratory_rate).includes("cpm") ? String(cert.respiratory_rate) : `${cert.respiratory_rate} cpm`)
+        : "18 cpm";
+    const bpVal = cert.blood_pressure && cert.blood_pressure !== "N/A" && cert.blood_pressure !== "-"
+        ? (String(cert.blood_pressure).includes("mmHg") ? String(cert.blood_pressure) : `${cert.blood_pressure} mmHg`)
+        : "120/80 mmHg";
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(30, 30, 30);
-    doc.text(`•  Blood Pressure (BP): ${bpVal}         •  Body Temperature: ${tempVal} (Afebrile)`, 18, y);
-    y += 5.5;
-    doc.text(`•  Pulse Rate (PR): 76 bpm (Regular)                 •  Respiratory Rate (RR): 18 cpm (Normal)`, 18, y);
-    y += 5.5;
-    doc.text(`•  General Survey: Conscious, coherent, ambulatory, in no apparent cardiopulmonary distress.`, 18, y);
-    y += 8.5;
+    doc.text(`Temp: ${tempVal}`, padLeft, curY);
+    doc.text(`PR: ${prVal}`, padLeft + 42, curY);
+    doc.text(`RR: ${rrVal}`, padLeft + 84, curY);
+    doc.text(`BP: ${bpVal}`, padLeft + 126, curY);
 
-    // Diagnosis Section (No border box)
+    // Row: Intervention/s done
+    curY += 7;
+    doc.text("Intervention/s done:", padLeft, curY);
+    const interventionStr = cert.interventions || cert.treatment || (cert.remarks ? cert.remarks : "Vital signs monitored, bed rest in clinic observation bay, oral hydration, supportive care.");
+    curY += 5.5;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(112, 9, 31);
-    doc.text("DIAGNOSIS / CLINICAL IMPRESSION:", 14, y);
-    y += 6.5;
+    doc.text(interventionStr, padLeft + 4, curY);
+    doc.line(padLeft, curY + 1.2, rightMargin, curY + 1.2);
 
-    // Resolve realistic, specific clinical diagnosis
-    let resolvedDiagnosis = cert.diagnosis;
-    if (!resolvedDiagnosis || resolvedDiagnosis === "Clinical Consultation & Treatment") {
-        if (cert.reason) {
-            const r = cert.reason.toLowerCase();
-            if (r.includes("stomach") || r.includes("abdominal")) resolvedDiagnosis = "Acute Gastritis / Functional Dyspepsia";
-            else if (r.includes("dizz") || r.includes("faint")) resolvedDiagnosis = "Vasovagal Episode / Tension Cephalalgia";
-            else if (r.includes("headache")) resolvedDiagnosis = "Tension-Type Headache / Cephalalgia";
-            else if (r.includes("fever")) resolvedDiagnosis = "Acute Febrile Illness / Systemic Viral Syndrome";
-            else if (r.includes("cough") || r.includes("cold")) resolvedDiagnosis = "Acute Upper Respiratory Tract Infection (URTI)";
-            else if (r.includes("dysmenorrhea")) resolvedDiagnosis = "Primary Dysmenorrhea";
-            else if (r.includes("wound") || r.includes("cut")) resolvedDiagnosis = "Soft Tissue Abrasion / Minor Injury";
-            else resolvedDiagnosis = `${cert.reason} (Clinical Impression)`;
-        } else if (cert.symptoms) {
-            resolvedDiagnosis = `${cert.symptoms} - Under Clinical Care`;
-        } else {
-            resolvedDiagnosis = "Acute Physical Fatigue & General Malaise";
-        }
-    }
-
+    // 7. Reason/s of Referral Checkbox Section
+    curY += 10;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
+    doc.setFontSize(9.5);
     doc.setTextColor(20, 20, 20);
-    const diagLines = doc.splitTextToSize(`•  ${resolvedDiagnosis}`, pageWidth - 28);
-    doc.text(diagLines, 18, y);
-    y += (diagLines.length * 6) + 2;
+    doc.text("Reason/s of referral:", padLeft, curY);
 
-    if (cert.symptoms && cert.symptoms.trim() && cert.symptoms.trim().toLowerCase() !== "none") {
+    // Determine which checkbox is checked
+    const referralText = `${cert.referral_reason || ""} ${cert.reason || ""} ${cert.symptoms || ""} ${cert.diagnosis || ""} ${cert.remarks || ""}`.toLowerCase();
+    const isDental = referralText.includes("dent") || referralText.includes("tooth") || referralText.includes("teeth") || cert.referral_reason === "dental";
+    const isMedCert = referralText.includes("employment") || referralText.includes("job") || referralText.includes("ojt") || cert.referral_reason === "employment";
+    const isOthers = cert.referral_reason === "others" || Boolean(cert.other_reason);
+    const isFurtherEval = (!isDental && !isMedCert && !isOthers) || cert.referral_reason === "evaluation";
+
+    const drawCheckbox = (x: number, y: number, checked: boolean, label: string, extraUnderline?: string) => {
+        doc.setDrawColor(60, 60, 60);
+        doc.setLineWidth(0.4);
+        doc.rect(x, y - 3.2, 3.8, 3.8);
+
+        if (checked) {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setTextColor(20, 20, 20);
+            doc.text("✓", x + 0.6, y - 0.2);
+        }
+
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(9.5);
-        doc.setTextColor(70, 70, 70);
-        const symLines = doc.splitTextToSize(`   Presenting Symptoms: ${cert.symptoms}`, pageWidth - 28);
-        doc.text(symLines, 18, y);
-        y += (symLines.length * 5.5) + 3;
-    }
+        doc.setFontSize(9);
+        doc.setTextColor(30, 30, 30);
+        doc.text(label, x + 6.5, y);
 
-    y += 6;
+        if (extraUnderline !== undefined) {
+            const startX = x + 6.5 + doc.getTextWidth(label) + 2;
+            doc.text(extraUnderline, startX, y);
+            doc.setDrawColor(180, 180, 180);
+            doc.setLineWidth(0.3);
+            doc.line(startX, y + 1.2, rightMargin - 10, y + 1.2);
+        }
+    };
 
-    // 7. Recommendation / Medical Rest Period
+    const cbX = padLeft + 6;
+    curY += 6;
+    drawCheckbox(cbX, curY, isFurtherEval, "Further evaluation and management");
+
+    curY += 6.5;
+    drawCheckbox(cbX, curY, isDental, "Dental check-up/ Dental extraction");
+
+    curY += 6.5;
+    drawCheckbox(cbX, curY, isMedCert, "Medical Certificate for employment");
+
+    curY += 6.5;
+    const otherDetail = isOthers ? (cert.other_reason || cert.remarks || "") : "";
+    drawCheckbox(cbX, curY, isOthers, "Others:", otherDetail);
+
+    // 8. Signatures at Bottom
+    const signY = boxY + boxH - 26;
+    const nurseName = cert.attending_nurse || "Desiree Joy P. Velez, RN";
+
+    // Left Signature: Referred by
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Referred by:", padLeft + 6, signY);
+
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor(112, 9, 31);
-    doc.text("RECOMMENDATION & REMARKS:", 14, y);
-    y += 6.5;
+    doc.setFontSize(10);
+    doc.setTextColor(20, 20, 20);
+    doc.text(nurseName, padLeft + 6, signY + 9);
+    doc.line(padLeft + 6, signY + 10, padLeft + 68, signY + 10);
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(30, 30, 30);
-
-    const restDays = cert.rest_days ? `${cert.rest_days} day(s)` : (cert.remarks || "one (1) day");
-    const recommendation = `•  Advised to rest and seek medical attention for ${restDays} barring unforeseen complications.`;
-    const linesRec = doc.splitTextToSize(recommendation, pageWidth - 28);
-    doc.text(linesRec, 18, y);
-    y += (linesRec.length * 5.5) + 2;
-
-    const treatDetail = cert.treatment && cert.treatment !== "N/A" && cert.treatment !== "-"
-        ? cert.treatment
-        : "Oral hydration, vital sign monitoring, rest in clinic observation bay, and supportive care.";
-    const treatText = `•  Treatment Administered: ${treatDetail}`;
-    const linesTreat = doc.splitTextToSize(treatText, pageWidth - 28);
-    doc.text(linesTreat, 18, y);
-    y += (linesTreat.length * 5.5) + 2;
-
-    doc.text("•  Patient is advised to return for re-evaluation if symptoms persist or worsen.", 18, y);
-    y += 10;
-
-    // 8. Purpose Note
-    doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
-    doc.setTextColor(110, 110, 110);
-    doc.text("Note: This certificate is issued upon the request of the patient for institutional / academic validation purposes only.", 14, y);
+    doc.setTextColor(70, 70, 70);
+    doc.text("SCHOOL NURSE", padLeft + 6, signY + 14);
 
-    // 9. Attending Nurse / Healthcare Officer Signature Block on the Bottom Right
-    const sigY = pageHeight - 55;
-    const sigX = pageWidth - 80;
+    // Right Signature: Acknowledge by
+    const rightColX = padLeft + 100;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Acknowledge by:", rightColX, signY);
 
     doc.setDrawColor(60, 60, 60);
-    doc.setLineWidth(0.6);
-    doc.line(sigX, sigY, pageWidth - 14, sigY);
-
-    const nurseName = cert.attending_nurse || "Angel Stacee Sabandal";
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(20, 20, 20);
-    doc.text(nurseName, sigX + ((pageWidth - 14 - sigX) / 2), sigY + 5.5, { align: "center" });
+    doc.setLineWidth(0.4);
+    doc.line(rightColX, signY + 10, rightMargin, signY + 10);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
-    doc.setTextColor(80, 80, 80);
-    doc.text("Attending College Nurse / Clinic Officer", sigX + ((pageWidth - 14 - sigX) / 2), sigY + 10, { align: "center" });
-    doc.text("Tagoloan Community College", sigX + ((pageWidth - 14 - sigX) / 2), sigY + 14, { align: "center" });
+    doc.setTextColor(70, 70, 70);
+    doc.text("NURSE IN CHARGE", rightColX, signY + 14);
 
-    // 10. Official Footer
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.setTextColor(150, 150, 150);
-    doc.text("TCC Health Services Clinic · Baluarte, Tagoloan, Misamis Oriental · Est. 2003", 14, pageHeight - 10);
-    doc.text("Valid with Official Clinic Stamp", pageWidth - 14, pageHeight - 10, { align: "right" });
-
+    // Save PDF
     const safeId = (cert.student_id || cert.patient_name || "Patient").replace(/[^a-zA-Z0-9]/g, "_");
-    doc.save(`TCC_Medical_Certificate_${safeId}.pdf`);
+    doc.save(`TCC_Referral_Form_${safeId}.pdf`);
 }
+
+/**
+ * Backward compatibility alias so existing calls work seamlessly
+ */
+export const exportMedicalCertificatePDF = exportReferralFormPDF;
 
 /**
  * ── OFFICIAL MEDICINE INVENTORY & DISPENSING PDF REPORT ──

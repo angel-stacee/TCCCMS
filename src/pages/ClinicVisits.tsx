@@ -26,7 +26,7 @@ import { RestoreVisitsModal } from "../components/clinic-visits/RestoreVisitsMod
 import FloatingToast from "../components/common/FloatingToast";
 import { addClinicNotification } from "../services/notifications";
 import { formatNA, formatTemperature, formatDate, mapCourseToDepartment } from "../utils/formatters";
-import { exportMedicalCertificatePDF } from "../utils/pdfExport";
+import { exportMedicalCertificatePDF, exportReferralFormPDF } from "../utils/pdfExport";
 import { InfoItem, Modal, RecordSection } from "../components/student-management/FieldsAndModals";
 import { ReasonBadge } from "../utils/reasonColors";
 
@@ -1408,20 +1408,30 @@ function ClinicVisits() {
             ? `Staff (${visit.staff?.position || patientData.position || "Staff"} - ${visit.department || patientData.department || "Office"})`
             : `Student (${visit.student?.course || patientData.course || ""})`;
 
-        exportMedicalCertificatePDF({
+        const courseAndYear = (patient.type === "Faculty" || medicalReportTarget?.type === "faculty")
+            ? `Faculty (${visit.faculty?.position || patientData.position || "Instructor"} - ${visit.department || patientData.department || "Faculty"})`
+            : (patient.type === "Staff" || medicalReportTarget?.type === "staff")
+            ? `Staff (${visit.staff?.position || patientData.position || "Staff"} - ${visit.department || patientData.department || "Office"})`
+            : `${visit.student?.course || patientData.course || ""}${visit.student?.year_level || patientData.year_level ? ` - ${visit.student?.year_level || patientData.year_level}` : ""}`;
+
+        exportReferralFormPDF({
             patient_name: patient.name || patientData.full_name || getFullName(patientData),
             student_id: patient.id || patientData.student_id || patientData.employee_id || patientData.staff_id,
             role_label: roleLabel,
+            course_and_year: courseAndYear,
+            birth_date: visit.student?.birth_date || patientData.birth_date,
             address: visit.student?.address || visit.faculty?.address || visit.staff?.address || patientData.address || "Tagoloan, Misamis Oriental",
             visit_date: visit.visit_date || new Date().toISOString(),
             diagnosis: visit.assessment || visit.symptoms || visit.reason || "Clinical Consultation & Treatment",
             reason: visit.reason,
             symptoms: visit.symptoms,
+            reason_for_care: visit.reason || visit.symptoms || visit.assessment || "Clinical Consultation",
             temperature: visit.temperature,
             blood_pressure: visit.blood_pressure,
             treatment: visit.treatment,
+            interventions: visit.treatment || (visit.medicine?.name ? `Dispensed ${visit.medicine.name} (${visit.quantity || 1} ${visit.medicine.unit || "pcs"})` : undefined),
             remarks: visit.remarks,
-            attending_nurse: getNurseName(visit.nurse) || "Angel Stacee Sabandal",
+            attending_nurse: getNurseName(visit.nurse) || "Desiree Joy P. Velez, RN",
         });
     };
 
@@ -1988,10 +1998,10 @@ function ClinicVisits() {
                     onViewVisit={setViewingVisit}
                 />
 
-                {/* Individual Patient Medical Certificate Modal */}
+                {/* Individual Patient Referral Form Modal */}
                 {medicalReportTarget && (
                     <Modal
-                        title={`Individual ${medicalReportTarget.type === "faculty" ? "Faculty" : medicalReportTarget.type === "staff" ? "Staff" : "Student"} Medical Certificate`}
+                        title={`Individual ${medicalReportTarget.type === "faculty" ? "Faculty" : medicalReportTarget.type === "staff" ? "Staff" : "Student"} Referral Form`}
                         onClose={closeMedicalReport}
                         maxWidth="max-w-5xl"
                     >
@@ -2000,7 +2010,7 @@ function ClinicVisits() {
                             <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-[#70091f]/30 bg-gradient-to-r from-[#70091f]/10 via-[#8b1505]/5 to-transparent p-5 sm:flex-row sm:items-center sm:justify-between dark:border-[#70091f]/50 dark:from-[#70091f]/20">
                                 <div className="flex items-center gap-4">
                                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#70091f] text-white shadow-md shadow-[#70091f]/30">
-                                        <Stethoscope size={24} />
+                                        <FileText size={24} />
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-bold text-[#2d050d] dark:text-white">
@@ -2021,10 +2031,10 @@ function ClinicVisits() {
                                         onClick={() => handleDownloadCertificateForVisit()}
                                         disabled={loadingMedicalReport}
                                         className="inline-flex items-center gap-2 rounded-xl bg-[#70091f] px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-md shadow-[#70091f]/20 transition hover:bg-[#8b1505] active:scale-95 disabled:opacity-50 cursor-pointer"
-                                        title="Download Official Medical Certificate"
+                                        title="Download Official Referral Form (Appendix D)"
                                     >
-                                        <FileBadge size={16} className="shrink-0" />
-                                        Download Medical Certificate
+                                        <FileText size={16} className="shrink-0" />
+                                        Download Referral Form
                                     </button>
                                 </div>
                             </div>
@@ -2196,10 +2206,10 @@ function ClinicVisits() {
                                                                 type="button"
                                                                 onClick={() => handleDownloadCertificateForVisit(v)}
                                                                 className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-900 transition hover:bg-amber-100 cursor-pointer"
-                                                                title="Download Medical Certificate for this consultation"
+                                                                title="Download Referral Form for this consultation"
                                                             >
-                                                                <FileBadge size={12} className="shrink-0" />
-                                                                Med Cert
+                                                                <FileText size={12} className="shrink-0" />
+                                                                Referral
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -2298,8 +2308,8 @@ function ClinicVisits() {
                                     }}
                                     className="inline-flex items-center gap-1.5 rounded-xl border border-[#70091f]/40 bg-[#fdf5f3] px-4 py-2.5 text-xs font-semibold text-[#70091f] transition hover:bg-[#70091f] hover:text-white dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598] cursor-pointer"
                                 >
-                                    <FileBadge size={14} className="shrink-0" />
-                                    Medical Certificate
+                                    <FileText size={14} className="shrink-0" />
+                                    Referral Form
                                 </button>
                                 <button
                                     type="button"

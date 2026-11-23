@@ -221,12 +221,12 @@ export function ClinicVisitTable({
                                                         type="button"
                                                         onClick={() => onOpenMedicalReport?.(visit)}
                                                         className="inline-flex h-7.5 items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#70091f]/40 bg-[#fdf5f3] px-2 text-xs font-semibold text-[#70091f] shadow-xs transition hover:bg-[#70091f] hover:text-white dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598] cursor-pointer"
-                                                        title="View Patient Medical Certificate & History"
-                                                        aria-label="View Patient Medical Certificate & History"
+                                                        title="View Patient Referral Form & History"
+                                                        aria-label="View Patient Referral Form & History"
                                                     >
-                                                        <FileBadge size={13} className="shrink-0" />
-                                                        <span className="hidden xl:inline">Medical Certificate</span>
-                                                        <span className="xl:hidden">Med Cert</span>
+                                                        <FileText size={13} className="shrink-0" />
+                                                        <span className="hidden xl:inline">Referral Form</span>
+                                                        <span className="xl:hidden">Referral</span>
                                                     </button>
 
                                                     <button
@@ -389,8 +389,8 @@ export function ClinicVisitTable({
                                             onClick={() => onOpenMedicalReport?.(visit)}
                                             className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-[#70091f]/40 bg-[#fdf5f3] py-2 px-3 text-xs font-semibold text-[#70091f] shadow-xs transition hover:bg-[#70091f] hover:text-white dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598] cursor-pointer"
                                         >
-                                            <FileBadge size={14} className="shrink-0" />
-                                            <span>Medical Certificate</span>
+                                            <FileText size={14} className="shrink-0" />
+                                            <span>Referral Form</span>
                                         </button>
 
                                         <button

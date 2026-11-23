@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
     Menu,
     X,
@@ -92,52 +92,12 @@ function formatRole(role?: string) {
 }
 
 
-const PAGE_META: Record<string, { title: string; subtitle: string }> = {
-    "/dashboard": {
-        title: "Dashboard",
-        subtitle: "Overview & Clinic Analytics",
-    },
-    "/students": {
-        title: "Patient Management",
-        subtitle: "Students, Faculty & Staff Health Records",
-    },
-    "/clinic-visits": {
-        title: "Clinic Visits",
-        subtitle: "Consultations, Triage & Health Logs",
-    },
-    "/medicine": {
-        title: "Medicine Inventory",
-        subtitle: "Pharmaceutical Stocks & Dispensation",
-    },
-    "/reports": {
-        title: "Reports & Analytics",
-        subtitle: "Institutional Health Data & Summaries",
-    },
-    "/organization": {
-        title: "Organizational Chart",
-        subtitle: "Healthcare Staff & Administration",
-    },
-    "/staff": {
-        title: "Organizational Chart",
-        subtitle: "Healthcare Staff & Administration",
-    },
-    "/settings": {
-        title: "Settings",
-        subtitle: "Account Preferences & Configuration",
-    },
-    "/profile": {
-        title: "My Profile",
-        subtitle: "Personal Details & Account Activity",
-    },
-};
-
 export function Header({
     sidebarOpen,
     setSidebarOpen,
     sidebarCollapsed = false,
     onToggleSidebar,
 }: HeaderProps): React.JSX.Element {
-    const location = useLocation();
     const navigate = useNavigate();    const { isDark, toggleTheme } = useTheme();
 
     const bellRef = useRef<HTMLDivElement>(null);
@@ -269,19 +229,6 @@ export function Header({
     useOutsideClick(bellRef, () => setBellOpen(false), bellOpen);
     useOutsideClick(profileMenuRef, () => setProfileMenuOpen(false), profileMenuOpen);
 
-    const currentMeta = useMemo(() => {
-        const path = location.pathname.toLowerCase();
-        for (const key of Object.keys(PAGE_META)) {
-            if (path === key || path.startsWith(`${key}/`)) {
-                return PAGE_META[key];
-            }
-        }
-        return {
-            title: "TCC Clinic",
-            subtitle: "Health Services & Clinic Management",
-        };
-    }, [location.pathname]);
-
     const handleClearAll = async () => {
         await clearAllClinicNotifications();
         setNotifications([]);
@@ -353,8 +300,8 @@ export function Header({
 
     return (
         <header className="print:hidden sticky top-0 z-30 flex h-[68px] sm:h-[72px] w-full items-center justify-between border-b border-[#eee7de] bg-white/95 px-4 sm:px-6 lg:px-8 backdrop-blur shadow-xs transition-colors duration-200 dark:border-stone-800 dark:bg-[#16120e]/95">
-            {/* Left side: Mobile Hamburger & Logo + Global Search Bar (replacing Title per user request) */}
-            <div className="flex flex-1 items-center gap-2.5 sm:gap-4 min-w-0 mr-3 sm:mr-6">
+            {/* Left side: Mobile Hamburger & Logo */}
+            <div className="flex items-center gap-2.5 sm:gap-4 min-w-0 mr-3 sm:mr-6">
                 <button
                     type="button"
                     onClick={() => setSidebarOpen((prev) => !prev)}
@@ -366,7 +313,7 @@ export function Header({
                     <Menu size={22} />
                 </button>
 
-                {/* Mobile Logo display */}
+                {/* Mobile Logo & Title display */}
                 <div className="flex items-center gap-2 lg:hidden shrink-0">
                     <img
                         src={tccLogo}
@@ -383,15 +330,9 @@ export function Header({
                         }}
                         className="h-8 w-8 rounded-full object-contain ring-1 ring-[#70091f]/20"
                     />
-                </div>
-
-                <div className="min-w-0">
-                    <h1 className="text-base sm:text-lg font-bold text-stone-900 tracking-tight dark:text-stone-100 truncate">
-                        {currentMeta.title}
-                    </h1>
-                    <p className="hidden sm:block text-xs text-stone-500 dark:text-stone-400 truncate">
-                        {currentMeta.subtitle}
-                    </p>
+                    <span className="font-bold text-sm tracking-tight text-[#70091f] dark:text-[#f8a598]">
+                        TCC Clinic
+                    </span>
                 </div>
             </div>
 

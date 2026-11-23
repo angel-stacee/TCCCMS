@@ -275,6 +275,17 @@ function Medicine() {
         }));
     };
 
+    const handleSelectMedicineTemplate = (item: any) => {
+        setForm((prev) => ({
+            ...prev,
+            medicine_name: item.medicine_name,
+            treatment_type: item.treatment_type || prev.treatment_type,
+            unit: item.unit || prev.unit,
+            minimum_stock: item.minimum_stock !== undefined ? String(item.minimum_stock) : prev.minimum_stock,
+            description: item.description || prev.description,
+        }));
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -1792,6 +1803,8 @@ function Medicine() {
                 saving={saving}
                 error={error}
                 treatmentTypes={TREATMENT_TYPES}
+                existingMedicines={medicines}
+                onSelectMedicineTemplate={handleSelectMedicineTemplate}
             />
 
             {/* Medicine Requisition Request Modal (rqst) */}

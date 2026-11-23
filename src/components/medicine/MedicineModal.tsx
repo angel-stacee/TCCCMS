@@ -1,6 +1,6 @@
-import type { ChangeEvent, FormEvent } from "react";
+import { useState, useRef, useMemo, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { createPortal } from "react-dom";
-import { Pill, AlertTriangle, CheckCircle2, Calendar, AlertOctagon, X, Clock, Layers, Truck } from "lucide-react";
+import { Pill, AlertTriangle, CheckCircle2, Calendar, AlertOctagon, X, Clock, Layers, Truck, Search } from "lucide-react";
 
 export interface MedicineFormData {
     medicine_name: string;
@@ -40,6 +40,8 @@ interface MedicineModalProps {
     saving: boolean;
     error: string;
     treatmentTypes?: string[];
+    existingMedicines?: any[];
+    onSelectMedicineTemplate?: (item: any) => void;
 }
 
 const DEFAULT_TREATMENT_TYPES = [
@@ -62,6 +64,41 @@ const UNIT_OPTIONS = [
     "Ampoule",
 ];
 
+const PHILIPPINE_CLINIC_MEDICINES = [
+    { medicine_name: "Diphenhydramine 25mg", treatment_type: "Medication", unit: "Capsule", minimum_stock: "20", description: "Antihistamine for allergic reactions, hives, and motion sickness" },
+    { medicine_name: "Diphenhydramine 50mg", treatment_type: "Medication", unit: "Capsule", minimum_stock: "20", description: "Antihistamine / sedative for severe allergy" },
+    { medicine_name: "Paracetamol 500mg", treatment_type: "Medication", unit: "Tablet", minimum_stock: "50", description: "Analgesic and antipyretic for fever, headache, and body aches" },
+    { medicine_name: "Biogesic 500mg", treatment_type: "Medication", unit: "Tablet", minimum_stock: "50", description: "Paracetamol brand for fever and headache relief" },
+    { medicine_name: "Ibuprofen 200mg", treatment_type: "Medication", unit: "Tablet", minimum_stock: "30", description: "Nonsteroidal anti-inflammatory drug (NSAID) for toothache, dysmenorrhea" },
+    { medicine_name: "Ibuprofen 400mg", treatment_type: "Medication", unit: "Tablet", minimum_stock: "30", description: "NSAID for moderate to severe pain and inflammation" },
+    { medicine_name: "Mefenamic Acid 500mg", treatment_type: "Medication", unit: "Tablet", minimum_stock: "30", description: "NSAID for toothache, muscle pain, and severe menstrual pain" },
+    { medicine_name: "Cetirizine 10mg", treatment_type: "Medication", unit: "Tablet", minimum_stock: "30", description: "Non-drowsy antihistamine for rhinitis, itching, and allergic symptoms" },
+    { medicine_name: "Loperamide 2mg", treatment_type: "Medication", unit: "Tablet", minimum_stock: "25", description: "Antidiarrheal agent for acute diarrhea relief" },
+    { medicine_name: "Antacid (Al(OH)3 + Mg(OH)2)", treatment_type: "Medication", unit: "Tablet", minimum_stock: "40", description: "Chewable antacid for hyperacidity, acid reflux, heartburn, and stomach pain" },
+    { medicine_name: "Kremil-S", treatment_type: "Medication", unit: "Tablet", minimum_stock: "30", description: "Antacid + simethicone for upset stomach, gas, and ulcer symptoms" },
+    { medicine_name: "Neozep Forte", treatment_type: "Medication", unit: "Tablet", minimum_stock: "30", description: "Decongestant + paracetamol + antihistamine for cold and nasal congestion" },
+    { medicine_name: "Bioflu", treatment_type: "Medication", unit: "Tablet", minimum_stock: "30", description: "Multi-symptom relief for flu, body aches, fever, and nasal congestion" },
+    { medicine_name: "Decolgen Forte", treatment_type: "Medication", unit: "Tablet", minimum_stock: "30", description: "Relief of clogged nose, runny nose, and headache" },
+    { medicine_name: "Buscopan 10mg (Hyoscine-N-butylbromide)", treatment_type: "Medication", unit: "Tablet", minimum_stock: "20", description: "Antispasmodic for abdominal cramps, stomach spasms, and dysmenorrhea" },
+    { medicine_name: "Oral Rehydration Salts (ORS)", treatment_type: "Medication", unit: "Sachet", minimum_stock: "30", description: "Electrolyte replacement for dehydration caused by diarrhea or heat exhaustion" },
+    { medicine_name: "Ascorbic Acid (Vitamin C 500mg)", treatment_type: "Medication", unit: "Tablet", minimum_stock: "50", description: "Daily immune system booster and antioxidant" },
+    { medicine_name: "Amoxicillin 500mg", treatment_type: "Medication", unit: "Capsule", minimum_stock: "20", description: "Antibiotic for bacterial infections (prescription required)" },
+    { medicine_name: "Salbutamol 2mg", treatment_type: "Medication", unit: "Tablet", minimum_stock: "20", description: "Bronchodilator for asthma and bronchospasm relief" },
+    { medicine_name: "Betadine (Povidone Iodine 10%)", treatment_type: "Wound Care", unit: "Bottle", minimum_stock: "10", description: "Topical antiseptic solution for cleaning cuts, abrasions, and wounds" },
+    { medicine_name: "70% Isopropyl Alcohol", treatment_type: "First Aid", unit: "Bottle", minimum_stock: "15", description: "Antiseptic and disinfectant for skin sanitization" },
+    { medicine_name: "Hydrogen Peroxide 3%", treatment_type: "Wound Care", unit: "Bottle", minimum_stock: "10", description: "Antiseptic cleansing agent for minor abrasions" },
+    { medicine_name: "Burn Ointment (Silver Sulfadiazine)", treatment_type: "Wound Care", unit: "Tube", minimum_stock: "5", description: "Topical antimicrobial cream for 1st and 2nd-degree burns" },
+    { medicine_name: "Calamine Lotion", treatment_type: "First Aid", unit: "Bottle", minimum_stock: "10", description: "Soothing anti-itch lotion for rashes, insect bites, and contact dermatitis" },
+    { medicine_name: "Adhesive Bandages (Band-Aid)", treatment_type: "First Aid", unit: "Piece", minimum_stock: "100", description: "Sterile strip adhesive bandages for minor cuts and finger injuries" },
+    { medicine_name: "Sterile Gauze Pads (4x4)", treatment_type: "First Aid", unit: "Piece", minimum_stock: "50", description: "Sterile non-adherent dressing pads for wound coverage" },
+    { medicine_name: "Cotton Balls", treatment_type: "First Aid", unit: "Pack", minimum_stock: "20", description: "Absorbent cotton balls for cleaning skin and applying antiseptic" },
+    { medicine_name: "Micropore Surgical Tape", treatment_type: "First Aid", unit: "Piece", minimum_stock: "10", description: "Hypoallergenic paper tape for securing dressings" },
+    { medicine_name: "Elastic Bandage (2 inch)", treatment_type: "First Aid", unit: "Piece", minimum_stock: "10", description: "Compression bandage for sprains, strains, and joint support" },
+    { medicine_name: "Cooling Gel Fever Patch", treatment_type: "Cold Compress", unit: "Pack", minimum_stock: "25", description: "Forehead cooling sheet for reducing body temperature during fever" },
+    { medicine_name: "Instant Cold Pack", treatment_type: "Cold Compress", unit: "Pack", minimum_stock: "15", description: "Chemical cold pack for acute sprains, bruises, and swelling reduction" },
+    { medicine_name: "Hot Water Bag / Heat Pack", treatment_type: "Hot Compress", unit: "Piece", minimum_stock: "10", description: "Reusable warm compress for menstrual cramps, muscle tension, and stiff neck" },
+];
+
 export function MedicineModal({
     showForm,
     closeForm,
@@ -72,11 +109,79 @@ export function MedicineModal({
     saving,
     error,
     treatmentTypes = DEFAULT_TREATMENT_TYPES,
+    existingMedicines = [],
+    onSelectMedicineTemplate,
 }: MedicineModalProps) {
-    if (!showForm) return null;
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Filter out "All" if it was passed in treatmentTypes
     const availableTreatments = treatmentTypes.filter((t) => t !== "All");
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Autocomplete suggestions based on query
+    const suggestions = useMemo(() => {
+        const query = (form.medicine_name || "").toLowerCase().trim();
+        if (!query) return [];
+
+        const combined = [...existingMedicines, ...PHILIPPINE_CLINIC_MEDICINES];
+        const seen = new Set<string>();
+        const list: any[] = [];
+
+        for (const item of combined) {
+            const name = item.medicine_name || "";
+            const nameLower = name.toLowerCase();
+            if (!seen.has(nameLower) && nameLower.includes(query)) {
+                seen.add(nameLower);
+                list.push(item);
+                if (list.length >= 8) break;
+            }
+        }
+        return list;
+    }, [form.medicine_name, existingMedicines]);
+
+    const handleChooseMedicine = (item: any) => {
+        if (onSelectMedicineTemplate) {
+            onSelectMedicineTemplate(item);
+        } else {
+            handleChange({
+                target: { name: "medicine_name", value: item.medicine_name },
+            } as any);
+            if (item.treatment_type) {
+                handleChange({
+                    target: { name: "treatment_type", value: item.treatment_type },
+                } as any);
+            }
+            if (item.unit) {
+                handleChange({
+                    target: { name: "unit", value: item.unit },
+                } as any);
+            }
+            if (item.minimum_stock !== undefined) {
+                handleChange({
+                    target: { name: "minimum_stock", value: String(item.minimum_stock) },
+                } as any);
+            }
+            if (item.description) {
+                handleChange({
+                    target: { name: "description", value: item.description },
+                } as any);
+            }
+        }
+        setShowDropdown(false);
+    };
+
+    if (!showForm) return null;
 
     // Live preview of stock status
     const currentStock = Number(form.stock || 0);
@@ -208,21 +313,91 @@ export function MedicineModal({
 
                         {/* 2-Column Fields Grid */}
                         <div className="grid gap-4 md:grid-cols-2">
-                            {/* 1. Medicine Name (Left) */}
-                            <div className="flex flex-col gap-1">
+                            {/* 1. Medicine Name (Left) with Autocomplete Dropdown */}
+                            <div className="relative flex flex-col gap-1" ref={dropdownRef}>
                                 <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
                                     Medicine Name
                                     <span className="ml-1 text-red-500">*</span>
                                 </label>
-                                <input
-                                    type="text"
-                                    name="medicine_name"
-                                    value={form.medicine_name}
-                                    onChange={handleChange}
-                                    placeholder="e.g. Paracetamol 500mg"
-                                    required
-                                    className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="medicine_name"
+                                        value={form.medicine_name}
+                                        onChange={(e) => {
+                                            handleChange(e);
+                                            setShowDropdown(true);
+                                        }}
+                                        onFocus={() => {
+                                            if (form.medicine_name.trim()) {
+                                                setShowDropdown(true);
+                                            }
+                                        }}
+                                        autoComplete="off"
+                                        placeholder="Type to search or enter medicine name..."
+                                        required
+                                        className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                    />
+                                    {form.medicine_name && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                handleChange({ target: { name: "medicine_name", value: "" } } as any);
+                                                setShowDropdown(false);
+                                            }}
+                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Autocomplete Dropdown */}
+                                {showDropdown && suggestions.length > 0 && (
+                                    <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-stone-200 bg-white p-1.5 shadow-2xl dark:border-stone-700 dark:bg-[#251f19]">
+                                        <div className="flex items-center justify-between px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+                                            <span>Matching Medicines</span>
+                                            <span>{suggestions.length} found</span>
+                                        </div>
+                                        {suggestions.map((item, idx) => (
+                                            <button
+                                                key={`${item.medicine_name}-${idx}`}
+                                                type="button"
+                                                onMouseDown={(e) => {
+                                                    e.preventDefault();
+                                                    handleChooseMedicine(item);
+                                                }}
+                                                className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition hover:bg-[#70091f]/5 hover:text-[#70091f] dark:hover:bg-[#70091f]/20 dark:hover:text-[#f8a598] cursor-pointer"
+                                            >
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <Pill size={14} className="text-[#70091f] dark:text-[#f8a598] shrink-0" />
+                                                    <div className="min-w-0">
+                                                        <span className="font-semibold text-stone-800 dark:text-stone-100 truncate block">
+                                                            {item.medicine_name}
+                                                        </span>
+                                                        {item.description && (
+                                                            <p className="line-clamp-1 text-[10px] text-stone-400">
+                                                                {item.description}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                    {item.treatment_type && (
+                                                        <span className="rounded-md bg-stone-100 px-1.5 py-0.5 text-[9px] font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                                                            {item.treatment_type}
+                                                        </span>
+                                                    )}
+                                                    {item.unit && (
+                                                        <span className="text-[10px] text-stone-400">
+                                                            {item.unit}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* 2. Treatment Type (Right) */}

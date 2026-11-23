@@ -422,12 +422,12 @@ function Reports() {
                                     <HeartPulse size={18} aria-hidden="true" />
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-bold text-stone-900">Common Complaints</h2>
+                                    <h2 className="text-base font-bold text-stone-900">Common Symptoms</h2>
                                     <p className="text-xs text-stone-500">Symptoms & illnesses</p>
                                 </div>
                             </div>
                             {commonIllnesses.length === 0 ? (
-                                <p className="rounded-xl bg-stone-50 px-4 py-6 text-center text-sm text-stone-500">No specific complaints recorded.</p>
+                                <p className="rounded-xl bg-stone-50 px-4 py-6 text-center text-sm text-stone-500">No specific symptoms recorded.</p>
                             ) : (
                                 <div className="divide-y divide-stone-100">
                                     {commonIllnesses.slice(0, 7).map((item) => (

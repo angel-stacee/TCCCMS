@@ -316,7 +316,7 @@ export async function exportMonthlyReportPDF(reportData: {
             formatNA(i.illness),
             String(i.count),
             totalVisits > 0 ? `${Math.round((i.count / totalVisits) * 100)}%` : "0%",
-        ]) : [["No specific complaints", "-", "-"]],
+        ]) : [["No specific symptoms", "-", "-"]],
         theme: "striped",
         headStyles: {
             fillColor: [140, 40, 60],

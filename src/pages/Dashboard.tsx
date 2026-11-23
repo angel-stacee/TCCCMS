@@ -7,6 +7,7 @@ import { Avatar, LineAreaChart, MiniBarChart, SectionHeader, Skeleton, StudentDe
 import { ConfirmationModal } from "../components/student-management/FieldsAndModals";
 import { InteractiveClinicVisitsChart } from "../components/dashboard/InteractiveClinicVisitsChart";
 import { VisitReasonsPieChart } from "../components/dashboard/VisitReasonsPieChart";
+import { getReasonColorHex } from "../utils/reasonColors";
 import "./Dashboard.css";
 
 import {
@@ -66,14 +67,6 @@ const ACCENTS = {
     taupe: { icon: "#70091f", bg: "#fcebe7", line: "#70091f" },
 };
 
-const DONUT_COLORS = [
-    "#731124",
-    "#cc785c",
-    "#d99b26",
-    "#3e8168",
-    "#70091f",
-    "#9e6b7d",
-];
 
 const formatRole = (role) => {
     if (!role) return "Nurse";
@@ -931,10 +924,10 @@ function Dashboard() {
 
     const reasons = useMemo(() => {
         if (Array.isArray(dashboard?.visit_reasons) && dashboard.visit_reasons.length > 0) {
-            return dashboard.visit_reasons.map((item: any, index: number) => ({
+            return dashboard.visit_reasons.map((item: any) => ({
                 label: item.label,
                 value: Number(item.value || 0),
-                color: DONUT_COLORS[index % DONUT_COLORS.length],
+                color: getReasonColorHex(item.label),
             }));
         }
 
@@ -960,13 +953,9 @@ function Dashboard() {
                     b.value - a.value
             )
             .slice(0, 6)
-            .map((item, index) => ({
+            .map((item) => ({
                 ...item,
-                color:
-                    DONUT_COLORS[
-                        index %
-                            DONUT_COLORS.length
-                    ],
+                color: getReasonColorHex(item.label),
             }));
     }, [dashboard?.visit_reasons, recentVisits]);
 
@@ -998,12 +987,12 @@ function Dashboard() {
         {
             label: "Male",
             value: male,
-            color: ACCENTS.sand.line,
+            color: "#2563eb", // Accessible medical Blue
         },
         {
             label: "Female",
             value: female,
-            color: ACCENTS.clay.line,
+            color: "#db2777", // Accessible Rose / Pink
         },
     ];
 
@@ -1637,34 +1626,24 @@ function Dashboard() {
                         </div>
 
                         <div className="flex justify-around pt-3">
-
-                            {gender.map(
-                                (item) => (
-                                    <div
-                                        key={
-                                            item.label
-                                        }
-                                        className="flex-1 text-center"
-                                    >
-                                        <p className="text-xs font-semibold text-[#302820]">
-                                            {
-                                                item.label
-                                            }
-                                        </p>
-
-                                        <p className="mt-1 text-[11px] font-medium text-[#a99d8f]">
-                                            {totalGenderPatients
-                                                ? Math.round(
-                                                      (item.value /
-                                                          totalGenderPatients) *
-                                                          100
-                                                  )
-                                                : 0}
-                                            %
+                            {gender.map((item) => (
+                                <div key={item.label} className="flex-1 text-center">
+                                    <div className="flex items-center justify-center gap-1.5">
+                                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+                                        <p className="text-xs font-bold text-[#302820] dark:text-stone-200">
+                                            {item.label}
                                         </p>
                                     </div>
-                                )
-                            )}
+                                    <p className="mt-1 text-[11px] font-semibold text-[#a99d8f] dark:text-stone-400">
+                                        {totalGenderPatients
+                                            ? Math.round(
+                                                  (item.value / totalGenderPatients) * 100
+                                              )
+                                            : 0}
+                                        %
+                                    </p>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </section>

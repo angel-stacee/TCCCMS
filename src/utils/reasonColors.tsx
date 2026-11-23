@@ -17,13 +17,22 @@ export interface ReasonBadgeStyle {
  */
 export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
     fever: {
+        bg: "bg-red-50",
+        text: "text-red-700",
+        border: "border-red-200",
+        darkBg: "dark:bg-red-950/50",
+        darkText: "dark:text-red-300",
+        darkBorder: "dark:border-red-800/60",
+        hex: "#ef4444", // Red for fever / acute thermal
+    },
+    nosebleed: {
         bg: "bg-rose-50",
         text: "text-rose-700",
         border: "border-rose-200",
         darkBg: "dark:bg-rose-950/50",
         darkText: "dark:text-rose-300",
         darkBorder: "dark:border-rose-800/60",
-        hex: "#e11d48",
+        hex: "#e11d48", // Crimson rose for epistaxis / bleeding
     },
     headache: {
         bg: "bg-amber-50",
@@ -32,16 +41,16 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-amber-950/50",
         darkText: "dark:text-amber-300",
         darkBorder: "dark:border-amber-800/60",
-        hex: "#d97706",
+        hex: "#f59e0b", // Amber for cephalea / headache
     },
     dizziness: {
-        bg: "bg-indigo-50",
-        text: "text-indigo-700",
-        border: "border-indigo-200",
-        darkBg: "dark:bg-indigo-950/50",
-        darkText: "dark:text-indigo-300",
-        darkBorder: "dark:border-indigo-800/60",
-        hex: "#4f46e5",
+        bg: "bg-purple-50",
+        text: "text-purple-700",
+        border: "border-purple-200",
+        darkBg: "dark:bg-purple-950/50",
+        darkText: "dark:text-purple-300",
+        darkBorder: "dark:border-purple-800/60",
+        hex: "#8b5cf6", // Purple / violet for vertigo / dizziness
     },
     stomach: {
         bg: "bg-orange-50",
@@ -50,7 +59,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-orange-950/50",
         darkText: "dark:text-orange-300",
         darkBorder: "dark:border-orange-800/60",
-        hex: "#ea580c",
+        hex: "#ea580c", // Orange for abdominal / gastrointestinal
     },
     cough: {
         bg: "bg-sky-50",
@@ -59,16 +68,16 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-sky-950/50",
         darkText: "dark:text-sky-300",
         darkBorder: "dark:border-sky-800/60",
-        hex: "#0284c7",
+        hex: "#0284c7", // Sky blue for respiratory / cough / cold
     },
     injury: {
-        bg: "bg-purple-50",
-        text: "text-purple-700",
-        border: "border-purple-200",
-        darkBg: "dark:bg-purple-950/50",
-        darkText: "dark:text-purple-300",
-        darkBorder: "dark:border-purple-800/60",
-        hex: "#9333ea",
+        bg: "bg-rose-100",
+        text: "text-rose-800",
+        border: "border-rose-300",
+        darkBg: "dark:bg-rose-950/60",
+        darkText: "dark:text-rose-200",
+        darkBorder: "dark:border-rose-800",
+        hex: "#b91c1c", // Crimson red for trauma / wound
     },
     bodypain: {
         bg: "bg-fuchsia-50",
@@ -86,7 +95,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-emerald-950/50",
         darkText: "dark:text-emerald-300",
         darkBorder: "dark:border-emerald-800/60",
-        hex: "#059669",
+        hex: "#10b981", // Emerald green for healthy / routine checkup
     },
     firstaid: {
         bg: "bg-teal-50",
@@ -95,7 +104,16 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-teal-950/50",
         darkText: "dark:text-teal-300",
         darkBorder: "dark:border-teal-800/60",
-        hex: "#0d9488",
+        hex: "#0d9488", // Teal for nursing first aid
+    },
+    allergy: {
+        bg: "bg-violet-50",
+        text: "text-violet-700",
+        border: "border-violet-200",
+        darkBg: "dark:bg-violet-950/50",
+        darkText: "dark:text-violet-300",
+        darkBorder: "dark:border-violet-800/60",
+        hex: "#7c3aed", // Violet for allergic reaction
     },
     medication: {
         bg: "bg-blue-50",
@@ -156,6 +174,12 @@ export function getReasonBadgeStyle(reason: string | null | undefined): ReasonBa
 
     if (lower.includes("fever") || lower.includes("chills")) {
         return REASON_COLOR_MAP.fever;
+    }
+    if (lower.includes("nosebleed") || lower.includes("epistaxis") || lower.includes("bleed")) {
+        return REASON_COLOR_MAP.nosebleed;
+    }
+    if (lower.includes("allergy") || lower.includes("allergic")) {
+        return REASON_COLOR_MAP.allergy;
     }
     if (lower.includes("headache") || lower.includes("migraine")) {
         return REASON_COLOR_MAP.headache;

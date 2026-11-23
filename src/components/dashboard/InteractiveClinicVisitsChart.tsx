@@ -33,18 +33,18 @@ interface InteractiveClinicVisitsChartProps {
 const CHART_CONFIG = {
     students: {
         label: "Students",
-        color: "#8a6f50",
-        colorDark: "#c49a6c",
+        color: "#0284c7", // Sky blue for students
+        colorDark: "#38bdf8",
     },
     employees: {
         label: "Faculty & Staff",
-        color: "#70091f",
-        colorDark: "#e27888",
+        color: "#d97706", // Gold / amber for faculty & staff
+        colorDark: "#fbbf24",
     },
     total: {
         label: "Total Visits",
-        color: "#2563eb",
-        colorDark: "#60a5fa",
+        color: "#70091f", // TCC Institutional Maroon for total visits
+        colorDark: "#e27888",
     },
 } as const;
 

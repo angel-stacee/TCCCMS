@@ -1049,7 +1049,23 @@ function ClinicVisits() {
 
 
 
+    const handlePatientRegistered = useCallback((newPatient: any, type: string) => {
+        if (type === "student") {
+            setStudents((prev: any) => [newPatient, ...prev]);
+            setStudentTotal((prev) => prev + 1);
+        } else if (type === "faculty") {
+            setFaculties((prev: any) => [newPatient, ...prev]);
+            setFacultyStaffTotal((prev) => prev + 1);
+        } else if (type === "staff") {
+            setStaff((prev: any) => [newPatient, ...prev]);
+            setFacultyStaffTotal((prev) => prev + 1);
+        }
+        setToastType("success");
+        setToastMessage(`Patient profile registered for ID ${newPatient.student_id || newPatient.employee_id || newPatient.staff_id}.`);
+    }, []);
+
     const persistVisit = async (payload, visitToUpdate = null) => {
+        if (loading) return; // Prevent accidental duplicate submissions
         setLoading(true);
 
         try {
@@ -1773,6 +1789,7 @@ function ClinicVisits() {
                     getMedicineStock={getMedicineStock}
                     getMedicineTreatment={getMedicineTreatment}
                     selectedMedicine={selectedMedicine}
+                    onPatientRegistered={handlePatientRegistered}
                 />
 
                 {/* Search and Filters Controls */}

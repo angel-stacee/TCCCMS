@@ -1,8 +1,34 @@
-import { useState, useEffect, useRef, type FormEventHandler } from "react";
+import { useState, useEffect, useRef, useCallback, type FormEventHandler } from "react";
 import { createPortal } from "react-dom";
-import { Pill, Search, X, Stethoscope, ChevronDown, Clock, AlertCircle } from "lucide-react";
+import {
+    Pill,
+    Search,
+    X,
+    Stethoscope,
+    ChevronDown,
+    ChevronUp,
+    Clock,
+    AlertCircle,
+    CheckCircle2,
+    History,
+    UserCheck,
+    UserPlus,
+    Loader2,
+    RotateCcw,
+    GraduationCap,
+    Building2,
+    Briefcase,
+    Phone,
+    MapPin,
+    Calendar,
+    Activity,
+    ShieldCheck,
+    QrCode,
+} from "lucide-react";
+import api from "../../services/api";
 import type { VisitRecord } from "./ClinicVisitTable";
-import { parseAndNormalizeTemperature } from "../../utils/formatters";
+import { parseAndNormalizeTemperature, mapCourseToDepartment, formatDate } from "../../utils/formatters";
+import { QuickRegisterPatientModal } from "./QuickRegisterPatientModal";
 
 const TEMPERATURE_OPTIONS = [
     { value: "36.0 °C", label: "36.0 °C" },
@@ -158,6 +184,7 @@ interface ClinicVisitModalProps {
     getMedicineStock: (medicine: any) => number;
     getMedicineTreatment: (medicine: any) => string;
     selectedMedicine: any;
+    onPatientRegistered?: (patient: any, type: "student" | "faculty" | "staff") => void;
 }
 
 export function ClinicVisitModal({
@@ -192,10 +219,178 @@ export function ClinicVisitModal({
     getMedicineStock,
     getMedicineTreatment,
     selectedMedicine,
+    onPatientRegistered,
 }: ClinicVisitModalProps) {
     const [customFields, setCustomFields] = useState<Record<string, boolean>>({});
     const patientDropdownRef = useRef<HTMLDivElement>(null);
     const medicineDropdownRef = useRef<HTMLDivElement>(null);
+    const idScanInputRef = useRef<HTMLInputElement>(null);
+
+    // Patient Identification & Medical History States
+    const [idScanInput, setIdScanInput] = useState("");
+    const [identifying, setIdentifying] = useState(false);
+    const [lookupStatus, setLookupStatus] = useState<"idle" | "found" | "not_found" | "error">("idle");
+    const [identifiedPatient, setIdentifiedPatient] = useState<any | null>(null);
+    const [searchedId, setSearchedId] = useState("");
+    const [showMedicalHistory, setShowMedicalHistory] = useState(false);
+    const [quickRegisterOpen, setQuickRegisterOpen] = useState(false);
+    const [showManualSearch, setShowManualSearch] = useState(false);
+    const [idInputError, setIdInputError] = useState("");
+
+    // Patient Lookup Function
+    const handleIdLookup = useCallback(
+        async (idToQuery: string) => {
+            const cleanId = idToQuery.trim();
+            if (!cleanId) {
+                setIdInputError("Please enter or scan a Patient ID number.");
+                return;
+            }
+            setIdInputError("");
+            setIdentifying(true);
+            setSearchedId(cleanId);
+
+            try {
+                const response = await api.get("/patients/lookup", {
+                    params: { id: cleanId },
+                });
+
+                if (response.data && response.data.found && response.data.patient) {
+                    const p = response.data.patient;
+                    const pType = (response.data.type || "student") as "student" | "faculty" | "staff";
+                    const enrichedPatient = { ...p, type: pType };
+                    setIdentifiedPatient(enrichedPatient);
+                    setLookupStatus("found");
+
+                    // Connect new clinic visit to existing patient profile via foreign key
+                    setFormData((prev: any) => ({
+                        ...prev,
+                        student_id: pType === "student" ? p.id : "",
+                        faculty_id: pType === "faculty" ? p.id : "",
+                        staff_id: pType === "staff" ? p.id : "",
+                        department: p.course
+                            ? mapCourseToDepartment(p.course)
+                            : (p.department || prev.department || ""),
+                    }));
+
+                    setPatientSearch(`${p.student_id || p.identifier} - ${p.full_name || p.name}`);
+                    setShowPatientDropdown(false);
+                    setShowManualSearch(false);
+                } else {
+                    setIdentifiedPatient(null);
+                    setLookupStatus("not_found");
+                }
+            } catch (err: any) {
+                console.error("Patient lookup failed:", err);
+                if (err.response?.status === 404 || err.response?.data?.found === false) {
+                    setIdentifiedPatient(null);
+                    setLookupStatus("not_found");
+                } else {
+                    setLookupStatus("error");
+                }
+            } finally {
+                setIdentifying(false);
+            }
+        },
+        [setFormData, setPatientSearch, setShowPatientDropdown]
+    );
+
+    // Initialize or sync state on modal open / edit
+    useEffect(() => {
+        if (!showForm) {
+            setIdScanInput("");
+            setLookupStatus("idle");
+            setIdentifiedPatient(null);
+            setSearchedId("");
+            setShowMedicalHistory(false);
+            setShowManualSearch(false);
+            setIdInputError("");
+            return;
+        }
+
+        if (editingVisit) {
+            // When editing an existing visit, populate identified patient if available
+            const student = editingVisit.student;
+            const faculty = editingVisit.faculty;
+            const staff = editingVisit.staff;
+
+            const existingIdentifier = student?.student_id || faculty?.employee_id || staff?.staff_id;
+            if (existingIdentifier) {
+                setIdScanInput(existingIdentifier);
+                handleIdLookup(existingIdentifier);
+            }
+        } else {
+            // If new visit and form is empty, focus scanner input
+            setTimeout(() => {
+                idScanInputRef.current?.focus();
+            }, 100);
+        }
+    }, [showForm, editingVisit, handleIdLookup]);
+
+    // Handle Quick Register Success
+    const handleQuickRegisterSuccess = (created: any, type: "student" | "faculty" | "staff") => {
+        setQuickRegisterOpen(false);
+        const fullName = `${created.first_name || ""} ${created.middle_name ? created.middle_name + " " : ""}${created.last_name || ""}`.trim();
+        const enriched = {
+            id: created.id,
+            student_id: created.student_id,
+            employee_id: created.employee_id,
+            staff_id: created.staff_id,
+            identifier: created.student_id || created.employee_id || created.staff_id || idScanInput,
+            first_name: created.first_name,
+            middle_name: created.middle_name,
+            last_name: created.last_name,
+            full_name: fullName,
+            name: fullName,
+            course: created.course,
+            year_level: created.year_level,
+            section: created.section,
+            position: created.position,
+            department: created.department || (created.course ? mapCourseToDepartment(created.course) : ""),
+            sex: created.sex,
+            birth_date: created.birth_date,
+            contact_number: created.contact_number,
+            address: created.address,
+            total_visits: 0,
+            medical_history: [],
+            type,
+        };
+
+        setIdentifiedPatient(enriched);
+        setLookupStatus("found");
+        setFormData((prev: any) => ({
+            ...prev,
+            student_id: type === "student" ? created.id : "",
+            faculty_id: type === "faculty" ? created.id : "",
+            staff_id: type === "staff" ? created.id : "",
+            department: enriched.department || prev.department || "",
+        }));
+        setPatientSearch(`${enriched.identifier} - ${enriched.full_name}`);
+        setIdScanInput(enriched.identifier);
+
+        if (onPatientRegistered) {
+            onPatientRegistered(created, type);
+        }
+    };
+
+    // Reset current patient to re-scan
+    const handleResetPatient = () => {
+        setIdentifiedPatient(null);
+        setLookupStatus("idle");
+        setIdScanInput("");
+        setSearchedId("");
+        setPatientSearch("");
+        setShowMedicalHistory(false);
+        setIdInputError("");
+        setFormData((prev: any) => ({
+            ...prev,
+            student_id: "",
+            faculty_id: "",
+            staff_id: "",
+        }));
+        setTimeout(() => {
+            idScanInputRef.current?.focus();
+        }, 50);
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -275,92 +470,413 @@ export function ClinicVisitModal({
                 <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
                     <div className="flex-1 overflow-y-auto p-5 sm:p-6">
                         <div className="grid gap-4 md:grid-cols-2">
-                        {/* 1. Patient Selection (Left) */}
-                        <div ref={patientDropdownRef} className="relative flex flex-col gap-1">
-                            <label className="text-sm font-bold text-stone-900 dark:text-stone-100">
-                                Patient
-                                <span className="ml-1 text-red-500">*</span>
-                            </label>
+                        {/* 1. Automatic Patient Identification & Existing Record Section (Full width: md:col-span-2) */}
+                        <div className="md:col-span-2 space-y-3">
+                            {/* If Patient NOT yet identified and NOT in not_found state */}
+                            {!identifiedPatient && lookupStatus !== "not_found" && (
+                                <div className="rounded-2xl border border-stone-200 bg-stone-50/80 p-4.5 dark:border-[#382f25] dark:bg-[#251e18]/60 shadow-xs">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#70091f]/10 text-[#70091f] dark:bg-[#70091f]/20 dark:text-[#dc667a]">
+                                                <QrCode size={18} />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
+                                                    Automatic Patient Identification
+                                                </h3>
+                                                <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                                                    Scan barcode or enter Student ID to automatically verify existing records and prevent duplicates
+                                                </p>
+                                            </div>
+                                        </div>
 
-                            <div className="relative">
-                                <Search
-                                    size={16}
-                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
-                                />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowManualSearch(!showManualSearch)}
+                                            className="text-xs font-semibold text-[#70091f] hover:underline dark:text-[#dc667a] self-start sm:self-auto cursor-pointer"
+                                        >
+                                            {showManualSearch ? "← Switch to ID Scanner" : "Search by Name / Dropdown →"}
+                                        </button>
+                                    </div>
 
-                                <input
-                                    type="text"
-                                    value={patientSearch}
-                                    onChange={(event) => {
-                                        const nextValue = event.target.value;
-                                        setPatientSearch(nextValue);
-                                        setShowPatientDropdown(true);
+                                    {!showManualSearch ? (
+                                        <div>
+                                            <div className="flex items-stretch gap-2">
+                                                <div className="relative flex-1">
+                                                    <QrCode
+                                                        size={18}
+                                                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
+                                                    />
+                                                    <input
+                                                        ref={idScanInputRef}
+                                                        type="text"
+                                                        value={idScanInput}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            setIdScanInput(val);
+                                                            setIdInputError("");
+                                                            // Automatic scan trigger if 8 digits (standard student ID format)
+                                                            if (val.trim().length === 8 && /^\d+$/.test(val.trim())) {
+                                                                handleIdLookup(val.trim());
+                                                            }
+                                                        }}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault();
+                                                                handleIdLookup(idScanInput);
+                                                            }
+                                                        }}
+                                                        placeholder="Scan or enter Student ID (e.g. 20241407) and press Enter..."
+                                                        className="w-full rounded-xl border border-stone-300 bg-white py-2.5 pl-10 pr-10 text-sm font-semibold text-stone-900 outline-none transition focus:border-[#70091f] focus:ring-2 focus:ring-[#70091f]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                                    />
+                                                    {idScanInput && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setIdScanInput("");
+                                                                setIdInputError("");
+                                                            }}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                                                        >
+                                                            <X size={15} />
+                                                        </button>
+                                                    )}
+                                                </div>
 
-                                        if (!nextValue.trim()) {
-                                            setFormData((prev: any) => ({
-                                                ...prev,
-                                                student_id: "",
-                                                faculty_id: "",
-                                                staff_id: "",
-                                            }));
-                                        }
-                                    }}
-                                    onFocus={() => setShowPatientDropdown(true)}
-                                    placeholder="Search student, faculty, or staff..."
-                                    className="w-full rounded-lg border border-stone-300 bg-white py-2.5 pl-9 pr-8 text-sm font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
-                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleIdLookup(idScanInput)}
+                                                    disabled={identifying || !idScanInput.trim()}
+                                                    className="flex items-center gap-1.5 rounded-xl bg-[#70091f] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#8b1505] disabled:cursor-not-allowed disabled:opacity-50 transition cursor-pointer"
+                                                >
+                                                    {identifying ? (
+                                                        <>
+                                                            <Loader2 size={14} className="animate-spin" />
+                                                            <span>Searching...</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Search size={14} />
+                                                            <span>Lookup ID</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
 
-                                {patientSearch && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setPatientSearch("");
-                                            setFormData((prev: any) => ({
-                                                ...prev,
-                                                student_id: "",
-                                                faculty_id: "",
-                                                staff_id: "",
-                                            }));
-                                        }}
-                                        aria-label="Clear patient search"
-                                        className="absolute right-2.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded text-stone-400 hover:text-stone-700"
-                                    >
-                                        <X size={14} />
-                                    </button>
-                                )}
-                            </div>
-
-                            {showPatientDropdown && (
-                                <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-xl border border-stone-200 bg-white shadow-xl dark:border-stone-700 dark:bg-stone-800">
-                                    {filteredPatients.length === 0 ? (
-                                        <div className="px-4 py-5 text-center text-xs text-stone-500">
-                                            No patient found.
+                                            {idInputError && (
+                                                <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
+                                                    <AlertCircle size={13} />
+                                                    {idInputError}
+                                                </p>
+                                            )}
                                         </div>
                                     ) : (
-                                        filteredPatients.map((patient) => (
-                                            <button
-                                                key={`${patient.type}-${patient.id}`}
-                                                type="button"
-                                                onClick={() => selectPatient(patient)}
-                                                className="w-full border-b border-stone-100 px-4 py-2.5 text-left transition last:border-b-0 hover:bg-stone-50 dark:border-stone-700/60 dark:hover:bg-stone-700/50"
-                                            >
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div>
-                                                        <p className="text-xs font-bold text-stone-800 dark:text-stone-200">
-                                                            {patient.name}
-                                                        </p>
-                                                        <p className="mt-0.5 text-[10px] text-stone-500 dark:text-stone-400">
-                                                            {patient.identifier}
-                                                        </p>
-                                                    </div>
+                                        /* Fallback Name Autocomplete Search */
+                                        <div ref={patientDropdownRef} className="relative">
+                                            <div className="relative">
+                                                <Search
+                                                    size={16}
+                                                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={patientSearch}
+                                                    onChange={(event) => {
+                                                        const nextValue = event.target.value;
+                                                        setPatientSearch(nextValue);
+                                                        setShowPatientDropdown(true);
+                                                    }}
+                                                    onFocus={() => setShowPatientDropdown(true)}
+                                                    placeholder="Type student, faculty, or staff name..."
+                                                    className="w-full rounded-xl border border-stone-300 bg-white py-2.5 pl-9 pr-8 text-sm font-semibold text-stone-900 outline-none transition focus:border-[#70091f] focus:ring-2 focus:ring-[#70091f]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                                />
+                                                {patientSearch && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setPatientSearch("");
+                                                        }}
+                                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700"
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
 
-                                                    <span className="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400">
-                                                        {patient.label}
+                                            {showPatientDropdown && (
+                                                <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-xl border border-stone-200 bg-white shadow-xl dark:border-stone-700 dark:bg-stone-800">
+                                                    {filteredPatients.length === 0 ? (
+                                                        <div className="px-4 py-5 text-center text-xs text-stone-500">
+                                                            No patient found matching search.
+                                                        </div>
+                                                    ) : (
+                                                        filteredPatients.map((patient) => (
+                                                            <button
+                                                                key={`${patient.type}-${patient.id}`}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    selectPatient(patient);
+                                                                    setIdScanInput(patient.identifier);
+                                                                    handleIdLookup(patient.identifier);
+                                                                }}
+                                                                className="w-full border-b border-stone-100 px-4 py-2.5 text-left transition last:border-b-0 hover:bg-stone-50 dark:border-stone-700/60 dark:hover:bg-stone-700/50 cursor-pointer"
+                                                            >
+                                                                <div className="flex items-center justify-between gap-3">
+                                                                    <div>
+                                                                        <p className="text-xs font-bold text-stone-800 dark:text-stone-200">
+                                                                            {patient.name}
+                                                                        </p>
+                                                                        <p className="mt-0.5 text-[10px] text-stone-500 dark:text-stone-400">
+                                                                            ID: {patient.identifier}
+                                                                        </p>
+                                                                    </div>
+                                                                    <span className="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400">
+                                                                        {patient.label}
+                                                                    </span>
+                                                                </div>
+                                                            </button>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* If Patient ID was NOT found in database (Requirement 3) */}
+                            {lookupStatus === "not_found" && (
+                                <div className="rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50/70 p-5 dark:border-amber-800/80 dark:bg-amber-950/30 animate-in fade-in zoom-in-95 duration-150">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-800 dark:bg-amber-500/25 dark:text-amber-200">
+                                                <AlertCircle size={22} />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-bold text-amber-950 dark:text-amber-100">
+                                                    No Existing Patient Record Found
+                                                </h4>
+                                                <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                                                    ID number <strong className="font-mono bg-amber-200/80 dark:bg-amber-900/60 px-1.5 py-0.5 rounded text-amber-950 dark:text-amber-100">{searchedId}</strong> is not registered in the system.
+                                                </p>
+                                                <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1">
+                                                    To ensure clinical record integrity and prevent future duplicates, register this patient profile first. Once saved, their record will immediately link to this clinic visit.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={handleResetPatient}
+                                                className="rounded-xl border border-amber-300 bg-white/90 px-3.5 py-2 text-xs font-semibold text-amber-900 shadow-xs hover:bg-amber-100/60 dark:border-amber-800 dark:bg-stone-800 dark:text-amber-200 cursor-pointer"
+                                            >
+                                                Try Another ID
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setQuickRegisterOpen(true)}
+                                                className="flex items-center gap-1.5 rounded-xl bg-[#70091f] px-4 py-2 text-xs font-bold text-white shadow-md shadow-[#70091f]/20 hover:bg-[#8b1505] transition cursor-pointer"
+                                            >
+                                                <UserPlus size={15} />
+                                                <span>+ Register New Patient</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* If Patient IS IDENTIFIED (Requirement 1 & 4: Verified Existing Record Card + Medical History) */}
+                            {identifiedPatient && (
+                                <div className="rounded-2xl border-2 border-emerald-500/40 bg-white p-4.5 shadow-sm dark:border-emerald-500/30 dark:bg-[#1a231e]/50 animate-in fade-in duration-200">
+                                    {/* Header / Verified Badge Row */}
+                                    <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3.5 border-b border-stone-100 dark:border-stone-800">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/25 dark:text-emerald-300">
+                                                <CheckCircle2 size={20} />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300">
+                                                        <ShieldCheck size={13} />
+                                                        {identifiedPatient.total_visits > 0
+                                                            ? "Existing Patient Record Verified"
+                                                            : "New Registered Patient Profile Linked"}
+                                                    </span>
+                                                    <span className="rounded-md bg-stone-100 px-2 py-0.5 font-mono text-[11px] font-bold text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+                                                        {identifiedPatient.student_id ? `Student ID: ${identifiedPatient.student_id}` : `ID: ${identifiedPatient.identifier}`}
                                                     </span>
                                                 </div>
+                                                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 mt-0.5">
+                                                    {identifiedPatient.full_name || identifiedPatient.name}
+                                                </h3>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <span className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-700 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
+                                                <strong className="text-[#70091f] dark:text-[#dc667a] font-bold">
+                                                    {identifiedPatient.total_visits}
+                                                </strong>{" "}
+                                                {identifiedPatient.total_visits === 1 ? "Past Consultation" : "Past Consultations"}
+                                            </span>
+
+                                            <button
+                                                type="button"
+                                                onClick={handleResetPatient}
+                                                className="flex items-center gap-1 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 transition cursor-pointer"
+                                                title="Change patient or scan another ID"
+                                            >
+                                                <RotateCcw size={13} />
+                                                <span>Change / Re-scan</span>
                                             </button>
-                                        ))
-                                    )}
+                                        </div>
+                                    </div>
+
+                                    {/* Detailed Registered Demographic Information (Requirement 1) */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 py-3.5 text-xs">
+                                        <div>
+                                            <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                                                Course / Program
+                                            </span>
+                                            <p className="font-bold text-stone-800 dark:text-stone-200">
+                                                {identifiedPatient.course || identifiedPatient.department || "N/A"}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                                                Year & Section
+                                            </span>
+                                            <p className="font-bold text-stone-800 dark:text-stone-200">
+                                                {identifiedPatient.year_level || "N/A"} {identifiedPatient.section ? `(${identifiedPatient.section})` : ""}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                                                Sex / Gender
+                                            </span>
+                                            <p className="font-bold text-stone-800 dark:text-stone-200">
+                                                {identifiedPatient.sex || "N/A"}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                                                Birth Date & Age
+                                            </span>
+                                            <p className="font-bold text-stone-800 dark:text-stone-200">
+                                                {identifiedPatient.birth_date ? formatDate(identifiedPatient.birth_date) : "N/A"}
+                                                {identifiedPatient.age ? ` (${identifiedPatient.age} yrs)` : ""}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                                                Contact Number
+                                            </span>
+                                            <p className="font-bold text-stone-800 dark:text-stone-200">
+                                                {identifiedPatient.contact_number || "N/A"}
+                                            </p>
+                                        </div>
+
+                                        <div className="col-span-2 sm:col-span-2 lg:col-span-3">
+                                            <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                                                Address
+                                            </span>
+                                            <p className="font-semibold text-stone-800 dark:text-stone-200 truncate">
+                                                {identifiedPatient.address || "Tagoloan, Misamis Oriental"}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Collapsible Patient Consultation History (Requirement 4) */}
+                                    <div className="pt-2 border-t border-stone-100 dark:border-stone-800">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowMedicalHistory(!showMedicalHistory)}
+                                            className="flex w-full items-center justify-between rounded-xl bg-stone-50 px-3.5 py-2 text-xs font-bold text-stone-700 hover:bg-stone-100 dark:bg-stone-800/80 dark:text-stone-300 dark:hover:bg-stone-800 transition cursor-pointer"
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <History size={15} className="text-[#70091f] dark:text-[#dc667a]" />
+                                                <span>
+                                                    Patient Medical & Consultation History ({identifiedPatient.total_visits} Records)
+                                                </span>
+                                            </span>
+                                            <span className="flex items-center gap-1 text-[11px] font-normal text-stone-500">
+                                                {showMedicalHistory ? "Hide History" : "View History"}
+                                                {showMedicalHistory ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                            </span>
+                                        </button>
+
+                                        {showMedicalHistory && (
+                                            <div className="mt-2.5 rounded-xl border border-stone-200 bg-stone-50/50 p-3 dark:border-stone-700/80 dark:bg-stone-900/40">
+                                                <div className="flex items-center justify-between pb-2 mb-2 border-b border-stone-200/80 dark:border-stone-700/60 text-[11px] text-stone-500">
+                                                    <span>Historical consultations are permanently preserved and read-only.</span>
+                                                    <span className="font-bold text-[#70091f] dark:text-[#dc667a]">
+                                                        Total Visits: {identifiedPatient.total_visits}
+                                                    </span>
+                                                </div>
+
+                                                {(!identifiedPatient.medical_history || identifiedPatient.medical_history.length === 0) ? (
+                                                    <p className="py-4 text-center text-xs text-stone-500 italic">
+                                                        No previous consultation history recorded. This visit will be logged as Visit #1.
+                                                    </p>
+                                                ) : (
+                                                    <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                                                        {identifiedPatient.medical_history.map((hist: any, index: number) => (
+                                                            <div
+                                                                key={hist.id || index}
+                                                                className="rounded-lg border border-stone-200 bg-white p-3 text-xs dark:border-stone-700 dark:bg-stone-800/90 shadow-2xs"
+                                                            >
+                                                                <div className="flex items-center justify-between font-bold text-stone-800 dark:text-stone-200">
+                                                                    <span className="flex items-center gap-1.5">
+                                                                        <Calendar size={13} className="text-stone-400" />
+                                                                        {formatDate(hist.visit_date)}
+                                                                    </span>
+                                                                    <span className="text-[11px] font-semibold text-stone-500">
+                                                                        Attending: {hist.nurse_name || "Nurse on duty"}
+                                                                    </span>
+                                                                </div>
+
+                                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 pt-2 border-t border-stone-100 dark:border-stone-700/60 text-[11px]">
+                                                                    <div>
+                                                                        <span className="text-stone-400">Reason:</span>{" "}
+                                                                        <strong className="text-stone-800 dark:text-stone-200">{hist.reason || "N/A"}</strong>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="text-stone-400">Symptoms:</span>{" "}
+                                                                        <span className="text-stone-700 dark:text-stone-300">{hist.symptoms || "None"}</span>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="text-stone-400">Vitals:</span>{" "}
+                                                                        <span className="text-stone-700 dark:text-stone-300">
+                                                                            {hist.temperature || "N/A"} • {hist.blood_pressure || "N/A"}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="text-stone-400">Medicine:</span>{" "}
+                                                                        <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                                                                            {hist.medicine_name ? `${hist.medicine_name} (${hist.medicine_quantity || 1} ${hist.medicine_unit || "unit"})` : "None"}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+
+                                                                {(hist.assessment || hist.treatment || hist.remarks) && (
+                                                                    <div className="mt-1.5 pt-1.5 border-t border-dashed border-stone-100 dark:border-stone-700/40 text-[10.5px] text-stone-600 dark:text-stone-400 flex flex-wrap gap-x-4">
+                                                                        {hist.assessment && <span><strong>Assessment:</strong> {hist.assessment}</span>}
+                                                                        {hist.treatment && <span><strong>Treatment:</strong> {hist.treatment}</span>}
+                                                                        {hist.remarks && <span><strong>Remarks:</strong> {hist.remarks}</span>}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -1019,30 +1535,54 @@ export function ClinicVisitModal({
                     </div>
 
                     {/* Divider and Action Buttons pinned at bottom */}
-                    <div className="flex shrink-0 items-center justify-end gap-3 border-t border-stone-200 bg-stone-50/90 px-6 py-4 backdrop-blur-sm dark:border-[#382f25] dark:bg-[#171310]">
-                        <button
-                            type="button"
-                            onClick={closeForm}
-                            disabled={loading}
-                            className="rounded-xl border border-stone-300 bg-white px-5 py-2.5 text-sm font-semibold text-stone-700 shadow-xs transition hover:bg-stone-100 hover:text-stone-900 disabled:opacity-50 dark:border-stone-700 dark:bg-[#251e18] dark:text-stone-300 dark:hover:bg-[#302720]"
-                        >
-                            Cancel
-                        </button>
+                    <div className="flex shrink-0 items-center justify-between border-t border-stone-200 bg-stone-50/90 px-6 py-4 backdrop-blur-sm dark:border-[#382f25] dark:bg-[#171310]">
+                        <div className="flex items-center gap-2">
+                            {!formData.student_id && !formData.faculty_id && !formData.staff_id && (
+                                <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                                    <AlertCircle size={14} />
+                                    <span>Scan or verify patient identity before saving</span>
+                                </span>
+                            )}
+                        </div>
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex items-center gap-2 rounded-xl bg-[#70091f] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#70091f]/20 transition hover:bg-[#8b1505] disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            {loading
-                                ? (editingVisit ? "Updating Visit..." : "Adding Visit...")
-                                : editingVisit
-                                ? "Update Clinic Visit"
-                                : "Add Clinic Visit"}
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={closeForm}
+                                disabled={loading}
+                                className="rounded-xl border border-stone-300 bg-white px-5 py-2.5 text-sm font-semibold text-stone-700 shadow-xs transition hover:bg-stone-100 hover:text-stone-900 disabled:opacity-50 dark:border-stone-700 dark:bg-[#251e18] dark:text-stone-300 dark:hover:bg-[#302720] cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="submit"
+                                disabled={loading || (!formData.student_id && !formData.faculty_id && !formData.staff_id)}
+                                className="flex items-center gap-2 rounded-xl bg-[#70091f] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#70091f]/20 transition hover:bg-[#8b1505] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        <span>Saving Consultation Record...</span>
+                                    </>
+                                ) : editingVisit ? (
+                                    "Update Clinic Visit"
+                                ) : (
+                                    "Save Clinic Visit"
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
+
+            {/* Quick Register Patient Modal Integration */}
+            <QuickRegisterPatientModal
+                open={quickRegisterOpen}
+                initialId={searchedId || idScanInput}
+                onClose={() => setQuickRegisterOpen(false)}
+                onSuccess={handleQuickRegisterSuccess}
+            />
         </div>,
         document.body
     );

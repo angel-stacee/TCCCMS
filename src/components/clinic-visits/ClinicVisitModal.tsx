@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, type FormEventHandler } from "react";
 import { createPortal } from "react-dom";
-import { Pill, Search, X, Stethoscope, ChevronDown } from "lucide-react";
+import { Pill, Search, X, Stethoscope, ChevronDown, Clock, AlertCircle } from "lucide-react";
 import type { VisitRecord } from "./ClinicVisitTable";
 import { parseAndNormalizeTemperature } from "../../utils/formatters";
 
@@ -864,11 +864,24 @@ export function ClinicVisitModal({
                                                             <p className="truncate text-xs font-bold text-stone-800 dark:text-stone-100">
                                                                 {name}
                                                             </p>
-                                                            {medicine.category && (
-                                                                <p className="truncate text-[10px] text-stone-500 dark:text-stone-400">
-                                                                    {medicine.category}
-                                                                </p>
-                                                            )}
+                                                            <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-stone-500 dark:text-stone-400">
+                                                                {medicine.expiration_date ? (
+                                                                    <span className={`font-semibold ${
+                                                                        medicine.expiration_status === "Expiring Soon"
+                                                                            ? "text-amber-600 dark:text-amber-400 font-bold"
+                                                                            : medicine.expiration_status === "Near Expiration"
+                                                                            ? "text-yellow-700 dark:text-yellow-400"
+                                                                            : "text-emerald-700 dark:text-emerald-400"
+                                                                    }`}>
+                                                                        Earliest Exp: {medicine.expiration_date} ({medicine.expiration_status || "Good"})
+                                                                    </span>
+                                                                ) : (
+                                                                    <span>Standard inventory stock</span>
+                                                                )}
+                                                                {medicine.fefo_batch_number && (
+                                                                    <span>• Batch: {medicine.fefo_batch_number}</span>
+                                                                )}
+                                                            </div>
                                                         </div>
 
                                                         <div className="shrink-0 text-right">
@@ -895,22 +908,51 @@ export function ClinicVisitModal({
                             )}
 
                             {selectedMedicine && (
-                                <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50/50 p-2.5 dark:border-amber-900/40 dark:bg-amber-950/20">
-                                    <div className="flex items-center justify-between gap-2">
+                                <div className="mt-2.5 rounded-xl border border-amber-200 bg-amber-50/70 p-3 dark:border-amber-900/50 dark:bg-amber-950/30">
+                                    <div className="flex items-start justify-between gap-2">
                                         <div>
-                                            <p className="text-xs font-bold text-stone-800 dark:text-stone-200">
+                                            <p className="text-xs font-bold text-stone-800 dark:text-stone-100">
                                                 {getMedicineName(selectedMedicine)}
                                             </p>
-                                            <p className="text-[10px] text-stone-500 dark:text-stone-400">
-                                                Available: {getMedicineStock(selectedMedicine)}{" "}
-                                                {getMedicineUnit(selectedMedicine)}
+                                            <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
+                                                Available Unexpired Stock: <strong className="text-stone-800 dark:text-stone-200">{getMedicineStock(selectedMedicine)} {getMedicineUnit(selectedMedicine)}</strong>
                                             </p>
+                                        </div>
+                                        {selectedMedicine.expiration_status && (
+                                            <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                                                selectedMedicine.expiration_status === "Expiring Soon"
+                                                    ? "bg-amber-200 text-amber-900 dark:bg-amber-900/60 dark:text-amber-200"
+                                                    : selectedMedicine.expiration_status === "Near Expiration"
+                                                    ? "bg-yellow-200 text-yellow-900 dark:bg-yellow-900/60 dark:text-yellow-200"
+                                                    : "bg-emerald-200 text-emerald-900 dark:bg-emerald-900/60 dark:text-emerald-200"
+                                            }`}>
+                                                {selectedMedicine.expiration_status}
+                                                {selectedMedicine.days_until_expiration !== null && selectedMedicine.days_until_expiration !== undefined
+                                                    ? ` (${selectedMedicine.days_until_expiration}d)`
+                                                    : ""}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* FEFO Priority Batch Indicator */}
+                                    <div className="mt-2.5 rounded-lg border border-amber-300 bg-white/80 p-2.5 dark:border-amber-800 dark:bg-stone-900/60">
+                                        <div className="flex items-start gap-2">
+                                            <Clock size={15} className="text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
+                                            <div className="text-xs text-stone-700 dark:text-stone-300">
+                                                <p className="font-bold text-amber-900 dark:text-amber-200">
+                                                    FEFO Automatic Selection (First Expired, First Out)
+                                                </p>
+                                                <p className="mt-0.5 text-[11px] text-stone-600 dark:text-stone-400">
+                                                    Will give to patient: <strong className="text-stone-900 dark:text-stone-100">{selectedMedicine.fefo_batch_number || "Eligible Batch"}</strong>
+                                                    {selectedMedicine.expiration_date ? ` (Expires: ${selectedMedicine.expiration_date})` : ""}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="mt-2">
+                                    <div className="mt-2.5">
                                         <label className="text-xs font-bold text-stone-900 dark:text-stone-100">
-                                            Quantity Used
+                                            Quantity Given to Patient
                                             <span className="ml-1 text-red-500">*</span>
                                         </label>
                                         <input
@@ -921,9 +963,14 @@ export function ClinicVisitModal({
                                             value={formData.medicine_quantity}
                                             onChange={handleChange}
                                             required
-                                            placeholder="Enter quantity used"
+                                            placeholder="Enter quantity to dispense"
                                             className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                                         />
+                                        {formData.medicine_quantity && Number(formData.medicine_quantity) > Number(selectedMedicine.fefo_batch_quantity || 0) && Number(selectedMedicine.fefo_batch_quantity || 0) > 0 && (
+                                            <p className="mt-1 text-[11px] font-medium text-amber-800 dark:text-amber-300">
+                                                Notice: Requested ({formData.medicine_quantity}) exceeds batch stock ({selectedMedicine.fefo_batch_quantity}). Remaining {Number(formData.medicine_quantity) - Number(selectedMedicine.fefo_batch_quantity)} will automatically be issued from next nearest expiring batch.
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             )}

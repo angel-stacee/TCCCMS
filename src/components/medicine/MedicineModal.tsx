@@ -1,6 +1,6 @@
 import type { ChangeEvent, FormEvent } from "react";
 import { createPortal } from "react-dom";
-import { Pill, AlertTriangle, CheckCircle2, Calendar, AlertOctagon, X } from "lucide-react";
+import { Pill, AlertTriangle, CheckCircle2, Calendar, AlertOctagon, X, Clock, Layers, Truck } from "lucide-react";
 
 export interface MedicineFormData {
     medicine_name: string;
@@ -10,6 +10,10 @@ export interface MedicineFormData {
     stock: string | number;
     minimum_stock: string | number;
     description: string;
+    batch_number?: string;
+    date_added?: string;
+    supplier?: string;
+    remarks?: string;
 }
 
 export interface MedicineItem {
@@ -21,6 +25,9 @@ export interface MedicineItem {
     stock?: number | string | null;
     minimum_stock?: number | string | null;
     description?: string | null;
+    batch_number?: string | null;
+    supplier?: string | null;
+    remarks?: string | null;
 }
 
 interface MedicineModalProps {
@@ -77,9 +84,15 @@ export function MedicineModal({
     const isOutOfStock = form.stock !== "" && currentStock <= 0;
     const isLowStock = !isOutOfStock && form.stock !== "" && currentStock <= minStock;
 
-    // Live preview of expiration status
+    // Live preview of 4-Tier expiration status:
+    // Expired (< 0 days)
+    // Expiring Soon (0 - 30 days)
+    // Near Expiration (31 - 90 days)
+    // Good (> 90 days)
     let isExpired = false;
     let isExpiringSoon = false;
+    let isNearExpiration = false;
+    let isGood = false;
     let daysUntilExp: number | null = null;
 
     if (form.expiration_date) {
@@ -95,6 +108,10 @@ export function MedicineModal({
             isExpired = true;
         } else if (daysUntilExp <= 30) {
             isExpiringSoon = true;
+        } else if (daysUntilExp <= 90) {
+            isNearExpiration = true;
+        } else {
+            isGood = true;
         }
     }
 
@@ -133,7 +150,7 @@ export function MedicineModal({
                             <p className="text-xs text-stone-500 dark:text-stone-400">
                                 {editingMedicine
                                     ? "Update medicine information, expiration date, and inventory levels."
-                                    : "Enter medicine details to add it to the clinic inventory."}
+                                    : "Enter medicine and batch details to add to clinic inventory with FEFO tracking."}
                             </p>
                         </div>
                     </div>
@@ -151,229 +168,323 @@ export function MedicineModal({
 
                 {/* Modal Form */}
                 <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
-                    <div className="flex-1 overflow-y-auto p-5 sm:p-6">
-                    {/* Error Alert */}
-                    {error && (
-                        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
-                            {error}
-                        </div>
-                    )}
+                    <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+                        {/* Error Alert */}
+                        {error && (
+                            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
+                                {error}
+                            </div>
+                        )}
 
-                    {/* Expiration Warning Banner if expired or expiring soon */}
-                    {isExpired && (
-                        <div className="mb-4 flex items-center gap-2.5 rounded-xl border border-red-300 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
-                            <AlertOctagon size={17} className="shrink-0 text-red-600" />
-                            <span>
-                                <strong>Warning:</strong> This medicine has expired ({Math.abs(daysUntilExp || 0)} day(s) ago). Expired medicines must be safely discarded.
-                            </span>
-                        </div>
-                    )}
-
-                    {isExpiringSoon && (
-                        <div className="mb-4 flex items-center gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300">
-                            <AlertTriangle size={17} className="shrink-0 text-amber-600" />
-                            <span>
-                                <strong>Notice:</strong> This medicine will expire in {daysUntilExp} day(s). Plan usage or replacement soon.
-                            </span>
-                        </div>
-                    )}
-
-                    {/* 2-Column Fields Grid */}
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {/* 1. Medicine Name (Left) */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Medicine Name
-                                <span className="ml-1 text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                name="medicine_name"
-                                value={form.medicine_name}
-                                onChange={handleChange}
-                                placeholder="e.g. Paracetamol 500mg"
-                                required
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
-                            />
+                        {/* FEFO Rule Notice Banner */}
+                        <div className="rounded-xl border border-[#eedecb] bg-[#fdfbf7] p-3 text-xs text-[#524436] dark:border-stone-800 dark:bg-[#27201a] dark:text-stone-300">
+                            <div className="flex items-center gap-2 font-bold text-[#70091f] dark:text-[#f8a598]">
+                                <Clock size={15} />
+                                Automatic FEFO (First Expired, First Out) Issuing
+                            </div>
+                            <p className="mt-1 text-[11px] leading-relaxed text-[#766959] dark:text-stone-400">
+                                The system tracks stocks by expiration date and will automatically issue the batch closest to expiring first when given to a patient. Expired batches cannot be dispensed.
+                            </p>
                         </div>
 
-                        {/* 2. Treatment Type (Right) */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Treatment Type
-                                <span className="ml-1 text-red-500">*</span>
-                            </label>
-                            <select
-                                name="treatment_type"
-                                value={form.treatment_type}
-                                onChange={handleChange}
-                                required
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
-                            >
-                                {availableTreatments.map((type) => (
-                                    <option key={type} value={type}>
-                                        {type}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* 3. Expiration Date (Left) */}
-                        <div className="flex flex-col gap-1">
-                            <label className="flex items-center justify-between text-sm font-medium text-stone-700 dark:text-stone-300">
-                                <span className="flex items-center gap-1.5">
-                                    <Calendar size={14} className="text-stone-400" />
-                                    Expiration Date
+                        {/* Expiration Warning Banner if expired or expiring soon */}
+                        {isExpired && (
+                            <div className="flex items-center gap-2.5 rounded-xl border border-red-300 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
+                                <AlertOctagon size={17} className="shrink-0 text-red-600" />
+                                <span>
+                                    <strong>Expired:</strong> This batch expired {Math.abs(daysUntilExp || 0)} day(s) ago. Expired medicines will be automatically excluded from stock issuing.
                                 </span>
-                                {isExpired ? (
-                                    <span className="text-[11px] font-bold text-red-600 dark:text-red-400">
-                                        Expired
+                            </div>
+                        )}
+
+                        {isExpiringSoon && (
+                            <div className="flex items-center gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300">
+                                <AlertTriangle size={17} className="shrink-0 text-amber-600" />
+                                <span>
+                                    <strong>Expiring Soon:</strong> This medicine will expire in {daysUntilExp} day(s). It will be prioritized for dispensing to patients first under FEFO.
+                                </span>
+                            </div>
+                        )}
+
+                        {/* 2-Column Fields Grid */}
+                        <div className="grid gap-4 md:grid-cols-2">
+                            {/* 1. Medicine Name (Left) */}
+                            <div className="flex flex-col gap-1">
+                                <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Medicine Name
+                                    <span className="ml-1 text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="medicine_name"
+                                    value={form.medicine_name}
+                                    onChange={handleChange}
+                                    placeholder="e.g. Paracetamol 500mg"
+                                    required
+                                    className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                />
+                            </div>
+
+                            {/* 2. Treatment Type (Right) */}
+                            <div className="flex flex-col gap-1">
+                                <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Treatment Type
+                                    <span className="ml-1 text-red-500">*</span>
+                                </label>
+                                <select
+                                    name="treatment_type"
+                                    value={form.treatment_type}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                >
+                                    {availableTreatments.map((type) => (
+                                        <option key={type} value={type}>
+                                            {type}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* 3. Batch Number (Left) */}
+                            <div className="flex flex-col gap-1">
+                                <label className="flex items-center justify-between text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    <span className="flex items-center gap-1.5">
+                                        <Layers size={14} className="text-stone-400" />
+                                        Batch Number
                                     </span>
-                                ) : isExpiringSoon ? (
-                                    <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
-                                        Expiring Soon ({daysUntilExp}d)
+                                    <span className="text-xs text-stone-400">Optional</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="batch_number"
+                                    value={form.batch_number || ""}
+                                    onChange={handleChange}
+                                    placeholder="Auto-generated if left blank"
+                                    className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                />
+                            </div>
+
+                            {/* 4. Date Added (Right) */}
+                            <div className="flex flex-col gap-1">
+                                <label className="flex items-center gap-1.5 text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    <Calendar size={14} className="text-stone-400" />
+                                    Date Added
+                                </label>
+                                <input
+                                    type="date"
+                                    name="date_added"
+                                    value={form.date_added || new Date().toISOString().split("T")[0]}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                />
+                            </div>
+
+                            {/* 5. Expiration Date (Left) */}
+                            <div className="flex flex-col gap-1">
+                                <label className="flex items-center justify-between text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    <span className="flex items-center gap-1.5">
+                                        <Calendar size={14} className="text-stone-400" />
+                                        Expiration Date
                                     </span>
-                                ) : null}
-                            </label>
-                            <input
-                                type="date"
-                                name="expiration_date"
-                                value={form.expiration_date || ""}
-                                onChange={handleChange}
-                                className={`w-full rounded-lg border bg-white px-3 py-2 text-sm outline-none transition focus:ring-2 dark:bg-stone-800 dark:text-stone-100 ${
-                                    isExpired
-                                        ? "border-red-400 focus:border-red-500 focus:ring-red-100 dark:border-red-800"
-                                        : isExpiringSoon
-                                        ? "border-amber-400 focus:border-amber-500 focus:ring-amber-100 dark:border-amber-800"
-                                        : "border-stone-300 focus:border-amber-500 focus:ring-amber-100 dark:border-stone-700"
-                                }`}
-                            />
-                        </div>
+                                    {isExpired ? (
+                                        <span className="text-[11px] font-bold text-red-600 dark:text-red-400">
+                                            Expired
+                                        </span>
+                                    ) : isExpiringSoon ? (
+                                        <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                                            Expiring Soon ({daysUntilExp}d)
+                                        </span>
+                                    ) : isNearExpiration ? (
+                                        <span className="text-[11px] font-bold text-yellow-700 dark:text-yellow-400">
+                                            Near Expiration ({daysUntilExp}d)
+                                        </span>
+                                    ) : isGood ? (
+                                        <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+                                            Good ({daysUntilExp}d)
+                                        </span>
+                                    ) : null}
+                                </label>
+                                <input
+                                    type="date"
+                                    name="expiration_date"
+                                    value={form.expiration_date || ""}
+                                    onChange={handleChange}
+                                    className={`w-full rounded-lg border bg-white px-3 py-2 text-sm outline-none transition focus:ring-2 dark:bg-stone-800 dark:text-stone-100 ${
+                                        isExpired
+                                            ? "border-red-400 focus:border-red-500 focus:ring-red-100 dark:border-red-800"
+                                            : isExpiringSoon
+                                            ? "border-amber-400 focus:border-amber-500 focus:ring-amber-100 dark:border-amber-800"
+                                            : isNearExpiration
+                                            ? "border-yellow-400 focus:border-yellow-500 focus:ring-yellow-100 dark:border-yellow-800"
+                                            : "border-stone-300 focus:border-amber-500 focus:ring-amber-100 dark:border-stone-700"
+                                    }`}
+                                />
+                            </div>
 
-                        {/* 4. Unit of Measure (Right) */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Unit of Measure
-                                <span className="ml-1 text-red-500">*</span>
-                            </label>
-                            <select
-                                name="unit"
-                                value={form.unit}
-                                onChange={handleChange}
-                                required
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
-                            >
-                                {UNIT_OPTIONS.map((unit) => (
-                                    <option key={unit} value={unit}>
-                                        {unit}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                            {/* 6. Unit of Measure (Right) */}
+                            <div className="flex flex-col gap-1">
+                                <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Unit of Measure
+                                    <span className="ml-1 text-red-500">*</span>
+                                </label>
+                                <select
+                                    name="unit"
+                                    value={form.unit}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                >
+                                    {UNIT_OPTIONS.map((unit) => (
+                                        <option key={unit} value={unit}>
+                                            {unit}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
-                        {/* 5. Stock (Left) */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                {editingMedicine ? "Current Stock" : "Initial Stock"}
-                                <span className="ml-1 text-red-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                name="stock"
-                                min="0"
-                                value={form.stock}
-                                onChange={handleChange}
-                                placeholder="0"
-                                required
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
-                            />
-                        </div>
+                            {/* 7. Stock (Left) */}
+                            <div className="flex flex-col gap-1">
+                                <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    {editingMedicine ? "Current Stock" : "Initial Stock Quantity"}
+                                    <span className="ml-1 text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    name="stock"
+                                    min="0"
+                                    value={form.stock}
+                                    onChange={handleChange}
+                                    placeholder="0"
+                                    required
+                                    className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                />
+                            </div>
 
-                        {/* 6. Minimum Stock (Right) */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Minimum Stock (Alert Level)
-                                <span className="ml-1 text-red-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                name="minimum_stock"
-                                min="0"
-                                value={form.minimum_stock}
-                                onChange={handleChange}
-                                placeholder="10"
-                                required
-                                className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
-                            />
-                        </div>
+                            {/* 8. Minimum Stock (Right) */}
+                            <div className="flex flex-col gap-1">
+                                <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Minimum Stock (Alert Level)
+                                    <span className="ml-1 text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    name="minimum_stock"
+                                    min="0"
+                                    value={form.minimum_stock}
+                                    onChange={handleChange}
+                                    placeholder="10"
+                                    required
+                                    className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                />
+                            </div>
 
-                        {/* 7. Live Status Preview (Full width) */}
-                        <div className="flex flex-col gap-1 md:col-span-2">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Status Overview
-                            </label>
-                            <div className="flex flex-wrap items-center gap-3 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs dark:border-stone-800 dark:bg-stone-800/50">
-                                {/* Stock Status badge */}
-                                {isOutOfStock ? (
-                                    <div className="flex items-center gap-1.5 font-semibold text-red-600 dark:text-red-400">
-                                        <AlertTriangle size={15} />
-                                        <span>Out of Stock</span>
-                                    </div>
-                                ) : isLowStock ? (
-                                    <div className="flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400">
-                                        <AlertTriangle size={15} />
-                                        <span>Low Stock</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
-                                        <CheckCircle2 size={15} />
-                                        <span>In Stock</span>
-                                    </div>
-                                )}
+                            {/* 9. Supplier (Optional) */}
+                            <div className="flex flex-col gap-1">
+                                <label className="flex items-center justify-between text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    <span className="flex items-center gap-1.5">
+                                        <Truck size={14} className="text-stone-400" />
+                                        Supplier / Source
+                                    </span>
+                                    <span className="text-xs text-stone-400">Optional</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="supplier"
+                                    value={form.supplier || ""}
+                                    onChange={handleChange}
+                                    placeholder="e.g. DOH / Rural Health Unit"
+                                    className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                />
+                            </div>
 
-                                <span className="text-stone-300 dark:text-stone-700">|</span>
+                            {/* 10. Remarks (Optional) */}
+                            <div className="flex flex-col gap-1">
+                                <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Stock Remarks
+                                    <span className="ml-1 text-xs font-normal text-stone-400">(Optional)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="remarks"
+                                    value={form.remarks || ""}
+                                    onChange={handleChange}
+                                    placeholder="e.g. Batch donation, sealed box"
+                                    className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                />
+                            </div>
 
-                                {/* Expiration status badge */}
-                                {isExpired ? (
-                                    <div className="flex items-center gap-1.5 font-semibold text-red-600 dark:text-red-400">
-                                        <AlertOctagon size={15} />
-                                        <span>Expired ({form.expiration_date})</span>
-                                    </div>
-                                ) : isExpiringSoon ? (
-                                    <div className="flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400">
-                                        <Calendar size={15} />
-                                        <span>Expiring in {daysUntilExp} day(s)</span>
-                                    </div>
-                                ) : form.expiration_date ? (
-                                    <div className="flex items-center gap-1.5 text-stone-600 dark:text-stone-300">
-                                        <CheckCircle2 size={15} className="text-emerald-500" />
-                                        <span>Valid until {form.expiration_date}</span>
-                                    </div>
-                                ) : (
-                                    <span className="text-stone-400">No expiration date set</span>
-                                )}
+                            {/* 11. Live 4-Tier Status Overview (Full width) */}
+                            <div className="flex flex-col gap-1 md:col-span-2">
+                                <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Status Overview & FEFO Priority
+                                </label>
+                                <div className="flex flex-wrap items-center gap-3 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs dark:border-stone-800 dark:bg-stone-800/50">
+                                    {/* Stock Status badge */}
+                                    {isOutOfStock ? (
+                                        <div className="flex items-center gap-1.5 font-semibold text-red-600 dark:text-red-400">
+                                            <AlertTriangle size={15} />
+                                            <span>Out of Stock</span>
+                                        </div>
+                                    ) : isLowStock ? (
+                                        <div className="flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400">
+                                            <AlertTriangle size={15} />
+                                            <span>Low Stock</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                                            <CheckCircle2 size={15} />
+                                            <span>In Stock</span>
+                                        </div>
+                                    )}
+
+                                    <span className="text-stone-300 dark:text-stone-700">|</span>
+
+                                    {/* 4-Tier Expiration status badge */}
+                                    {isExpired ? (
+                                        <div className="flex items-center gap-1.5 font-semibold text-red-600 dark:text-red-400">
+                                            <AlertOctagon size={15} />
+                                            <span>Expired ({Math.abs(daysUntilExp || 0)}d ago) • Excluded from Issuing</span>
+                                        </div>
+                                    ) : isExpiringSoon ? (
+                                        <div className="flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-400">
+                                            <Clock size={15} />
+                                            <span>Expiring Soon ({daysUntilExp}d left) • Priority 1 for Patient</span>
+                                        </div>
+                                    ) : isNearExpiration ? (
+                                        <div className="flex items-center gap-1.5 font-semibold text-yellow-800 dark:text-yellow-400">
+                                            <Clock size={15} />
+                                            <span>Near Expiration ({daysUntilExp}d left) • Priority 2 for Patient</span>
+                                        </div>
+                                    ) : isGood ? (
+                                        <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-semibold">
+                                            <CheckCircle2 size={15} />
+                                            <span>Good ({daysUntilExp}d left before expiration)</span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-stone-400">No expiration date set</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 12. Description (Full width across 2 columns) */}
+                            <div className="flex flex-col gap-1 md:col-span-2">
+                                <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Description / Usage Notes
+                                    <span className="ml-1 text-xs font-normal text-stone-400">
+                                        (Optional)
+                                    </span>
+                                </label>
+                                <textarea
+                                    name="description"
+                                    value={form.description}
+                                    onChange={handleChange}
+                                    rows={2}
+                                    placeholder="Indications, dosage directions, or storage instructions..."
+                                    className="w-full resize-none rounded-lg border border-stone-300 bg-white p-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                                />
                             </div>
                         </div>
-
-                        {/* 8. Description (Full width across 2 columns) */}
-                        <div className="flex flex-col gap-1 md:col-span-2">
-                            <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Description / Usage Notes
-                                <span className="ml-1 text-xs font-normal text-stone-400">
-                                    (Optional)
-                                </span>
-                            </label>
-                            <textarea
-                                name="description"
-                                value={form.description}
-                                onChange={handleChange}
-                                rows={3}
-                                placeholder="Indications, dosage directions, or storage instructions..."
-                                className="w-full resize-none rounded-lg border border-stone-300 bg-white p-2.5 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
-                            />
-                        </div>
-                    </div>
-
                     </div>
 
                     {/* Divider and Action Buttons matching reference layout */}

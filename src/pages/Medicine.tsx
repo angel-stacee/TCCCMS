@@ -49,6 +49,10 @@ const EMPTY_FORM = {
     stock: "",
     minimum_stock: "10",
     description: "",
+    batch_number: "",
+    date_added: new Date().toISOString().split("T")[0],
+    supplier: "",
+    remarks: "",
 };
 
 function Medicine() {
@@ -229,6 +233,10 @@ function Medicine() {
                     ? "10"
                     : String(medicine.minimum_stock),
             description: medicine.description || "",
+            batch_number: medicine.batch_number || "",
+            date_added: medicine.created_at ? String(medicine.created_at).split("T")[0] : new Date().toISOString().split("T")[0],
+            supplier: medicine.supplier || "",
+            remarks: medicine.remarks || "",
         });
 
         setError("");
@@ -308,8 +316,11 @@ function Medicine() {
                 unit: form.unit,
                 stock: stockValue,
                 minimum_stock: minimumStockValue,
-                description:
-                    form.description.trim() || null,
+                description: form.description.trim() || null,
+                batch_number: form.batch_number?.trim() || null,
+                date_added: form.date_added || null,
+                supplier: form.supplier?.trim() || null,
+                remarks: form.remarks?.trim() || null,
             };
 
             if (editingMedicine) {

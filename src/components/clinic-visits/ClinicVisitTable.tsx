@@ -307,7 +307,7 @@ export function ClinicVisitTable({
                                                 <h3 className="text-sm font-bold text-[#3c332a] dark:text-stone-100">
                                                     {formatNA(patient.name)}
                                                 </h3>
-                                                <span className="rounded-full bg-[#fcebe7] px-2 py-0.2 text-[10px] font-bold text-[#70091f] dark:bg-[#70091f]/30 dark:text-[#f8a598]">
+                                                <span className="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400">
                                                     {patient.type || "Patient"}
                                                 </span>
                                             </div>

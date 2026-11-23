@@ -354,15 +354,7 @@ export function ClinicVisitModal({
                                                         </p>
                                                     </div>
 
-                                                    <span
-                                                        className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                                                            patient.type === "student"
-                                                                ? "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
-                                                                : patient.type === "faculty"
-                                                                  ? "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
-                                                                  : "bg-green-50 text-green-600 dark:bg-green-950/40 dark:text-green-400"
-                                                        }`}
-                                                    >
+                                                    <span className="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400">
                                                         {patient.label}
                                                     </span>
                                                 </div>

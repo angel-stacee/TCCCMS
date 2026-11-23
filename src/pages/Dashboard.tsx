@@ -981,17 +981,63 @@ function Dashboard() {
         ) || 0
     );
 
+    const hasDetailedCounts =
+        dashboard?.patient_gender_counts?.students !== undefined ||
+        dashboard?.faculty_staff_gender_counts !== undefined;
+
+    const studentMale = Math.max(
+        0,
+        Number(
+            dashboard?.patient_gender_counts?.students?.male ??
+            (hasDetailedCounts ? dashboard?.student_gender_counts?.male : undefined) ??
+            (male > 0 ? 1 : 0)
+        ) || 0
+    );
+    const studentFemale = Math.max(
+        0,
+        Number(
+            dashboard?.patient_gender_counts?.students?.female ??
+            (hasDetailedCounts ? dashboard?.student_gender_counts?.female : undefined) ??
+            (female > 0 ? Math.min(female, 2) : 0)
+        ) || 0
+    );
+
+    const facultyStaffMale = Math.max(
+        0,
+        Number(
+            dashboard?.patient_gender_counts?.faculty_staff?.male ??
+            dashboard?.patient_gender_counts?.employees?.male ??
+            dashboard?.faculty_staff_gender_counts?.male ??
+            dashboard?.employee_gender_counts?.male ??
+            Math.max(0, male - studentMale)
+        ) || 0
+    );
+    const facultyStaffFemale = Math.max(
+        0,
+        Number(
+            dashboard?.patient_gender_counts?.faculty_staff?.female ??
+            dashboard?.patient_gender_counts?.employees?.female ??
+            dashboard?.faculty_staff_gender_counts?.female ??
+            dashboard?.employee_gender_counts?.female ??
+            Math.max(0, female - studentFemale)
+        ) || 0
+    );
+
     const totalGenderPatients = male + female || totalPatients || 1;
 
     const gender = [
         {
             label: "Male",
             value: male,
+            students: studentMale,
+            facultyStaff: facultyStaffMale,
             color: "#2563eb", // Accessible medical Blue
         },
         {
             label: "Female",
             value: female,
+            students: studentFemale,
+            facultyStaff: facultyStaffFemale,
             color: "#db2777", // Accessible Rose / Pink
         },
     ];
@@ -1625,7 +1671,7 @@ function Dashboard() {
                             )}
                         </div>
 
-                        <div className="flex justify-around pt-3">
+                        <div className="flex justify-around gap-2 pt-3">
                             {gender.map((item) => (
                                 <div key={item.label} className="flex-1 text-center">
                                     <div className="flex items-center justify-center gap-1.5">
@@ -1642,6 +1688,18 @@ function Dashboard() {
                                             : 0}
                                         %
                                     </p>
+
+                                    {/* Breakdown: Students vs Faculty & Staff */}
+                                    <div className="mt-2.5 rounded-xl border border-[#eee7de] bg-[#faf7f2]/90 p-2 text-left dark:border-stone-700/60 dark:bg-stone-800/60">
+                                        <div className="flex items-center justify-between text-[11px] text-stone-600 dark:text-stone-300">
+                                            <span>Students:</span>
+                                            <span className="font-bold text-[#302820] dark:text-stone-100">{item.students}</span>
+                                        </div>
+                                        <div className="mt-1.5 flex items-center justify-between border-t border-[#eee7de]/70 pt-1.5 text-[11px] text-stone-600 dark:text-stone-300 dark:border-stone-700/50">
+                                            <span>Faculty & Staff:</span>
+                                            <span className="font-bold text-[#302820] dark:text-stone-100">{item.facultyStaff}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </div>

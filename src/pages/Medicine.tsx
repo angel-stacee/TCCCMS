@@ -1262,7 +1262,7 @@ function Medicine() {
                                 <div>
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-[#f4ecdf]">
-                                            Medicine List &amp; Formulary
+                                            Medicine List
                                         </h2>
                                         <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e8dfd4] bg-white px-2.5 py-0.5 text-xs font-bold text-[#70091f] shadow-xs dark:border-stone-700 dark:bg-stone-800 dark:text-[#f8a598]">
                                             <Package size={13} />

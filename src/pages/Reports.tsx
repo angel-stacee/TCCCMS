@@ -374,18 +374,20 @@ function Reports() {
                         <SummaryCard title="Staff Consultations" value={summary.staff_visits || 0} icon={<Briefcase size={21} />} />
                     </section>
 
-                    {/* Daily Visits Chart */}
-                    <DailyVisitsChart
-                        data={dailyVisits}
-                        visits={rawVisits}
-                        summary={summary}
-                        month={month}
-                        year={year}
-                        period={report.report?.period || `${monthNames[month - 1]} ${year}`}
-                    />
+                    {/* Daily Visits Chart (Screen only - excluded in PDF & Print) */}
+                    <div className="print:hidden">
+                        <DailyVisitsChart
+                            data={dailyVisits}
+                            visits={rawVisits}
+                            summary={summary}
+                            month={month}
+                            year={year}
+                            period={report.report?.period || `${monthNames[month - 1]} ${year}`}
+                        />
+                    </div>
 
-                    {/* Detailed Breakdowns (Reasons, Illnesses, Medicine, Nurse) */}
-                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+                    {/* Detailed Breakdowns (Reasons, Illnesses, Medicine, Nurse - 2x2 Grid in Print matching PDF) */}
+                    <div className="report-breakdown-grid grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 print:grid-cols-2 print:gap-4 print:break-inside-avoid">
                         <section className="report-panel rounded-2xl border border-[#e8dfd4] bg-white p-5 shadow-sm">
                             <div className="mb-4 flex items-center gap-2">
                                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f3ebdf] text-[#8a6f50]">
@@ -531,14 +533,14 @@ function Reports() {
                                     <col style={{ width: "12%" }} />
                                 </colgroup>
                                 <thead>
-                                    <tr className="bg-stone-50 text-left">
-                                        <th className="px-4 py-3 text-xs font-bold uppercase text-stone-500">Date</th>
-                                        <th className="px-4 py-3 text-xs font-bold uppercase text-stone-500">Patient</th>
-                                        <th className="px-4 py-3 text-xs font-bold uppercase text-stone-500">Type</th>
-                                        <th className="px-4 py-3 text-xs font-bold uppercase text-stone-500">Department</th>
-                                        <th className="px-4 py-3 text-xs font-bold uppercase text-stone-500">Reason / Symptoms</th>
-                                        <th className="px-4 py-3 text-xs font-bold uppercase text-stone-500">Medicine</th>
-                                        <th className="px-4 py-3 text-xs font-bold uppercase text-stone-500">Attending Staff</th>
+                                    <tr className="bg-[#70091f] text-white print:bg-[#70091f] print:text-white text-left">
+                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Date</th>
+                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Patient</th>
+                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Type</th>
+                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Department</th>
+                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Reason / Symptoms</th>
+                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Medicine</th>
+                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Attending Staff</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -635,7 +637,7 @@ function Reports() {
 
 function ReportSignatureBlock({ periodLabel }: { periodLabel?: string }) {
     return (
-        <footer className="report-signatures mt-8 rounded-2xl border border-[#e8dfd4] bg-white p-6 shadow-sm break-inside-avoid print:rounded-none print:border-0 print:border-t-2 print:border-stone-400 print:p-0 print:pt-6 print:shadow-none">
+        <footer className="report-signatures mt-8 rounded-2xl border border-[#e8dfd4] bg-white p-6 shadow-sm break-inside-avoid print:break-inside-avoid print:rounded-xl print:border print:border-[#d4c7b8] print:p-5 print:shadow-none">
             <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.14em] text-[#70091f]">
                 Official Endorsement & Signatures
             </p>

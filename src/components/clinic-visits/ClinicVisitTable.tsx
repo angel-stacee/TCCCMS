@@ -167,7 +167,7 @@ export function ClinicVisitTable({
                                                 )}
                                             </td>
 
-                                            <td className="max-w-[160px] px-3.5 py-3">
+                                            <td className="max-w-[170px] px-3.5 py-3 truncate" title={visit.reason || ""}>
                                                 <ReasonBadge reason={visit.reason} symptoms={visit.symptoms} />
                                             </td>
 

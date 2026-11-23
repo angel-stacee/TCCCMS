@@ -241,13 +241,12 @@ export function getReasonColorHex(reason: string): string {
 }
 
 /**
- * Centralized React component to render consultation reason badge
+ * Centralized React component to render consultation reason in clean text without color badges
  */
 export function ReasonBadge({
     reason,
     symptoms,
     className = "",
-    showSymptoms = false,
 }: {
     reason: string | null | undefined;
     symptoms?: string | null;
@@ -255,39 +254,22 @@ export function ReasonBadge({
     showSymptoms?: boolean;
 }) {
     if (!reason || reason === "-") {
-        return <span className="text-xs text-stone-400 italic">N/A</span>;
+        return <span className="text-xs text-stone-400 italic">None</span>;
     }
 
-    const style = getReasonBadgeStyle(reason);
     const lower = reason.toLowerCase().trim();
     const displayText = lower === "other" && symptoms ? symptoms : reason.trim();
-
-    const colorClasses = `${style.bg} ${style.text} ${style.border} ${style.darkBg} ${style.darkText} ${style.darkBorder}`;
     const tooltipText = symptoms && symptoms.trim() && symptoms.trim() !== displayText
         ? `Reason: ${displayText} • Symptoms: ${symptoms.trim()}`
         : displayText;
 
     return (
-        <div className={`inline-flex flex-col items-start ${className}`} title={tooltipText}>
-            <span
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold tracking-tight shadow-xs transition-colors duration-150 ${colorClasses}`}
-            >
-                <span
-                    className="h-2 w-2 rounded-full shrink-0 shadow-xs"
-                    style={{ backgroundColor: style.hex }}
-                    aria-hidden="true"
-                />
-                <span className="truncate max-w-[190px]">{displayText}</span>
-            </span>
-            {showSymptoms && lower !== "other" && symptoms && symptoms.trim() !== "" && symptoms.trim() !== reason.trim() && (
-                <span
-                    className="max-w-[200px] truncate text-xs font-medium text-stone-600 dark:text-stone-300 pl-1"
-                    title={symptoms}
-                >
-                    {symptoms}
-                </span>
-            )}
-        </div>
+        <span
+            className={`inline-block max-w-full truncate text-xs font-semibold text-[#3c332a] dark:text-stone-200 ${className}`}
+            title={tooltipText}
+        >
+            {displayText}
+        </span>
     );
 }
 

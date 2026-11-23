@@ -94,6 +94,69 @@ export async function getDeviceNotificationPermissionStatus(): Promise<"granted"
 }
 
 /**
+ * Checks whether the current runtime environment can request and display push notifications.
+ * Browsers strictly prohibit Notification and ServiceWorker APIs on insecure HTTP origins
+ * (e.g., http://192.168.x.x:5173), allowing only HTTPS or localhost.
+ */
+export function getNotificationEnvironmentInfo(): {
+    isNative: boolean;
+    isSecure: boolean;
+    isLocalhost: boolean;
+    canPrompt: boolean;
+    permission: "granted" | "denied" | "default" | "unsupported";
+    reason?: string;
+} {
+    if (Capacitor.isNativePlatform()) {
+        return {
+            isNative: true,
+            isSecure: true,
+            isLocalhost: false,
+            canPrompt: true,
+            permission: "default",
+        };
+    }
+
+    if (typeof window === "undefined" || !("Notification" in window)) {
+        return {
+            isNative: false,
+            isSecure: false,
+            isLocalhost: false,
+            canPrompt: false,
+            permission: "unsupported",
+            reason: "Notifications are not supported in this browser.",
+        };
+    }
+
+    const isLocalhost =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
+    const isSecure = window.isSecureContext || isLocalhost;
+
+    if (!isSecure) {
+        return {
+            isNative: false,
+            isSecure: false,
+            isLocalhost: false,
+            canPrompt: false,
+            permission: Notification.permission as any,
+            reason: "Web browsers strictly block push notifications on plain HTTP (192.168.x.x). To receive notifications on your phone, use the native Android App (.apk) or open the live HTTPS site (https://tcc-clinic.cloud).",
+        };
+    }
+
+    return {
+        isNative: false,
+        isSecure: true,
+        isLocalhost,
+        canPrompt: Notification.permission !== "denied",
+        permission: Notification.permission as any,
+        reason:
+            Notification.permission === "denied"
+                ? "Notifications were blocked in your browser settings. Please click the lock or settings icon next to the address bar to allow them."
+                : undefined,
+    };
+}
+
+/**
  * Initializes and requests notification permissions across both Native Android (Capacitor)
  * and Mobile Browser / PWA environments. Must be called in response to a user click gesture
  * for mobile web browsers to display the prompt.

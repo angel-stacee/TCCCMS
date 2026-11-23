@@ -43,6 +43,7 @@ import {
     syncDeviceNotifications,
     sendDeviceNotification,
     getDeviceNotificationPermissionStatus,
+    getNotificationEnvironmentInfo,
 } from "../../services/deviceNotifications";
 import { useTheme } from "../../utils/theme";
 import { Avatar, StudentDetail, Skeleton } from "../dashboard/DashboardWidgets";
@@ -1067,6 +1068,20 @@ export function Header({
                                     <button
                                         type="button"
                                         onClick={async () => {
+                                            const env = getNotificationEnvironmentInfo();
+                                            if (!env.isNative && !env.isSecure) {
+                                                alert(
+                                                    "⚠️ Browser Security Restriction:\n\n" +
+                                                    "Web browsers (Chrome/Edge/Safari) strictly block push notifications on plain HTTP IP addresses like " +
+                                                    window.location.host + ".\n\n" +
+                                                    "To receive notifications on your cellphone:\n" +
+                                                    "1. Use the official TCC Clinic Android App (.apk), OR\n" +
+                                                    "2. Open the live HTTPS site: https://tcc-clinic.cloud\n" +
+                                                    "3. Or open on your PC via: http://localhost:5173"
+                                                );
+                                                return;
+                                            }
+
                                             const granted = await requestDeviceNotificationPermission();
                                             setDeviceNotifPerm(granted ? "granted" : "denied");
                                             if (granted) {
@@ -1078,7 +1093,17 @@ export function Header({
                                                     alert("Alert sent! If it did not pop up, please check if your phone's notification volume is on or Do Not Disturb is off.");
                                                 }
                                             } else {
-                                                alert("Notification permission is not enabled yet. Please tap 'Allow' when your browser or phone asks for permission.");
+                                                if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "denied") {
+                                                    alert(
+                                                        "Notification permission is blocked in your browser.\n\n" +
+                                                        "To enable it:\n" +
+                                                        "1. Tap the tune/padlock icon next to the URL in your browser address bar.\n" +
+                                                        "2. Tap 'Permissions' -> 'Notifications'.\n" +
+                                                        "3. Change it from Block to 'Allow'."
+                                                    );
+                                                } else {
+                                                    alert("Notification permission is not enabled yet. Please tap 'Allow' when your browser or phone asks for permission.");
+                                                }
                                             }
                                         }}
                                         title="Send a test notification to your cellphone"
@@ -1124,6 +1149,20 @@ export function Header({
                                             <button
                                                 type="button"
                                                 onClick={async () => {
+                                                    const env = getNotificationEnvironmentInfo();
+                                                    if (!env.isNative && !env.isSecure) {
+                                                        alert(
+                                                            "⚠️ Browser Security Restriction:\n\n" +
+                                                            "Web browsers (Chrome/Edge/Safari) strictly block push notifications on plain HTTP IP addresses like " +
+                                                            window.location.host + ".\n\n" +
+                                                            "To receive notifications on your cellphone:\n" +
+                                                            "1. Use the official TCC Clinic Android App (.apk), OR\n" +
+                                                            "2. Open the live HTTPS site: https://tcc-clinic.cloud\n" +
+                                                            "3. Or open on your PC via: http://localhost:5173"
+                                                        );
+                                                        return;
+                                                    }
+
                                                     const ok = await requestDeviceNotificationPermission();
                                                     setDeviceNotifPerm(ok ? "granted" : "denied");
                                                     if (ok) {
@@ -1132,7 +1171,14 @@ export function Header({
                                                             "Your cellphone will now receive alerts for clinic visits, reminders, and emergencies."
                                                         );
                                                     } else {
-                                                        alert("Notification permission was not granted. Please check your phone settings or tap the lock icon in your browser address bar to allow notifications.");
+                                                        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "denied") {
+                                                            alert(
+                                                                "Notifications are blocked in your browser settings.\n\n" +
+                                                                "Please tap the lock/settings icon next to the address bar, go to Permissions -> Notifications, and select 'Allow'."
+                                                            );
+                                                        } else {
+                                                            alert("Notification permission was not granted. Please check your phone settings or tap the lock icon in your browser address bar to allow notifications.");
+                                                        }
                                                     }
                                                 }}
                                                 className="mt-1.5 inline-flex items-center gap-1 rounded-lg bg-[#70091f] px-2.5 py-1 text-xs font-bold text-white hover:bg-[#8b1505] transition cursor-pointer shadow-sm"

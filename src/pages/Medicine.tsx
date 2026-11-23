@@ -1275,10 +1275,9 @@ function Medicine() {
                             )}
                         </div>
 
-                        {/* Bigger Search Bar and Integrated Filter Dropdowns */}
-                        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                            {/* Prominent, Expanded Search Bar */}
-                            <div className="relative flex-1">
+                        {/* Search Bar */}
+                        <div className="flex flex-col gap-3">
+                            <div className="relative w-full">
                                 <Search
                                     size={18}
                                     className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8a6f50] dark:text-[#d4b996]"
@@ -1310,53 +1309,6 @@ function Medicine() {
                                         <X size={15} />
                                     </button>
                                 )}
-                            </div>
-
-                            {/* Filter Dropdowns Controls */}
-                            <div className="flex flex-wrap items-center gap-2">
-                                <div className="relative flex-1 sm:w-48 sm:flex-initial">
-                                    <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8a6f50] dark:text-[#d4b996]">
-                                        <Filter size={15} />
-                                    </div>
-                                    <select
-                                        value={selectedCategory || "All"}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            const query = val === "All" ? "" : val;
-                                            setSelectedCategory(val);
-                                            setSearch(query);
-                                            loadMedicines(1, query, statusFilter);
-                                        }}
-                                        aria-label="Filter by Category"
-                                        className="w-full rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] py-3 pl-8.5 pr-8 text-sm font-medium text-stone-800 outline-none transition focus:border-[#70091f] focus:bg-white focus:ring-4 focus:ring-[#70091f]/10 dark:border-[#4e4234] dark:bg-[#201a15] dark:text-[#f4ecdf]"
-                                    >
-                                        <option value="All">All Categories</option>
-                                        <option value="First Aid">First Aid</option>
-                                        <option value="Medication">Medication</option>
-                                        <option value="Wound Care">Wound Care</option>
-                                        <option value="Cold Compress">Cold Compress</option>
-                                        <option value="Hot Compress">Hot Compress</option>
-                                    </select>
-                                </div>
-
-                                <div className="relative flex-1 sm:w-52 sm:flex-initial">
-                                    <select
-                                        value={statusFilter}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            setStatusFilter(val);
-                                            loadMedicines(1, search, val);
-                                        }}
-                                        aria-label="Filter by Status"
-                                        className="w-full rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] px-3.5 py-3 text-sm font-medium text-stone-800 outline-none transition focus:border-[#70091f] focus:bg-white focus:ring-4 focus:ring-[#70091f]/10 dark:border-[#4e4234] dark:bg-[#201a15] dark:text-[#f4ecdf]"
-                                    >
-                                        <option value="all">All Statuses</option>
-                                        <option value="low_stock">Low Stock ({summary.low_stock_count || 0})</option>
-                                        <option value="out_of_stock">Out of Stock ({summary.out_of_stock_count || 0})</option>
-                                        <option value="expired">Expired ({summary.expired_count || 0})</option>
-                                        <option value="expiring_soon">Expiring Soon ({summary.expiring_soon_count || 0})</option>
-                                    </select>
-                                </div>
                             </div>
                         </div>
                     </div>

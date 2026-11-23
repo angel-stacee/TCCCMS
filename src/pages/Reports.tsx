@@ -170,7 +170,6 @@ function Reports() {
 
     const reasons = report?.reasons || [];
     const commonIllnesses = report?.common_illnesses || [];
-    const maximumReasonCount = Math.max(1, ...reasons.map((r) => Number(r.count || 0)));
     const medicineUsage = report?.medicine_usage || [];
     const nurseActivity = report?.nurse_activity || [];
     const dailyVisits = report?.daily_visits || [];
@@ -390,7 +389,7 @@ function Reports() {
                     <div className="report-breakdown-grid grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 print:grid-cols-2 print:gap-4 print:break-inside-avoid">
                         <section className="report-panel rounded-2xl border border-[#e8dfd4] bg-white p-5 shadow-sm">
                             <div className="mb-4 flex items-center gap-2">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f3ebdf] text-[#8a6f50]">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#70091f]/10 text-[#70091f]">
                                     <Stethoscope size={18} aria-hidden="true" />
                                 </div>
                                 <div>
@@ -401,18 +400,15 @@ function Reports() {
                             {reasons.length === 0 ? (
                                 <p className="rounded-xl bg-stone-50 px-4 py-6 text-center text-sm text-stone-500">No visit reasons recorded.</p>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="divide-y divide-stone-100">
                                     {reasons.slice(0, 7).map((item) => {
                                         const count = Number(item.count || 0);
                                         return (
-                                            <div key={item.reason}>
-                                                <div className="mb-1 flex items-center justify-between gap-3 text-xs">
-                                                    <span className="truncate font-medium text-stone-700">{formatNA(item.reason)}</span>
-                                                    <span className="shrink-0 font-bold text-[#8a6f50]">{count}</span>
-                                                </div>
-                                                <div className="h-2 overflow-hidden rounded-full bg-stone-100">
-                                                    <div className="h-full rounded-full bg-[#8a6f50]" style={{ width: `${(count / maximumReasonCount) * 100}%` }} />
-                                                </div>
+                                            <div key={item.reason} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+                                                <span className="truncate text-sm font-medium text-stone-700">{formatNA(item.reason)}</span>
+                                                <span className="shrink-0 text-sm font-bold text-[#70091f]">
+                                                    {count} {count === 1 ? "visit" : "visits"}
+                                                </span>
                                             </div>
                                         );
                                     })}
@@ -422,7 +418,7 @@ function Reports() {
 
                         <section className="report-panel rounded-2xl border border-[#e8dfd4] bg-white p-5 shadow-sm">
                             <div className="mb-4 flex items-center gap-2">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-700">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#70091f]/10 text-[#70091f]">
                                     <HeartPulse size={18} aria-hidden="true" />
                                 </div>
                                 <div>
@@ -437,7 +433,9 @@ function Reports() {
                                     {commonIllnesses.slice(0, 7).map((item) => (
                                         <div key={item.illness} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
                                             <span className="truncate text-sm font-medium text-stone-700">{formatNA(item.illness)}</span>
-                                            <span className="shrink-0 rounded-lg bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">{item.count} cases</span>
+                                            <span className="shrink-0 text-sm font-bold text-[#70091f]">
+                                                {item.count} {item.count === 1 ? "case" : "cases"}
+                                            </span>
                                         </div>
                                     ))}
                                 </div>
@@ -446,7 +444,7 @@ function Reports() {
 
                         <section className="report-panel rounded-2xl border border-[#e8dfd4] bg-white p-5 shadow-sm">
                             <div className="mb-4 flex items-center gap-2">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50 text-green-700">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#70091f]/10 text-[#70091f]">
                                     <Pill size={18} aria-hidden="true" />
                                 </div>
                                 <div>
@@ -461,7 +459,7 @@ function Reports() {
                                     {medicineUsage.slice(0, 7).map((item) => (
                                         <div key={item.medicine_id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
                                             <span className="truncate text-sm font-medium text-stone-700">{formatNA(item.medicine_name)}</span>
-                                            <span className="shrink-0 rounded-lg bg-green-50 px-2 py-0.5 text-xs font-bold text-green-700">
+                                            <span className="shrink-0 text-sm font-bold text-[#70091f]">
                                                 {Number(item.quantity_used || 0).toLocaleString()} {item.unit}
                                             </span>
                                         </div>
@@ -472,7 +470,7 @@ function Reports() {
 
                         <section className="report-panel rounded-2xl border border-[#e8dfd4] bg-white p-5 shadow-sm">
                             <div className="mb-4 flex items-center gap-2">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f3ebdf] text-[#8a6f50]">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#70091f]/10 text-[#70091f]">
                                     <Users size={18} aria-hidden="true" />
                                 </div>
                                 <div>
@@ -487,7 +485,9 @@ function Reports() {
                                     {nurseActivity.map((item) => (
                                         <div key={item.nurse_id || item.name} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
                                             <span className="truncate text-sm font-medium text-stone-700">{formatNA(item.name)}</span>
-                                            <span className="shrink-0 text-sm font-bold text-[#8a6f50]">{Number(item.visits || 0).toLocaleString()}</span>
+                                            <span className="shrink-0 text-sm font-bold text-[#70091f]">
+                                                {Number(item.visits || 0).toLocaleString()} {Number(item.visits || 0) === 1 ? "visit" : "visits"}
+                                            </span>
                                         </div>
                                     ))}
                                 </div>

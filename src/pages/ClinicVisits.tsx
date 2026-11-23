@@ -1506,7 +1506,7 @@ function ClinicVisits() {
                                 title="Restore deleted clinic visits"
                             >
                                 <RotateCcw size={15} className="text-[#8a6f50]" />
-                                <span>Restored</span>
+                                <span>Restore</span>
                             </button>
 
                             <button

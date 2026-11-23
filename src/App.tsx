@@ -84,6 +84,7 @@ function App(): React.JSX.Element {
                             <Route path="/students" element={<StudentManagement />} />
                             <Route path="/clinic-visits" element={<ClinicVisits />} />
                             <Route path="/medicine" element={<Medicine />} />
+                            <Route path="/medicines" element={<Navigate to="/medicine" replace />} />
                             <Route path="/reports" element={<Reports />} />
                             <Route path="/settings" element={<Settings />} />
                             <Route path="/organization" element={<Organization />} />

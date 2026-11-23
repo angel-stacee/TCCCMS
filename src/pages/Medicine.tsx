@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, useMemo, Fragment } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
     Pill,
     ChevronLeft,
@@ -86,7 +87,17 @@ function Medicine() {
         category_breakdown: [] as any[],
         top_medicines: [] as any[],
     });
-    const [statusFilter, setStatusFilter] = useState("all");
+
+    const [searchParams] = useSearchParams();
+    const initialStatusFilter = useMemo(() => {
+        const queryFilter = searchParams.get("filter") || searchParams.get("status");
+        if (queryFilter && ["all", "in_stock", "low_stock", "out_of_stock", "expired", "expiring_soon", "near_expiration", "good"].includes(queryFilter)) {
+            return queryFilter;
+        }
+        return "all";
+    }, [searchParams]);
+
+    const [statusFilter, setStatusFilter] = useState(initialStatusFilter);
     const [search, setSearch] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [loading, setLoading] = useState(true);
@@ -105,6 +116,14 @@ function Medicine() {
     const [confirmDeleteMedicine, setConfirmDeleteMedicine] = useState<any | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [mainTab, setMainTab] = useState<"inventory" | "overview" | "most_used" | "trend">("inventory");
+
+    useEffect(() => {
+        const queryFilter = searchParams.get("filter") || searchParams.get("status");
+        if (queryFilter && ["all", "in_stock", "low_stock", "out_of_stock", "expired", "expiring_soon", "near_expiration", "good"].includes(queryFilter)) {
+            setStatusFilter(queryFilter);
+            setMainTab("inventory");
+        }
+    }, [searchParams]);
     const [selectedTrendMedicineId, setSelectedTrendMedicineId] = useState<number | string | null>("all");
     const [requisitionModalOpen, setRequisitionModalOpen] = useState(false);
     const [selectedRequisitionMed, setSelectedRequisitionMed] = useState<any | null>(null);

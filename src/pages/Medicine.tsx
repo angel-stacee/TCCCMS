@@ -16,7 +16,11 @@ import {
     AlertOctagon,
     Calendar,
     TrendingUp,
+    TrendingDown,
     RotateCcw,
+    Flame,
+    FileText,
+    Activity,
 } from "lucide-react";
 import {
     ResponsiveContainer,
@@ -30,6 +34,9 @@ import FloatingToast from "../components/common/FloatingToast";
 import { MedicineModal } from "../components/medicine/MedicineModal";
 import { RestoreMedicinesModal } from "../components/medicine/RestoreMedicinesModal";
 import { ConfirmationModal } from "../components/student-management/FieldsAndModals";
+import { MedicineRequisitionModal } from "../components/medicine/MedicineRequisitionModal";
+import { MedicineTrendLineChart } from "../components/medicine/MedicineTrendLineChart";
+import { MostUsedMedicinesView } from "../components/medicine/MostUsedMedicinesView";
 import { addClinicNotification, getStoredNotifications } from "../services/notifications";
 
 const TREATMENT_TYPES = [
@@ -94,6 +101,10 @@ function Medicine() {
     const [showRestoreModal, setShowRestoreModal] = useState(false);
     const [confirmDeleteMedicine, setConfirmDeleteMedicine] = useState<any | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [mainTab, setMainTab] = useState<"inventory" | "most_used" | "trend">("inventory");
+    const [selectedTrendMedicineId, setSelectedTrendMedicineId] = useState<number | string | null>("all");
+    const [requisitionModalOpen, setRequisitionModalOpen] = useState(false);
+    const [selectedRequisitionMed, setSelectedRequisitionMed] = useState<any | null>(null);
 
     useEffect(() => {
         if (!successMessage) return undefined;
@@ -1142,7 +1153,79 @@ function Medicine() {
 
 
                 <section className="overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white shadow-sm dark:border-[#382f25] dark:bg-[#251f19]">
+                    {/* Main Navigation Tabs */}
+                    <div className="flex flex-wrap items-center gap-2 border-b border-[#e8dfd4] bg-[#fcfaf6] px-4 pt-3 sm:px-5 dark:border-[#382f25] dark:bg-[#201a15]">
+                        <button
+                            type="button"
+                            onClick={() => setMainTab("inventory")}
+                            className={`inline-flex items-center gap-2 border-b-2 px-3 py-2.5 text-xs font-bold transition cursor-pointer ${
+                                mainTab === "inventory"
+                                    ? "border-[#70091f] text-[#70091f] dark:border-[#f8a598] dark:text-[#f8a598]"
+                                    : "border-transparent text-stone-500 hover:text-stone-800 dark:text-stone-400"
+                            }`}
+                        >
+                            <Package size={15} />
+                            <span>Medicine Inventory &amp; Batches ({pagination.total || medicines.length})</span>
+                        </button>
 
+                        <button
+                            type="button"
+                            onClick={() => setMainTab("most_used")}
+                            className={`inline-flex items-center gap-2 border-b-2 px-3 py-2.5 text-xs font-bold transition cursor-pointer ${
+                                mainTab === "most_used"
+                                    ? "border-[#70091f] text-[#70091f] dark:border-[#f8a598] dark:text-[#f8a598]"
+                                    : "border-transparent text-stone-500 hover:text-stone-800 dark:text-stone-400"
+                            }`}
+                        >
+                            <Flame size={15} className="text-amber-600" />
+                            <span>Most Used &amp; Requisitions (rqst)</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setMainTab("trend")}
+                            className={`inline-flex items-center gap-2 border-b-2 px-3 py-2.5 text-xs font-bold transition cursor-pointer ${
+                                mainTab === "trend"
+                                    ? "border-[#70091f] text-[#70091f] dark:border-[#f8a598] dark:text-[#f8a598]"
+                                    : "border-transparent text-stone-500 hover:text-stone-800 dark:text-stone-400"
+                            }`}
+                        >
+                            <TrendingUp size={15} className="text-emerald-600" />
+                            <span>Stock Trends (Line Chart: Up / Down)</span>
+                        </button>
+                    </div>
+
+                    {mainTab === "most_used" && (
+                        <div className="p-4 sm:p-5">
+                            <MostUsedMedicinesView
+                                onRequestStock={(med) => {
+                                    setSelectedRequisitionMed(med);
+                                    setRequisitionModalOpen(true);
+                                }}
+                                onViewTrend={(id) => {
+                                    setSelectedTrendMedicineId(id);
+                                    setMainTab("trend");
+                                }}
+                            />
+                        </div>
+                    )}
+
+                    {mainTab === "trend" && (
+                        <div className="p-4 sm:p-5">
+                            <MedicineTrendLineChart
+                                selectedMedicineId={selectedTrendMedicineId}
+                                allMedicines={medicines}
+                                onSelectMedicine={(id) => setSelectedTrendMedicineId(id)}
+                                onRequestStock={(med) => {
+                                    setSelectedRequisitionMed(med);
+                                    setRequisitionModalOpen(true);
+                                }}
+                            />
+                        </div>
+                    )}
+
+                    {mainTab === "inventory" && (
+                        <>
                     {/* Section Top Header & Prominent Controls Bar */}
                     <div className="flex flex-col gap-3.5 border-b border-[#e8dfd4] p-4 sm:p-5 dark:border-[#382f25]">
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -1541,7 +1624,32 @@ function Medicine() {
 
 
                                                     <td className="px-4 py-2.5">
-                                                        <div className="flex justify-end gap-1.5">
+                                                        <div className="flex items-center justify-end gap-1.5">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setSelectedTrendMedicineId(medicine.id);
+                                                                    setMainTab("trend");
+                                                                }}
+                                                                className="inline-flex items-center gap-1 rounded-lg border border-[#e8dfd4] px-2 py-1 text-[10px] font-bold text-stone-700 hover:bg-[#f6f0e6] dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800 transition cursor-pointer"
+                                                                title="See stock trend line chart (going up or down)"
+                                                            >
+                                                                <TrendingUp size={12} className="text-emerald-600" />
+                                                                <span>Trend</span>
+                                                            </button>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setSelectedRequisitionMed(medicine);
+                                                                    setRequisitionModalOpen(true);
+                                                                }}
+                                                                className="inline-flex items-center gap-1 rounded-lg border border-[#70091f]/30 bg-[#70091f]/5 px-2 py-1 text-[10px] font-bold text-[#70091f] hover:bg-[#70091f]/10 dark:border-[#f8a598]/40 dark:text-[#f8a598] transition cursor-pointer"
+                                                                title="Make requisition request (rqst)"
+                                                            >
+                                                                <FileText size={11} />
+                                                                <span>rqst</span>
+                                                            </button>
 
                                                             <button
                                                                 onClick={() =>
@@ -1549,7 +1657,7 @@ function Medicine() {
                                                                         medicine
                                                                     )
                                                                 }
-                                                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#e8dfd4] text-[#8a6f50] transition hover:bg-[#f3ebdf]"
+                                                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#e8dfd4] text-[#8a6f50] transition hover:bg-[#f3ebdf] dark:border-stone-700 dark:hover:bg-stone-800"
                                                                 title="Edit medicine"
                                                             >
                                                                 <Pencil size={13} />
@@ -1561,7 +1669,7 @@ function Medicine() {
                                                                         medicine
                                                                     )
                                                                 }
-                                                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50"
+                                                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-950/40"
                                                                 title="Delete medicine"
                                                             >
                                                                 <Trash2 size={13} />
@@ -1644,6 +1752,30 @@ function Medicine() {
                                         <div className="mt-3 flex items-center justify-end gap-2 border-t border-[#eee7de] pt-2.5 dark:border-[#382f25]">
                                             <button
                                                 type="button"
+                                                onClick={() => {
+                                                    setSelectedTrendMedicineId(medicine.id);
+                                                    setMainTab("trend");
+                                                }}
+                                                className="inline-flex items-center gap-1 rounded-lg border border-[#e8dfd4] px-2 py-1 text-[10px] font-bold text-stone-700 hover:bg-[#f6f0e6] dark:border-stone-700 dark:text-stone-300 transition"
+                                                title="See stock trend chart"
+                                            >
+                                                <TrendingUp size={11} className="text-emerald-600" />
+                                                <span>Trend</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedRequisitionMed(medicine);
+                                                    setRequisitionModalOpen(true);
+                                                }}
+                                                className="inline-flex items-center gap-1 rounded-lg border border-[#70091f]/30 bg-[#70091f]/5 px-2 py-1 text-[10px] font-bold text-[#70091f] hover:bg-[#70091f]/10 dark:border-[#f8a598]/40 dark:text-[#f8a598] transition"
+                                                title="Make requisition request (rqst)"
+                                            >
+                                                <FileText size={11} />
+                                                <span>rqst</span>
+                                            </button>
+                                            <button
+                                                type="button"
                                                 onClick={() => openEditForm(medicine)}
                                                 className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#e8dfd4] text-[#8a6f50] transition hover:bg-[#f3ebdf]"
                                                 title="Edit medicine"
@@ -1691,6 +1823,8 @@ function Medicine() {
                             </button>
                         </div>
                     </div>
+                    </>
+                    )}
                 </section>
 
             </main>
@@ -1706,6 +1840,18 @@ function Medicine() {
                 saving={saving}
                 error={error}
                 treatmentTypes={TREATMENT_TYPES}
+            />
+
+            {/* Medicine Requisition Request Modal (rqst) */}
+            <MedicineRequisitionModal
+                isOpen={requisitionModalOpen}
+                onClose={() => setRequisitionModalOpen(false)}
+                medicine={selectedRequisitionMed}
+                allMedicines={medicines}
+                onSuccess={(msg) => {
+                    setSuccessMessage(msg);
+                    loadMedicines(pagination.current_page, search, statusFilter);
+                }}
             />
 
             {/* Restore Deleted Medicines Modal */}

@@ -83,12 +83,14 @@ function Medicine() {
         earliest_expiration_date: null as string | null,
         expired_medicines: [] as any[],
         expiring_soon_medicines: [] as any[],
+        category_breakdown: [] as any[],
+        top_medicines: [] as any[],
     });
     const [statusFilter, setStatusFilter] = useState("all");
     const [search, setSearch] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [loading, setLoading] = useState(true);
-    const [stockChartMode, setStockChartMode] = useState<"category" | "status">("category");
+    const [stockChartMode, setStockChartMode] = useState<"medicine" | "category" | "status">("medicine");
 
     const [showForm, setShowForm] = useState(false);
     const [editingMedicine, setEditingMedicine] = useState(null);
@@ -588,45 +590,108 @@ function Medicine() {
         )`,
     };
 
-    const categoryChartColors = [
-        "#70091f", // primary TCC maroon
-        "#8d1b32", // rich garnet maroon
-        "#a82b43", // crimson rose maroon
-        "#c2435b", // medium rose maroon
-        "#dc667a", // soft blush maroon
-        "#520616", // deep wine maroon
+    const medicineChartColors = [
+        "#70091f", // Burgundy
+        "#059669", // Emerald
+        "#d97706", // Amber
+        "#0284c7", // Sky Blue
+        "#7c3aed", // Violet
+        "#db2777", // Rose
+        "#ea580c", // Burnt Orange
+        "#64748b", // Slate
     ];
 
+    const categoryChartColors = [
+        "#70091f", // Medication (Burgundy)
+        "#059669", // First Aid (Emerald)
+        "#0284c7", // Wound Care (Sky Blue)
+        "#0d9488", // Cold Compress (Teal)
+        "#d97706", // Hot Compress (Amber)
+        "#7c3aed", // Other
+    ];
+
+    const medicineListChartData = useMemo(() => {
+        const items = Array.isArray(summary.top_medicines) && summary.top_medicines.length > 0
+            ? summary.top_medicines
+            : [...medicines].sort((a: any, b: any) => Number(b.stock || 0) - Number(a.stock || 0)).slice(0, 7);
+
+        if (!items || items.length === 0) {
+            return [{ name: "Medicines", value: Number(totalStock) || 1, fill: "#70091f" }];
+        }
+
+        const topStockSum = items.reduce((acc: number, curr: any) => acc + Number(curr.stock || 0), 0);
+        const othersStock = Math.max(0, Number(totalStock || 0) - topStockSum);
+
+        const data: Array<{ name: string; value: number; unit?: string; category?: string; fill: string }> = items.map((m: any, i: number) => ({
+            name: m.medicine_name || m.name || `Medicine ${i + 1}`,
+            value: Number(m.stock || 0),
+            unit: m.unit || "units",
+            category: m.treatment_type || "Medication",
+            fill: medicineChartColors[i % medicineChartColors.length],
+        }));
+
+        if (othersStock > 0) {
+            const othersCount = Math.max(0, Number(totalMedicines || 0) - items.length);
+            data.push({
+                name: `Other Medicines (${othersCount})`,
+                value: othersStock,
+                unit: "units",
+                category: "Formulary",
+                fill: "#94a3b8",
+            });
+        }
+
+        return data;
+    }, [summary.top_medicines, totalStock, totalMedicines, medicines]);
+
     const categoryChartData = useMemo(() => {
-        const totalsByCategory: Record<string, number> = {};
+        if (Array.isArray(summary.category_breakdown) && summary.category_breakdown.length > 0) {
+            return summary.category_breakdown.map((item: any, i: number) => ({
+                name: item.treatment_type || "Medication",
+                value: Number(item.total_stock || 0),
+                medicine_count: Number(item.medicine_count || 0),
+                fill: categoryChartColors[i % categoryChartColors.length],
+            }));
+        }
+
+        const totalsByCategory: Record<string, { stock: number; count: number }> = {};
         if (Array.isArray(medicines)) {
             medicines.forEach((m: any) => {
                 const category = m.treatment_type || "Medication";
-                totalsByCategory[category] = (totalsByCategory[category] || 0) + Number(m.stock || 0);
+                if (!totalsByCategory[category]) {
+                    totalsByCategory[category] = { stock: 0, count: 0 };
+                }
+                totalsByCategory[category].stock += Number(m.stock || 0);
+                totalsByCategory[category].count += 1;
             });
         }
 
         const entries = Object.entries(totalsByCategory);
         if (entries.length === 0) {
-            return [{ name: "In Stock", value: totalStock || 1, fill: "#70091f" }];
+            return [{ name: "In Stock", value: Number(totalStock) || 1, fill: "#70091f" }];
         }
 
-        return entries.map(([name, value], i) => ({
+        return entries.map(([name, val], i) => ({
             name,
-            value,
+            value: val.stock,
+            medicine_count: val.count,
             fill: categoryChartColors[i % categoryChartColors.length],
         }));
-    }, [medicines, totalStock]);
+    }, [summary.category_breakdown, medicines, totalStock]);
 
     const statusChartData = useMemo(() => {
         return [
-            { name: "In Stock", value: inStockCount, fill: "#27a866" },
-            { name: "Low Stock", value: lowStockCount, fill: "#f5ae22" },
-            { name: "Out of Stock", value: outOfStockCount, fill: "#e63946" },
+            { name: "In Stock", value: inStockCount, fill: "#059669" },
+            { name: "Low Stock", value: lowStockCount, fill: "#d97706" },
+            { name: "Out of Stock", value: outOfStockCount, fill: "#dc2626" },
         ].filter((item) => item.value > 0);
     }, [inStockCount, lowStockCount, outOfStockCount]);
 
-    const activePieData = stockChartMode === "category" ? categoryChartData : statusChartData;
+    const activePieData = stockChartMode === "medicine"
+        ? medicineListChartData
+        : stockChartMode === "category"
+        ? categoryChartData
+        : statusChartData;
 
     const createMiniBars = (ratios = [0.38, 0.58, 0.78, 1.0]) => {
         return ratios.map((ratio, index) => (
@@ -960,7 +1025,7 @@ function Medicine() {
                 <section className="mb-4 grid grid-cols-1 gap-3 xl:grid-cols-2">
 
                     <div className="flex flex-col justify-between rounded-xl border border-[#e8dfd4] bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-[#382f25] dark:bg-[#251f19]">
-                        {/* Card Header matching Image 2 & theme */}
+                        {/* Card Header matching theme */}
                         <div className="mb-2 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f3ebdf] text-[#8a6f50] dark:bg-[#342a22] dark:text-[#d4b996]">
@@ -969,11 +1034,11 @@ function Medicine() {
 
                                 <div>
                                     <h2 className="text-sm font-bold text-stone-900 dark:text-[#f4ecdf]">
-                                        Stock Overview
+                                        Medicine Overview
                                     </h2>
 
                                     <p className="text-[10px] text-stone-500 dark:text-stone-400">
-                                        Medicine inventory status
+                                        Formulary items &amp; inventory status
                                     </p>
                                 </div>
                             </div>
@@ -982,8 +1047,19 @@ function Medicine() {
                             <div className="flex rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] p-0.5 text-[10px] font-semibold dark:border-[#382f25] dark:bg-[#201a15]">
                                 <button
                                     type="button"
+                                    onClick={() => setStockChartMode("medicine")}
+                                    className={`rounded-md px-2 py-0.5 transition cursor-pointer ${
+                                        stockChartMode === "medicine"
+                                            ? "bg-[#70091f] text-white shadow-xs"
+                                            : "text-stone-500 hover:text-stone-800 dark:text-stone-400"
+                                    }`}
+                                >
+                                    Medicine List
+                                </button>
+                                <button
+                                    type="button"
                                     onClick={() => setStockChartMode("category")}
-                                    className={`rounded-md px-2 py-0.5 transition ${
+                                    className={`rounded-md px-2 py-0.5 transition cursor-pointer ${
                                         stockChartMode === "category"
                                             ? "bg-[#70091f] text-white shadow-xs"
                                             : "text-stone-500 hover:text-stone-800 dark:text-stone-400"
@@ -994,7 +1070,7 @@ function Medicine() {
                                 <button
                                     type="button"
                                     onClick={() => setStockChartMode("status")}
-                                    className={`rounded-md px-2 py-0.5 transition ${
+                                    className={`rounded-md px-2 py-0.5 transition cursor-pointer ${
                                         stockChartMode === "status"
                                             ? "bg-[#70091f] text-white shadow-xs"
                                             : "text-stone-500 hover:text-stone-800 dark:text-stone-400"
@@ -1012,17 +1088,28 @@ function Medicine() {
                                     <Tooltip
                                         content={({ active, payload }) => {
                                             if (!active || !payload || !payload.length) return null;
-                                            const item = payload[0];
+                                            const item = payload[0] as any;
                                             const totalVal = activePieData.reduce((acc, curr) => acc + curr.value, 0) || 1;
                                             const percent = Math.round((Number(item.value) / totalVal) * 100);
+                                            const payloadItem = item.payload || {};
                                             return (
                                                 <div className="rounded-xl border border-[#e8dfd4] bg-white px-3 py-2 text-xs shadow-lg dark:border-[#382f25] dark:bg-[#251f19]">
                                                     <p className="font-semibold text-stone-800 dark:text-stone-200">
                                                         {item.name}
                                                     </p>
                                                     <p className="mt-0.5 font-bold text-[#70091f] dark:text-[#f492a3]">
-                                                        {Number(item.value).toLocaleString()} {stockChartMode === "category" ? "units" : "medicines"} ({percent}%)
+                                                        {Number(item.value).toLocaleString()} {stockChartMode === "status" ? "medicines" : (payloadItem.unit || "units")} ({percent}%)
                                                     </p>
+                                                    {payloadItem.category && stockChartMode === "medicine" && (
+                                                        <p className="text-[10px] text-stone-500 dark:text-stone-400">
+                                                            Category: {payloadItem.category}
+                                                        </p>
+                                                    )}
+                                                    {payloadItem.medicine_count !== undefined && stockChartMode === "category" && (
+                                                        <p className="text-[10px] text-stone-500 dark:text-stone-400">
+                                                            {payloadItem.medicine_count} {payloadItem.medicine_count === 1 ? "medicine" : "medicines"}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             );
                                         }}
@@ -1033,6 +1120,7 @@ function Medicine() {
                                         nameKey="name"
                                         cx="50%"
                                         cy="50%"
+                                        innerRadius={42}
                                         outerRadius={75}
                                         stroke="#ffffff"
                                         strokeWidth={2}
@@ -1046,13 +1134,33 @@ function Medicine() {
                             </ResponsiveContainer>
                         </div>
 
-                        {/* Card Footer matching Image 2 */}
-                        <div className="mt-2 flex flex-col items-center gap-1 border-t border-[#e8dfd4] pt-2.5 text-center dark:border-[#382f25]">
+                        {/* Interactive Pill Legend of Top Items */}
+                        <div className="my-1.5 flex flex-wrap justify-center gap-1.5 px-2">
+                            {activePieData.slice(0, 6).map((entry, idx) => (
+                                <span
+                                    key={idx}
+                                    className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[10px] font-medium text-stone-700 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
+                                >
+                                    <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: entry.fill }} />
+                                    <span className="truncate max-w-[100px]">{entry.name}</span>
+                                    <span className="font-bold text-stone-900 dark:text-white">
+                                        {Number(entry.value).toLocaleString()}
+                                    </span>
+                                </span>
+                            ))}
+                        </div>
+
+                        {/* Card Footer */}
+                        <div className="mt-1 flex flex-col items-center gap-0.5 border-t border-[#e8dfd4] pt-2 text-center dark:border-[#382f25]">
                             <div className="flex items-center gap-2 text-xs font-semibold text-stone-800 dark:text-stone-200">
                                 <span>
-                                    {lowStockCount === 0 && outOfStockCount === 0
-                                        ? "Inventory fully stocked (100%)"
-                                        : `${lowStockCount} low stock · ${outOfStockCount} out of stock`}
+                                    {stockChartMode === "medicine"
+                                        ? "Top registered medicines by stock volume"
+                                        : stockChartMode === "category"
+                                        ? "Inventory grouped by clinical treatment type"
+                                        : (lowStockCount === 0 && outOfStockCount === 0
+                                            ? "Inventory fully stocked (100%)"
+                                            : `${lowStockCount} low stock · ${outOfStockCount} out of stock`)}
                                 </span>
                                 <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                             </div>

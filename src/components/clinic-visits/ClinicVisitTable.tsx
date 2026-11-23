@@ -67,19 +67,19 @@ export function ClinicVisitTable({
 
                 {/* DESKTOP / LAPTOP TABLE VIEW (Auto-fits PC & Laptop screens without forced overflow) */}
                 <div className="hidden md:block overflow-x-auto scrollbar-thin">
-                    <table className="w-full text-left border-collapse min-w-[920px] lg:min-w-full table-auto">
+                    <table className="w-full text-left border-collapse min-w-[1080px] table-auto">
                         <thead>
                             <tr className="border-b border-[#e8dfd4] bg-[#fcfaf6] dark:border-stone-800 dark:bg-[#261f19]">
-                                <th className="px-3.5 py-3 text-[10px] font-bold uppercase tracking-wider text-[#887d70] dark:text-[#a99d8f]">
+                                <th className="px-3.5 py-3 text-[10px] font-bold uppercase tracking-wider text-[#887d70] dark:text-[#a99d8f] whitespace-nowrap">
                                     Patient
                                 </th>
-                                <th className="px-3.5 py-3 text-[10px] font-bold uppercase tracking-wider text-[#887d70] dark:text-[#a99d8f]">
+                                <th className="px-3.5 py-3 text-[10px] font-bold uppercase tracking-wider text-[#887d70] dark:text-[#a99d8f] whitespace-nowrap">
                                     Nurse on Duty
                                 </th>
-                                <th className="px-3.5 py-3 text-[10px] font-bold uppercase tracking-wider text-[#887d70] dark:text-[#a99d8f]">
+                                <th className="px-3.5 py-3 text-[10px] font-bold uppercase tracking-wider text-[#887d70] dark:text-[#a99d8f] whitespace-nowrap">
                                     Reason
                                 </th>
-                                <th className="px-3.5 py-3 text-[10px] font-bold uppercase tracking-wider text-[#887d70] dark:text-[#a99d8f]">
+                                <th className="px-3.5 py-3 text-[10px] font-bold uppercase tracking-wider text-[#887d70] dark:text-[#a99d8f] whitespace-nowrap">
                                     Department
                                 </th>
                                 <th className="px-3 py-3 text-[10px] font-bold uppercase tracking-wider text-[#887d70] dark:text-[#a99d8f] whitespace-nowrap">
@@ -167,11 +167,11 @@ export function ClinicVisitTable({
                                                 )}
                                             </td>
 
-                                            <td className="max-w-[170px] px-3.5 py-3 truncate" title={visit.reason || ""}>
+                                            <td className="px-3.5 py-3 whitespace-nowrap">
                                                 <ReasonBadge reason={visit.reason} symptoms={visit.symptoms} />
                                             </td>
 
-                                            <td className="max-w-[150px] px-3.5 py-3 text-xs text-[#766959] dark:text-stone-300 truncate" title={dept || ""}>
+                                            <td className="max-w-[200px] px-3.5 py-3 text-xs text-[#766959] dark:text-stone-300 truncate" title={dept || ""}>
                                                 {formatNA(dept)}
                                             </td>
 

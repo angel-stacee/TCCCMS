@@ -265,7 +265,7 @@ export function ReasonBadge({
 
     return (
         <span
-            className={`inline-block max-w-full truncate text-xs font-semibold text-[#3c332a] dark:text-stone-200 ${className}`}
+            className={`inline-block text-xs font-semibold text-[#3c332a] dark:text-stone-200 whitespace-nowrap ${className}`}
             title={tooltipText}
         >
             {displayText}

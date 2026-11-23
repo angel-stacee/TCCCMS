@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, BookOpen, Briefcase, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Download, Eye, FileBadge, FileText, GraduationCap, MapPin, Pencil, RotateCcw, Search, ShieldCheck, Stethoscope, Trash2, User, X } from "lucide-react";
 import api from "../services/api";
 import { getCachedRecord, invalidateRecordCache } from "../services/recordCache";
@@ -87,7 +87,7 @@ const SEX_OPTIONS = [
 
 
 function StudentManagement() {
-
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
 
@@ -1150,20 +1150,30 @@ function StudentManagement() {
                     category: "patient",
                 });
             } else {
-                await api.post("/students", studentForm);
+                const res = await api.post("/students", studentForm);
+                const created = res.data;
                 closeStudentForm(true);
-                setSuccessToast("Student added successfully.");
-                setInlineNotification({
-                    type: "add",
-                    title: "Student Added Successfully",
-                    message: `${getFullName(studentForm)} (${studentForm.student_id || "Student"}) has been registered.`,
-                });
                 addClinicNotification({
                     type: "add",
                     title: "Student Registered",
                     description: `${getFullName(studentForm)} (${studentForm.student_id || "Student"}) registered`,
                     category: "patient",
                 });
+                invalidateRecordCache();
+                navigate("/clinic-visits", {
+                    state: {
+                        autoOpenVisit: true,
+                        patient: {
+                            id: created?.id || "",
+                            type: "student",
+                            identifier: created?.student_id || studentForm.student_id,
+                            name: getFullName(created || studentForm),
+                            course: created?.course || studentForm.course,
+                            department: mapCourseToDepartment(created?.course || studentForm.course),
+                        },
+                    },
+                });
+                return;
             }
             invalidateRecordCache();
             await fetchData();
@@ -1296,20 +1306,29 @@ function StudentManagement() {
                     category: "patient",
                 });
             } else {
-                await api.post("/staff", staffForm);
+                const res = await api.post("/staff", staffForm);
+                const created = res.data;
                 closeStaffForm(true);
-                setSuccessToast("Staff member added successfully.");
-                setInlineNotification({
-                    type: "add",
-                    title: "Staff Added Successfully",
-                    message: `${getFullName(staffForm)} has been registered.`,
-                });
                 addClinicNotification({
                     type: "add",
                     title: "Staff Registered",
                     description: `${getFullName(staffForm)} registered`,
                     category: "patient",
                 });
+                invalidateRecordCache();
+                navigate("/clinic-visits", {
+                    state: {
+                        autoOpenVisit: true,
+                        patient: {
+                            id: created?.id || "",
+                            type: "staff",
+                            identifier: created?.staff_id || staffForm.staff_id,
+                            name: getFullName(created || staffForm),
+                            department: created?.department || staffForm.department,
+                        },
+                    },
+                });
+                return;
             }
             invalidateRecordCache();
             await fetchData();
@@ -1444,20 +1463,29 @@ function StudentManagement() {
                     category: "patient",
                 });
             } else {
-                await api.post("/faculties", facultyForm);
+                const res = await api.post("/faculties", facultyForm);
+                const created = res.data;
                 closeFacultyForm(true);
-                setSuccessToast("Faculty member added successfully.");
-                setInlineNotification({
-                    type: "add",
-                    title: "Faculty Added Successfully",
-                    message: `${getFullName(facultyForm)} has been registered.`,
-                });
                 addClinicNotification({
                     type: "add",
                     title: "Faculty Registered",
                     description: `${getFullName(facultyForm)} registered`,
                     category: "patient",
                 });
+                invalidateRecordCache();
+                navigate("/clinic-visits", {
+                    state: {
+                        autoOpenVisit: true,
+                        patient: {
+                            id: created?.id || "",
+                            type: "faculty",
+                            identifier: created?.employee_id || facultyForm.employee_id,
+                            name: getFullName(created || facultyForm),
+                            department: created?.department || facultyForm.department,
+                        },
+                    },
+                });
+                return;
             }
             invalidateRecordCache();
             await fetchData();

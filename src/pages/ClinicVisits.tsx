@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { createPortal } from "react-dom";
 import {
     Stethoscope,
@@ -108,6 +109,8 @@ const treatmentNeedsMedicine = (treatment: string) => {
 };
 
 function ClinicVisits() {
+    const location = useLocation();
+    const handledShortcutRef = useRef(false);
     const [visits, setVisits] = useState<VisitRecord[]>([]);
     const [visitPagination, setVisitPagination] = useState({
         current_page: 1,
@@ -480,6 +483,94 @@ function ClinicVisits() {
             }
         }
     }, [formData.student_id, formData.faculty_id, formData.staff_id, patientOptions, formData.department]);
+
+    // Handle shortcut redirect from Patient Management (Add Patient -> Clinic Visit)
+    useEffect(() => {
+        const state = location.state as {
+            autoOpenVisit?: boolean;
+            patient?: {
+                id: number | string;
+                type: "student" | "faculty" | "staff";
+                identifier: string;
+                name: string;
+                course?: string;
+                department?: string;
+            };
+        } | null;
+
+        if (state?.autoOpenVisit && state?.patient && !handledShortcutRef.current) {
+            handledShortcutRef.current = true;
+            const patient = state.patient;
+            const storedUser = (() => {
+                try {
+                    const u = localStorage.getItem("user");
+                    return u ? JSON.parse(u) : null;
+                } catch {
+                    return null;
+                }
+            })();
+
+            const defaultNurseId =
+                storedUser?.id && nurses.some((n: any) => Number(n.id) === Number(storedUser.id))
+                    ? storedUser.id
+                    : nurses[0]?.id || "";
+
+            const autoDepartment =
+                patient.department && patient.department !== "N/A"
+                    ? patient.department
+                    : patient.course
+                      ? mapCourseToDepartment(patient.course)
+                      : "";
+
+            setEditingVisit(null);
+            setFormData({
+                ...EMPTY_FORM,
+                nurse_id: defaultNurseId,
+                visit_date: getToday(),
+                student_id: patient.type === "student" ? String(patient.id) : "",
+                faculty_id: patient.type === "faculty" ? String(patient.id) : "",
+                staff_id: patient.type === "staff" ? String(patient.id) : "",
+                department: autoDepartment,
+            });
+
+            setPatientSearch(patient.identifier ? `${patient.identifier} - ${patient.name}` : patient.name);
+            setMedicineSearch("");
+            setShowPatientDropdown(false);
+            setShowMedicineDropdown(false);
+            setShowForm(true);
+
+            setToastType("success");
+            setToastMessage(`Patient ${patient.name} registered successfully! Clinic visit form opened.`);
+
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state, nurses]);
+
+    // Ensure logged-in nurse or default nurse is populated when form opens
+    useEffect(() => {
+        if (showForm && !formData.nurse_id && nurses.length > 0) {
+            const storedUser = (() => {
+                try {
+                    const u = localStorage.getItem("user");
+                    return u ? JSON.parse(u) : null;
+                } catch {
+                    return null;
+                }
+            })();
+
+            const defaultNurseId =
+                storedUser?.id && nurses.some((n: any) => Number(n.id) === Number(storedUser.id))
+                    ? storedUser.id
+                    : nurses[0]?.id || "";
+
+            if (defaultNurseId) {
+                setFormData((prev: any) => ({
+                    ...prev,
+                    nurse_id: defaultNurseId,
+                }));
+            }
+        }
+    }, [showForm, nurses, formData.nurse_id]);
 
 
 

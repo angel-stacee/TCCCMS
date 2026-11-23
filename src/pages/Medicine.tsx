@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo, Fragment } from "react";
 import {
     Pill,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
     Plus,
     Search,
     Filter,
@@ -105,6 +106,14 @@ function Medicine() {
     const [selectedTrendMedicineId, setSelectedTrendMedicineId] = useState<number | string | null>("all");
     const [requisitionModalOpen, setRequisitionModalOpen] = useState(false);
     const [selectedRequisitionMed, setSelectedRequisitionMed] = useState<any | null>(null);
+    const [expandedMedicineIds, setExpandedMedicineIds] = useState<Record<number, boolean>>({});
+
+    const toggleExpandBatches = (id: number) => {
+        setExpandedMedicineIds((prev) => ({
+            ...prev,
+            [id]: !prev[id],
+        }));
+    };
 
     useEffect(() => {
         if (!successMessage) return undefined;
@@ -1486,162 +1495,290 @@ function Medicine() {
                                 ) : (
                                     filteredMedicines.map(
                                         (medicine) => {
-                                            const status =
-                                                getStatus(medicine);
+                                            const status = getStatus(medicine);
+                                            const activeBatches = medicine.active_batches || [];
+                                            const isExpanded = !!expandedMedicineIds[medicine.id];
 
                                             return (
-                                                <tr
-                                                    key={medicine.id}
-                                                    className="border-b border-[#eee7de] transition hover:bg-[#fcfaf6]"
-                                                >
+                                                <Fragment key={medicine.id}>
+                                                    <tr className="border-b border-[#eee7de] transition hover:bg-[#fcfaf6] dark:border-[#382f25] dark:hover:bg-[#201a15]">
+                                                        <td className="px-4 py-2.5">
+                                                            <div className="flex items-center gap-2.5">
+                                                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f3ebdf] text-[#8a6f50] shrink-0 dark:bg-[#34291f] dark:text-[#d4b996]">
+                                                                    <Pill size={15} />
+                                                                </div>
 
+                                                                <div className="min-w-0">
+                                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                                        <p className="text-xs font-bold text-stone-900 dark:text-stone-100">
+                                                                            {medicine.medicine_name}
+                                                                        </p>
+                                                                        {activeBatches.length > 1 && (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => toggleExpandBatches(medicine.id)}
+                                                                                className="inline-flex items-center gap-1 rounded-full border border-[#70091f]/20 bg-[#70091f]/5 px-2 py-0.5 text-[10px] font-bold text-[#70091f] hover:bg-[#70091f]/15 transition cursor-pointer dark:border-[#f8a598]/30 dark:bg-[#70091f]/30 dark:text-[#f8a598]"
+                                                                                title="Click to view all active batches in FEFO sequence"
+                                                                            >
+                                                                                <Package size={10} />
+                                                                                <span>{activeBatches.length} Batches</span>
+                                                                                <ChevronDown size={11} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
 
-                                                    <td className="px-4 py-2.5">
-                                                        <div className="flex items-center gap-2.5">
-
-                                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f3ebdf] text-[#8a6f50]">
-                                                                <Pill size={15} />
+                                                                    {medicine.description && (
+                                                                        <p className="mt-0.5 max-w-[240px] truncate text-[9px] text-[#a99d8f] dark:text-stone-400">
+                                                                            {medicine.description}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
                                                             </div>
+                                                        </td>
 
-                                                            <div>
-                                                                <p className="text-xs font-bold">
-                                                                    {medicine.medicine_name}
-                                                                </p>
+                                                        <td className="px-4 py-2.5">
+                                                            <span className="inline-flex rounded-full border border-[#e8dfd4] bg-[#fcfaf6] px-2.5 py-1 text-[9px] font-semibold text-[#8a6f50] dark:border-stone-700 dark:bg-[#201a15] dark:text-[#d4b996]">
+                                                                {medicine.treatment_type || "Not Assigned"}
+                                                            </span>
+                                                        </td>
 
-                                                                {medicine.description && (
-                                                                    <p className="mt-0.5 max-w-[200px] truncate text-[9px] text-[#a99d8f]">
-                                                                        {medicine.description}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-
-                                                        </div>
-                                                    </td>
-
-
-                                                    <td className="px-4 py-2.5">
-                                                        <span className="inline-flex rounded-full border border-[#e8dfd4] bg-[#fcfaf6] px-2.5 py-1 text-[9px] font-semibold text-[#8a6f50]">
-                                                            {medicine.treatment_type || "Not Assigned"}
-                                                        </span>
-                                                    </td>
-
-
-                                                    <td className="px-4 py-2.5 text-xs text-[#766959]">
-                                                        {medicine.unit}
-                                                    </td>
-
-
-                                                    <td className="px-4 py-2.5">
-                                                        <span className="text-xs font-bold text-stone-900 dark:text-stone-100">
-                                                            {medicine.stock}
-                                                        </span>
-                                                        <span className="text-[10px] text-stone-500 dark:text-stone-400 ml-1">
+                                                        <td className="px-4 py-2.5 text-xs text-[#766959] dark:text-stone-300">
                                                             {medicine.unit}
-                                                        </span>
-                                                    </td>
+                                                        </td>
 
+                                                        <td className="px-4 py-2.5">
+                                                            <div>
+                                                                <span className="text-xs font-bold text-stone-900 dark:text-stone-100">
+                                                                    {medicine.stock}
+                                                                </span>
+                                                                <span className="text-[10px] text-stone-500 dark:text-stone-400 ml-1">
+                                                                    {medicine.unit}
+                                                                </span>
+                                                            </div>
+                                                            {activeBatches.length > 1 && (
+                                                                <span className="block text-[9px] font-medium text-[#8a6f50] dark:text-[#d4b996]">
+                                                                    ({activeBatches.length} batches combined)
+                                                                </span>
+                                                            )}
+                                                        </td>
 
-                                                    <td className="px-4 py-2.5 text-xs text-[#766959]">
-                                                        {medicine.minimum_stock}
-                                                    </td>
+                                                        <td className="px-4 py-2.5 text-xs text-[#766959] dark:text-stone-400">
+                                                            {medicine.minimum_stock}
+                                                        </td>
 
-                                                    {/* Expiration Date Cell */}
-                                                    <td className="px-4 py-2.5">
-                                                        {(() => {
-                                                            const exp = getExpirationInfo(medicine.expiration_date);
-                                                            if (exp.status === "expired") {
+                                                        {/* Expiration Date Cell */}
+                                                        <td className="px-4 py-2.5">
+                                                            {(() => {
+                                                                const exp = getExpirationInfo(medicine.expiration_date);
                                                                 return (
-                                                                    <span className="inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800/60">
-                                                                        <AlertOctagon size={11} className="shrink-0" />
-                                                                        Expired: {exp.formattedDate}
-                                                                    </span>
+                                                                    <div>
+                                                                        {exp.status === "expired" && (
+                                                                            <span className="inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800/60">
+                                                                                <AlertOctagon size={11} className="shrink-0" />
+                                                                                Expired: {exp.formattedDate}
+                                                                            </span>
+                                                                        )}
+                                                                        {exp.status === "expiring_soon" && (
+                                                                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/60">
+                                                                                <Calendar size={11} className="shrink-0" />
+                                                                                {exp.formattedDate} ({exp.days}d)
+                                                                            </span>
+                                                                        )}
+                                                                        {exp.status === "valid" && (
+                                                                            <span className="inline-flex items-center gap-1 text-[11px] text-[#554a3e] dark:text-stone-300">
+                                                                                <Calendar size={12} className="text-[#a89d8f] dark:text-stone-400" />
+                                                                                {exp.formattedDate}
+                                                                            </span>
+                                                                        )}
+                                                                        {exp.status === "none" && (
+                                                                            <span className="text-[10px] italic text-[#a89d8f]">No date</span>
+                                                                        )}
+                                                                        {activeBatches.length > 1 && (
+                                                                            <span className="block text-[9px] font-medium text-stone-500 dark:text-stone-400 mt-0.5">
+                                                                                Earliest batch · FEFO #1
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
                                                                 );
-                                                            }
-                                                            if (exp.status === "expiring_soon") {
-                                                                return (
-                                                                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/60">
-                                                                        <Calendar size={11} className="shrink-0" />
-                                                                        {exp.formattedDate} ({exp.days}d)
-                                                                    </span>
-                                                                );
-                                                            }
-                                                            if (exp.status === "valid") {
-                                                                return (
-                                                                    <span className="inline-flex items-center gap-1 text-[11px] text-[#554a3e] dark:text-stone-300">
-                                                                        <Calendar size={12} className="text-[#a89d8f] dark:text-stone-400" />
-                                                                        {exp.formattedDate}
-                                                                    </span>
-                                                                );
-                                                            }
-                                                            return <span className="text-[10px] italic text-[#a89d8f]">No date</span>;
-                                                        })()}
-                                                    </td>
+                                                            })()}
+                                                        </td>
 
-                                                    <td className="px-4 py-2.5">
-                                                        <span
-                                                            className={`inline-flex rounded-full border px-2.5 py-1 text-[9px] font-semibold ${status.className}`}
-                                                        >
-                                                            {status.label}
-                                                        </span>
-                                                    </td>
-
-
-                                                    <td className="px-4 py-2.5">
-                                                        <div className="flex items-center justify-end gap-1.5">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setSelectedTrendMedicineId(medicine.id);
-                                                                    setMainTab("trend");
-                                                                }}
-                                                                className="inline-flex items-center gap-1 rounded-lg border border-[#e8dfd4] px-2 py-1 text-[10px] font-bold text-stone-700 hover:bg-[#f6f0e6] dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800 transition cursor-pointer"
-                                                                title="See stock trend line chart (going up or down)"
+                                                        <td className="px-4 py-2.5">
+                                                            <span
+                                                                className={`inline-flex rounded-full border px-2.5 py-1 text-[9px] font-semibold ${status.className}`}
                                                             >
-                                                                <TrendingUp size={12} className="text-emerald-600" />
-                                                                <span>Trend</span>
-                                                            </button>
+                                                                {status.label}
+                                                            </span>
+                                                        </td>
 
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setSelectedRequisitionMed(medicine);
-                                                                    setRequisitionModalOpen(true);
-                                                                }}
-                                                                className="inline-flex items-center gap-1 rounded-lg border border-[#70091f]/30 bg-[#70091f]/5 px-2 py-1 text-[10px] font-bold text-[#70091f] hover:bg-[#70091f]/10 dark:border-[#f8a598]/40 dark:text-[#f8a598] transition cursor-pointer"
-                                                                title="Make requisition request (rqst)"
-                                                            >
-                                                                <FileText size={11} />
-                                                                <span>rqst</span>
-                                                            </button>
+                                                        <td className="px-4 py-2.5">
+                                                            <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                                                                {activeBatches.length > 1 && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => toggleExpandBatches(medicine.id)}
+                                                                        className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-bold transition cursor-pointer ${
+                                                                            isExpanded
+                                                                                ? "border-[#70091f] bg-[#70091f] text-white"
+                                                                                : "border-[#e8dfd4] bg-white text-stone-700 hover:bg-[#f6f0e6] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
+                                                                        }`}
+                                                                        title="Toggle batch breakdown"
+                                                                    >
+                                                                        <Package size={11} />
+                                                                        <span>Batches ({activeBatches.length})</span>
+                                                                    </button>
+                                                                )}
 
-                                                            <button
-                                                                onClick={() =>
-                                                                    openEditForm(
-                                                                        medicine
-                                                                    )
-                                                                }
-                                                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#e8dfd4] text-[#8a6f50] transition hover:bg-[#f3ebdf] dark:border-stone-700 dark:hover:bg-stone-800"
-                                                                title="Edit medicine"
-                                                            >
-                                                                <Pencil size={13} />
-                                                            </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setSelectedTrendMedicineId(medicine.id);
+                                                                        setMainTab("trend");
+                                                                    }}
+                                                                    className="inline-flex items-center gap-1 rounded-lg border border-[#e8dfd4] px-2 py-1 text-[10px] font-bold text-stone-700 hover:bg-[#f6f0e6] dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800 transition cursor-pointer"
+                                                                    title="See stock trend line chart (going up or down)"
+                                                                >
+                                                                    <TrendingUp size={12} className="text-emerald-600" />
+                                                                    <span>Trend</span>
+                                                                </button>
 
-                                                            <button
-                                                                onClick={() =>
-                                                                    deleteMedicine(
-                                                                        medicine
-                                                                    )
-                                                                }
-                                                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-950/40"
-                                                                title="Delete medicine"
-                                                            >
-                                                                <Trash2 size={13} />
-                                                            </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setSelectedRequisitionMed(medicine);
+                                                                        setRequisitionModalOpen(true);
+                                                                    }}
+                                                                    className="inline-flex items-center gap-1 rounded-lg border border-[#70091f]/30 bg-[#70091f]/5 px-2 py-1 text-[10px] font-bold text-[#70091f] hover:bg-[#70091f]/10 dark:border-[#f8a598]/40 dark:text-[#f8a598] transition cursor-pointer"
+                                                                    title="Make requisition request (rqst)"
+                                                                >
+                                                                    <FileText size={11} />
+                                                                    <span>rqst</span>
+                                                                </button>
 
-                                                        </div>
-                                                    </td>
+                                                                <button
+                                                                    onClick={() => openEditForm(medicine)}
+                                                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#e8dfd4] text-[#8a6f50] transition hover:bg-[#f3ebdf] dark:border-stone-700 dark:hover:bg-stone-800"
+                                                                    title="Edit medicine"
+                                                                >
+                                                                    <Pencil size={13} />
+                                                                </button>
 
-                                                </tr>
+                                                                <button
+                                                                    onClick={() => deleteMedicine(medicine)}
+                                                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-950/40"
+                                                                    title="Delete medicine"
+                                                                >
+                                                                    <Trash2 size={13} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+
+                                                    {/* Expandable FEFO Batch Drawer */}
+                                                    {isExpanded && activeBatches.length > 0 && (
+                                                        <tr key={`${medicine.id}-batches`} className="bg-[#fcfaf6] dark:bg-[#1a1511] border-b border-[#e8dfd4] dark:border-[#382f25]">
+                                                            <td colSpan={8} className="p-3 sm:p-4">
+                                                                <div className="rounded-xl border border-[#e8dfd4] bg-white p-3.5 shadow-sm dark:border-[#42362b] dark:bg-[#251f19]">
+                                                                    <div className="mb-2.5 flex items-center justify-between border-b border-[#eee7de] pb-2 dark:border-[#382f25] flex-wrap gap-2">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#70091f]/10 text-[#70091f] dark:text-[#f8a598]">
+                                                                                <Package size={13} />
+                                                                            </div>
+                                                                            <h4 className="text-xs font-bold text-stone-900 dark:text-stone-100">
+                                                                                Active Batches for {medicine.medicine_name}
+                                                                            </h4>
+                                                                            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[9px] font-bold text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                                                                                Combined Stock: {medicine.stock} {medicine.unit}
+                                                                            </span>
+                                                                        </div>
+                                                                        <span className="text-[10px] font-medium text-[#70091f] dark:text-[#f8a598]">
+                                                                            ⚡ Automatic FEFO Issuing Order: Nearest to expire is dispensed first
+                                                                        </span>
+                                                                    </div>
+
+                                                                    <div className="overflow-x-auto">
+                                                                        <table className="w-full text-left text-xs">
+                                                                            <thead>
+                                                                                <tr className="border-b border-[#eee7de] text-[10px] font-bold text-[#887d70] uppercase dark:border-[#382f25]">
+                                                                                    <th className="pb-1.5 pt-1 px-2.5">FEFO Order</th>
+                                                                                    <th className="pb-1.5 pt-1 px-2.5">Batch Identifier</th>
+                                                                                    <th className="pb-1.5 pt-1 px-2.5">Remaining Stock</th>
+                                                                                    <th className="pb-1.5 pt-1 px-2.5">Expiration Date</th>
+                                                                                    <th className="pb-1.5 pt-1 px-2.5">Date Added</th>
+                                                                                    <th className="pb-1.5 pt-1 px-2.5">Status</th>
+                                                                                    <th className="pb-1.5 pt-1 px-2.5">Supplier / Remarks</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                                                                                {activeBatches.map((batch: any, bIdx: number) => {
+                                                                                    const bExp = getExpirationInfo(batch.expiration_date);
+                                                                                    const isFefoFirst = bIdx === 0;
+
+                                                                                    return (
+                                                                                        <tr key={batch.id} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/40">
+                                                                                            <td className="py-2 px-2.5">
+                                                                                                {isFefoFirst ? (
+                                                                                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                                                                        ★ 1st to Dispense (FEFO)
+                                                                                                    </span>
+                                                                                                ) : (
+                                                                                                    <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[9px] font-semibold text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                                                                                                        #{bIdx + 1} in Line
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </td>
+                                                                                            <td className="py-2 px-2.5 font-mono font-bold text-stone-800 dark:text-stone-200">
+                                                                                                {batch.batch_number || `BATCH-${batch.id}`}
+                                                                                            </td>
+                                                                                            <td className="py-2 px-2.5">
+                                                                                                <span className="font-bold text-stone-900 dark:text-stone-100">
+                                                                                                    {batch.current_quantity}
+                                                                                                </span>
+                                                                                                <span className="text-[10px] text-stone-500 ml-1">
+                                                                                                    / {batch.initial_quantity || batch.current_quantity} {medicine.unit}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                            <td className="py-2 px-2.5">
+                                                                                                <span className="font-medium text-stone-700 dark:text-stone-300">
+                                                                                                    {batch.expiration_date ? String(batch.expiration_date).split("T")[0] : "—"}
+                                                                                                </span>
+                                                                                                {bExp.days !== null && (
+                                                                                                    <span className="ml-1 text-[10px] text-stone-400">
+                                                                                                        ({bExp.days > 0 ? `${bExp.days}d left` : `${Math.abs(bExp.days)}d ago`})
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </td>
+                                                                                            <td className="py-2 px-2.5 text-stone-600 dark:text-stone-400">
+                                                                                                {batch.date_added ? String(batch.date_added).split("T")[0] : "—"}
+                                                                                            </td>
+                                                                                            <td className="py-2 px-2.5">
+                                                                                                <span className={`inline-flex rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                                                                                                    batch.status === "Expired"
+                                                                                                        ? "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300"
+                                                                                                        : batch.status === "Expiring Soon"
+                                                                                                        ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                                                                                                        : batch.status === "Near Expiration"
+                                                                                                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-300"
+                                                                                                        : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                                                                                }`}>
+                                                                                                    {batch.status || "Good"}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                            <td className="py-2 px-2.5 text-[10px] text-stone-500 dark:text-stone-400">
+                                                                                                {batch.supplier ? `${batch.supplier} ` : ""}
+                                                                                                {batch.remarks ? `(${batch.remarks})` : (batch.supplier ? "" : "—")}
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    );
+                                                                                })}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </Fragment>
                                             );
                                         }
                                     )
@@ -1662,6 +1799,8 @@ function Medicine() {
                             filteredMedicines.map((medicine) => {
                                 const status = getStatus(medicine);
                                 const exp = getExpirationInfo(medicine.expiration_date);
+                                const activeBatches = medicine.active_batches || [];
+                                const isExpanded = !!expandedMedicineIds[medicine.id];
 
                                 return (
                                     <div
@@ -1697,7 +1836,7 @@ function Medicine() {
                                                     {medicine.stock} {medicine.unit}
                                                 </span>
                                                 <span className="block text-[9px] text-[#a99d8f]">
-                                                    Min: {medicine.minimum_stock}
+                                                    {activeBatches.length > 1 ? `${activeBatches.length} batches combined` : `Min: ${medicine.minimum_stock}`}
                                                 </span>
                                             </div>
 
@@ -1711,6 +1850,51 @@ function Medicine() {
                                                 </span>
                                             </div>
                                         </div>
+
+                                        {/* Mobile Active Batches Accordion */}
+                                        {activeBatches.length > 1 && (
+                                            <div className="mt-2.5">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleExpandBatches(medicine.id)}
+                                                    className="w-full inline-flex items-center justify-between rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] px-2.5 py-1.5 text-[11px] font-bold text-[#70091f] dark:border-[#382f25] dark:bg-[#1f1914] dark:text-[#f8a598]"
+                                                >
+                                                    <span className="flex items-center gap-1.5">
+                                                        <Package size={13} />
+                                                        <span>{activeBatches.length} Batches (FEFO Tracking)</span>
+                                                    </span>
+                                                    <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                                                </button>
+
+                                                {isExpanded && (
+                                                    <div className="mt-2 space-y-2 rounded-lg border border-[#e8dfd4] bg-[#fcfaf6] p-2.5 dark:border-[#382f25] dark:bg-[#1a1511]">
+                                                        {activeBatches.map((batch: any, bIdx: number) => {
+                                                            const bExp = getExpirationInfo(batch.expiration_date);
+                                                            return (
+                                                                <div key={batch.id} className="rounded-md border border-stone-200 bg-white p-2 text-xs shadow-2xs dark:border-stone-800 dark:bg-[#251f19]">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
+                                                                            {batch.batch_number || `BATCH-${batch.id}`}
+                                                                        </span>
+                                                                        {bIdx === 0 ? (
+                                                                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                                                ★ FEFO #1
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-[10px] text-stone-500">#{bIdx + 1} in Line</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="mt-1 flex items-center justify-between text-[11px] text-stone-600 dark:text-stone-300">
+                                                                        <span>Qty: <strong>{batch.current_quantity} {medicine.unit}</strong></span>
+                                                                        <span>Exp: <strong>{batch.expiration_date ? String(batch.expiration_date).split("T")[0] : "—"}</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
 
                                         <div className="mt-3 flex items-center justify-end gap-2 border-t border-[#eee7de] pt-2.5 dark:border-[#382f25]">
                                             <button

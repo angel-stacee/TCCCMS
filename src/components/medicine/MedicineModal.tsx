@@ -189,6 +189,16 @@ export function MedicineModal({
     const isOutOfStock = form.stock !== "" && currentStock <= 0;
     const isLowStock = !isOutOfStock && form.stock !== "" && currentStock <= minStock;
 
+    // Detect if medicine with identical name already exists in inventory
+    const matchedExistingMedicine = useMemo(() => {
+        if (editingMedicine) return null;
+        const query = (form.medicine_name || "").toLowerCase().trim();
+        if (!query) return null;
+        return (existingMedicines || []).find(
+            (m: any) => (m.medicine_name || "").toLowerCase().trim() === query
+        );
+    }, [form.medicine_name, existingMedicines, editingMedicine]);
+
     // Live preview of 4-Tier expiration status:
     // Expired (< 0 days)
     // Expiring Soon (0 - 30 days)
@@ -291,6 +301,20 @@ export function MedicineModal({
                                 The system tracks stocks by expiration date and will automatically issue the batch closest to expiring first when given to a patient. Expired batches cannot be dispensed.
                             </p>
                         </div>
+
+                        {/* Existing Medicine Detected Banner - Informs user stock will be combined */}
+                        {matchedExistingMedicine && (
+                            <div className="rounded-xl border border-blue-300 bg-blue-50/90 p-3.5 text-xs text-blue-900 shadow-xs dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-200">
+                                <div className="flex items-center gap-2 font-bold text-blue-800 dark:text-blue-300">
+                                    <Layers size={16} />
+                                    <span>Existing Medicine Found • Stock will be Combined</span>
+                                </div>
+                                <p className="mt-1 text-[11px] leading-relaxed text-blue-800 dark:text-blue-200/90">
+                                    <strong>{matchedExistingMedicine.medicine_name}</strong> already exists with <strong>{matchedExistingMedicine.stock} {matchedExistingMedicine.unit || "unit(s)"}</strong> in inventory.
+                                    Adding this new batch will combine total stock to <strong>{(Number(matchedExistingMedicine.stock || 0) + Number(form.stock || 0)).toLocaleString()} {form.unit}</strong> without creating duplicate rows.
+                                </p>
+                            </div>
+                        )}
 
                         {/* Expiration Warning Banner if expired or expiring soon */}
                         {isExpired && (
@@ -679,9 +703,11 @@ export function MedicineModal({
                             className="flex items-center gap-2 rounded-xl bg-[#70091f] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#70091f]/20 transition hover:bg-[#8b1505] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {saving
-                                ? (editingMedicine ? "Updating Medicine..." : "Adding Medicine...")
+                                ? (editingMedicine ? "Updating Medicine..." : matchedExistingMedicine ? "Adding Batch & Combining..." : "Adding Medicine...")
                                 : editingMedicine
                                 ? "Update Medicine"
+                                : matchedExistingMedicine
+                                ? "Add Batch & Combine Stock"
                                 : "Add Medicine"}
                         </button>
                     </div>

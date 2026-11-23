@@ -809,127 +809,127 @@ function Medicine() {
 
                 <section className="mb-4 grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 xl:grid-cols-5">
 
-                    <div className="rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] px-4 py-3.5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f3ebdf] text-[#8a6f50]">
+                    <div className="rounded-xl border border-[#e8dfd4] bg-[#fcfaf6] px-4 py-3.5 shadow-sm dark:border-[#382f25] dark:bg-[#201a15]">
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f3ebdf] text-[#8a6f50] dark:bg-[#34291f] dark:text-[#d4b996]">
                                     <Pill size={19} />
                                 </div>
 
-                                <div>
-                                    <p className="text-xs font-medium text-[#887d70]">
+                                <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-[#887d70] dark:text-stone-400">
                                         Total Medicines
                                     </p>
 
-                                    <p className="mt-0.5 text-2xl font-bold">
+                                    <p className="mt-0.5 text-2xl font-bold text-stone-900 dark:text-stone-100">
                                         {totalMedicines}
                                     </p>
 
-                                    <p className="mt-1 text-[10px] font-medium text-green-600">
-                                        ↑ Inventory items
+                                    <p className="mt-1 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 leading-tight">
+                                        Total registered formulary items
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="flex h-12 items-end gap-1 text-[#8a6f50]">
+                            <div className="flex h-12 shrink-0 items-end gap-1 text-[#8a6f50] dark:text-[#d4b996]">
                                 {createMiniBars()}
                             </div>
                         </div>
                     </div>
 
-                    <div className="rounded-xl border border-amber-100 bg-[#fffdf9] px-4 py-3.5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                    <div className="rounded-xl border border-amber-100 bg-[#fffdf9] px-4 py-3.5 shadow-sm dark:border-amber-950/40 dark:bg-[#201a15]">
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300">
                                     <Package size={19} />
                                 </div>
 
-                                <div>
-                                    <p className="text-xs font-medium text-[#887d70]">
+                                <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-[#887d70] dark:text-stone-400">
                                         Total Stock
                                     </p>
 
-                                    <p className="mt-0.5 text-2xl font-bold">
+                                    <p className="mt-0.5 text-2xl font-bold text-stone-900 dark:text-stone-100">
                                         {totalStock}
                                     </p>
 
-                                    <p className="mt-1 text-[10px] font-medium text-green-600">
-                                        ↑ Available units
+                                    <p className="mt-1 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 leading-tight">
+                                        Total available units in clinic
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="flex h-12 items-end gap-1 text-amber-600">
+                            <div className="flex h-12 shrink-0 items-end gap-1 text-amber-600 dark:text-amber-400">
                                 {createMiniBars()}
                             </div>
                         </div>
                     </div>
 
-                    <div className="rounded-xl border border-amber-100 bg-[#fcfaf6] px-4 py-3.5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                    <div className="rounded-xl border border-amber-100 bg-[#fcfaf6] px-4 py-3.5 shadow-sm dark:border-amber-950/40 dark:bg-[#201a15]">
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300">
                                     <AlertTriangle size={19} />
                                 </div>
 
-                                <div>
-                                    <p className="text-xs font-medium text-[#887d70]">
+                                <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-[#887d70] dark:text-stone-400">
                                         Low Stock
                                     </p>
 
-                                    <p className="mt-0.5 text-2xl font-bold">
+                                    <p className="mt-0.5 text-2xl font-bold text-amber-700 dark:text-amber-400">
                                         {lowStockCount}
                                     </p>
 
-                                    <p className="mt-1 text-[10px] font-medium text-amber-600">
-                                        Needs attention
+                                    <p className="mt-1 text-[10px] font-medium text-amber-700 dark:text-amber-400 leading-tight">
+                                        At or below alert minimum stock
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="flex h-12 items-end gap-1 text-amber-500">
+                            <div className="flex h-12 shrink-0 items-end gap-1 text-amber-500 dark:text-amber-400">
                                 {createMiniBars()}
                             </div>
                         </div>
                     </div>
 
-                    <div className="rounded-xl border border-red-100 bg-[#fcfaf6] px-4 py-3.5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
+                    <div className="rounded-xl border border-red-100 bg-[#fcfaf6] px-4 py-3.5 shadow-sm dark:border-red-950/40 dark:bg-[#201a15]">
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400">
                                     <Package size={19} />
                                 </div>
 
-                                <div>
-                                    <p className="text-xs font-medium text-[#887d70]">
+                                <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-[#887d70] dark:text-stone-400">
                                         Out of Stock
                                     </p>
 
-                                    <p className="mt-0.5 text-2xl font-bold">
+                                    <p className="mt-0.5 text-2xl font-bold text-red-600 dark:text-red-400">
                                         {outOfStockCount}
                                     </p>
 
-                                    <p className="mt-1 text-[10px] font-medium text-red-600">
-                                        Needs restocking
+                                    <p className="mt-1 text-[10px] font-medium text-red-600 dark:text-red-400 leading-tight">
+                                        0 remaining units (needs restock)
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="flex h-12 items-end gap-1 text-red-600">
+                            <div className="flex h-12 shrink-0 items-end gap-1 text-red-600 dark:text-red-400">
                                 {createMiniBars()}
                             </div>
                         </div>
                     </div>
 
                     <div className="rounded-xl border border-red-200 bg-[#fcfaf6] px-4 py-3.5 shadow-sm dark:bg-[#29231d] dark:border-red-900/40">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-400">
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-400">
                                     <AlertOctagon size={19} />
                                 </div>
 
-                                <div>
-                                    <p className="text-xs font-medium text-[#887d70] dark:text-stone-400">
+                                <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-[#887d70] dark:text-stone-400">
                                         Expired
                                     </p>
 
@@ -937,13 +937,18 @@ function Medicine() {
                                         {summary.expired_count || 0}
                                     </p>
 
-                                    <p className="mt-1 text-[10px] font-medium text-red-600 dark:text-red-400">
-                                        {summary.expiring_soon_count > 0 ? `+${summary.expiring_soon_count} expiring soon` : "Requires disposal"}
+                                    <p className="mt-1 text-[10px] font-medium text-red-600 dark:text-red-400 leading-tight">
+                                        Past expiry (excluded from issuing)
                                     </p>
+                                    {summary.expiring_soon_count > 0 && (
+                                        <p className="text-[9px] font-bold text-amber-700 dark:text-amber-300 leading-tight mt-0.5">
+                                            • {summary.expiring_soon_count} expiring within 30d
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
-                            <div className="flex h-12 items-end gap-1 text-red-600 dark:text-red-400">
+                            <div className="flex h-12 shrink-0 items-end gap-1 text-red-600 dark:text-red-400">
                                 {createMiniBars([0.4, 0.6, 0.9, 1.0])}
                             </div>
                         </div>

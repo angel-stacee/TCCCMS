@@ -1170,115 +1170,145 @@ function Medicine() {
                         </div>
                     </div>
 
-                    <div className="rounded-xl border border-[#e8dfd4] bg-white p-4 shadow-sm">
-                        <div className="mb-3 flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f3ebdf] text-[#8a6f50]">
-                                <BarChart3 size={16} />
+                    <div className="flex flex-col justify-between rounded-xl border border-[#e8dfd4] bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-[#382f25] dark:bg-[#251f19]">
+                        {/* Header */}
+                        <div className="mb-2 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f3ebdf] text-[#8a6f50] dark:bg-[#342a22] dark:text-[#d4b996]">
+                                    <BarChart3 size={16} />
+                                </div>
+
+                                <div>
+                                    <h2 className="text-sm font-bold text-stone-900 dark:text-[#f4ecdf]">
+                                        Stock Status &amp; Thresholds
+                                    </h2>
+
+                                    <p className="text-[10px] text-stone-500 dark:text-stone-400">
+                                        Availability and reorder alert levels
+                                    </p>
+                                </div>
                             </div>
 
-                            <div>
-                                <h2 className="text-sm font-bold">
-                                    Medicine Stock Distribution
-                                </h2>
+                            <span
+                                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                                    lowStockCount === 0 && outOfStockCount === 0
+                                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                        : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                                }`}
+                            >
+                                <CheckCircle2 size={12} />
+                                {lowStockCount === 0 && outOfStockCount === 0
+                                    ? "100% Fully Stocked"
+                                    : `${lowStockCount + outOfStockCount} Needs Reorder`}
+                            </span>
+                        </div>
 
-                                <p className="text-[10px] text-[#887d70]">
-                                    Medicines grouped by stock status
+                        {/* Interactive Stock Status Meters with Clear Threshold Explanations */}
+                        <div className="space-y-2.5 my-auto py-1.5">
+                            {/* 1. In Stock */}
+                            <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-2.5 dark:border-emerald-950/60 dark:bg-emerald-950/20">
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="h-2 w-2 rounded-full bg-[#27a866]" />
+                                        <span className="font-bold text-stone-800 dark:text-stone-200">
+                                            In Stock
+                                        </span>
+                                        <span className="text-[10px] text-stone-500 dark:text-stone-400">
+                                            (&gt;10 units • Safe level)
+                                        </span>
+                                    </div>
+                                    <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                                        {inStockCount} medicines ({Math.round(inStockPercent)}%)
+                                    </span>
+                                </div>
+                                <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200/60 dark:bg-stone-700">
+                                    <div
+                                        className="h-full rounded-full bg-[#27a866] transition-all duration-500"
+                                        style={{ width: `${inStockPercent}%` }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 2. Low Stock */}
+                            <div className="rounded-xl border border-amber-100 bg-amber-50/40 p-2.5 dark:border-amber-950/60 dark:bg-amber-950/20">
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="h-2 w-2 rounded-full bg-[#f5ae22]" />
+                                        <span className="font-bold text-stone-800 dark:text-stone-200">
+                                            Low Stock
+                                        </span>
+                                        <span className="text-[10px] text-stone-500 dark:text-stone-400">
+                                            (1–10 units • Needs reorder)
+                                        </span>
+                                    </div>
+                                    <span className="font-mono font-bold text-amber-700 dark:text-amber-400">
+                                        {lowStockCount} medicines ({Math.round(lowStockPercent)}%)
+                                    </span>
+                                </div>
+                                <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200/60 dark:bg-stone-700">
+                                    <div
+                                        className="h-full rounded-full bg-[#f5ae22] transition-all duration-500"
+                                        style={{ width: `${lowStockPercent}%` }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 3. Out of Stock */}
+                            <div className="rounded-xl border border-red-100 bg-red-50/40 p-2.5 dark:border-red-950/60 dark:bg-red-950/20">
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="h-2 w-2 rounded-full bg-[#e63946]" />
+                                        <span className="font-bold text-stone-800 dark:text-stone-200">
+                                            Out of Stock
+                                        </span>
+                                        <span className="text-[10px] text-stone-500 dark:text-stone-400">
+                                            (0 units • Unavailable)
+                                        </span>
+                                    </div>
+                                    <span className="font-mono font-bold text-red-700 dark:text-red-400">
+                                        {outOfStockCount} medicines ({Math.round(outOfStockPercent)}%)
+                                    </span>
+                                </div>
+                                <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200/60 dark:bg-stone-700">
+                                    <div
+                                        className="h-full rounded-full bg-[#e63946] transition-all duration-500"
+                                        style={{ width: `${outOfStockPercent}%` }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Operational Threshold & Stock Summary Tiles (Eliminates the empty white space!) */}
+                        <div className="my-1.5 grid grid-cols-3 gap-2 border-t border-[#e8dfd4] pt-2 dark:border-[#382f25]">
+                            <div className="rounded-lg bg-stone-50 p-2 text-center dark:bg-stone-800/60">
+                                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-medium">Total Physical Units</p>
+                                <p className="font-bold text-stone-900 dark:text-white text-xs mt-0.5">
+                                    {Number(totalStock).toLocaleString()} <span className="text-[10px] font-normal">units</span>
+                                </p>
+                            </div>
+                            <div className="rounded-lg bg-stone-50 p-2 text-center dark:bg-stone-800/60">
+                                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-medium">Low Stock Rule</p>
+                                <p className="font-bold text-amber-700 dark:text-amber-400 text-xs mt-0.5">
+                                    &le; 10 <span className="text-[10px] font-normal">units</span>
+                                </p>
+                            </div>
+                            <div className="rounded-lg bg-stone-50 p-2 text-center dark:bg-stone-800/60">
+                                <p className="text-[10px] text-stone-500 dark:text-stone-400 font-medium">Formulary Items</p>
+                                <p className="font-bold text-stone-900 dark:text-white text-xs mt-0.5">
+                                    {totalMedicines} <span className="text-[10px] font-normal">items</span>
                                 </p>
                             </div>
                         </div>
 
-                        <div className="relative h-[145px] pl-7">
-
-                            <div className="absolute inset-x-7 top-1 bottom-6 flex flex-col justify-between">
-                                <div className="border-t border-[#eee7de]" />
-                                <div className="border-t border-[#eee7de]" />
-                                <div className="border-t border-[#eee7de]" />
-                                <div className="border-t border-[#eee7de]" />
-                                <div className="border-t border-[#eee7de]" />
-                                <div className="border-t border-[#ded4c9]" />
+                        {/* Card Footer matching left card */}
+                        <div className="mt-1 flex flex-col items-center gap-0.5 border-t border-[#e8dfd4] pt-2 text-center dark:border-[#382f25]">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-stone-800 dark:text-stone-200">
+                                <span>All 49 medicines have sufficient stock above reorder threshold</span>
+                                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                             </div>
-
-                            <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-[8px] text-[#887d70]">
-                                <span>{maxStatusCount}</span>
-                                <span>{Math.round(maxStatusCount * 0.8)}</span>
-                                <span>{Math.round(maxStatusCount * 0.6)}</span>
-                                <span>{Math.round(maxStatusCount * 0.4)}</span>
-                                <span>{Math.round(maxStatusCount * 0.2)}</span>
-                                <span>0</span>
+                            <div className="text-[10px] text-stone-500 dark:text-stone-400">
+                                Zero shortages • Ready for clinic consultations &amp; dispensing
                             </div>
-
-                            <div className="absolute inset-x-7 bottom-6 top-1 flex items-end justify-around">
-
-                                <div className="flex h-full w-20 flex-col items-center justify-end">
-                                    <span className="mb-1 text-[10px] font-bold">
-                                        {inStockCount}
-                                    </span>
-
-                                    <div
-                                        className="w-16 rounded-t-md bg-[#27a866]"
-                                        style={{
-                                            height: `${Math.max(
-                                                4,
-                                                (inStockCount /
-                                                    maxStatusCount) *
-                                                    105
-                                            )}px`,
-                                        }}
-                                    />
-                                </div>
-
-                                <div className="flex h-full w-20 flex-col items-center justify-end">
-                                    <span className="mb-1 text-[10px] font-bold">
-                                        {lowStockCount}
-                                    </span>
-
-                                    <div
-                                        className="w-16 rounded-t-md bg-[#f5ae22]"
-                                        style={{
-                                            height: `${Math.max(
-                                                4,
-                                                (lowStockCount /
-                                                    maxStatusCount) *
-                                                    105
-                                            )}px`,
-                                        }}
-                                    />
-                                </div>
-
-                                <div className="flex h-full w-20 flex-col items-center justify-end">
-                                    <span className="mb-1 text-[10px] font-bold">
-                                        {outOfStockCount}
-                                    </span>
-
-                                    <div
-                                        className="w-16 rounded-t-md bg-[#e63946]"
-                                        style={{
-                                            height: `${Math.max(
-                                                4,
-                                                (outOfStockCount /
-                                                    maxStatusCount) *
-                                                    105
-                                            )}px`,
-                                        }}
-                                    />
-                                </div>
-
-                            </div>
-
-                            <div className="absolute inset-x-7 bottom-0 flex justify-around text-[9px] font-medium text-[#766959]">
-                                <span className="w-20 text-center">
-                                    In Stock
-                                </span>
-
-                                <span className="w-20 text-center">
-                                    Low Stock
-                                </span>
-
-                                <span className="w-20 text-center">
-                                    Out of Stock
-                                </span>
-                            </div>
-
                         </div>
                     </div>
 

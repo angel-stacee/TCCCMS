@@ -22,14 +22,17 @@ interface VisitReasonsPieChartProps {
     className?: string;
 }
 
-// 5 shades of blue matching the shadcn UI chart screenshot
-const SHADCN_BLUE_COLORS = [
-    "#3b82f6", // blue-500
-    "#60a5fa", // blue-400
-    "#2563eb", // blue-600
-    "#93c5fd", // blue-300
-    "#1d4ed8", // blue-700
-    "#1e40af", // blue-800
+// TCC Institutional Burgundy & Warm Tonal Palette
+// Replaces multi-color rainbow with a refined, cohesive, and non-clashing medical palette
+export const TCC_VISIT_REASON_COLORS = [
+    "#70091f", // 1. Deep Burgundy (TCC Primary)
+    "#981b2f", // 2. Rich Crimson Wine
+    "#b83a4e", // 3. Ruby Wine
+    "#cf6274", // 4. Soft Berry Rose
+    "#822634", // 5. Dark Maroon Wine
+    "#df8997", // 6. Warm Blush Tint
+    "#600d1b", // 7. Deep Velvet Burgundy
+    "#a34555", // 8. Muted Heather Burgundy
 ];
 
 export function VisitReasonsPieChart({
@@ -46,7 +49,7 @@ export function VisitReasonsPieChart({
         return data.map((item, idx) => ({
             name: item.label,
             value: Number(item.value || 0),
-            fill: item.color || getReasonColorHex(item.label),
+            fill: TCC_VISIT_REASON_COLORS[idx % TCC_VISIT_REASON_COLORS.length],
         }));
     }, [data]);
 
@@ -126,9 +129,9 @@ export function VisitReasonsPieChart({
                                     nameKey="name"
                                     cx="50%"
                                     cy="50%"
-                                    outerRadius={80}
-                                    stroke="currentColor"
-                                    className="stroke-white dark:stroke-[#251f19]"
+                                    innerRadius={46}
+                                    outerRadius={78}
+                                    stroke="#ffffff"
                                     strokeWidth={2}
                                     isAnimationActive={true}
                                     animationDuration={600}

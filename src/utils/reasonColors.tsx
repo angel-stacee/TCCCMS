@@ -23,7 +23,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-red-950/70",
         darkText: "dark:text-red-200",
         darkBorder: "dark:border-red-700/70",
-        hex: "#ef4444", // Red for fever / acute thermal
+        hex: "#8b1505", // Deep Crimson Burgundy
     },
     nosebleed: {
         bg: "bg-rose-100/90",
@@ -32,7 +32,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-rose-950/70",
         darkText: "dark:text-rose-200",
         darkBorder: "dark:border-rose-700/70",
-        hex: "#e11d48", // Crimson rose for epistaxis / bleeding
+        hex: "#a82236", // Crimson Wine
     },
     headache: {
         bg: "bg-amber-100/90",
@@ -41,7 +41,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-amber-950/70",
         darkText: "dark:text-amber-200",
         darkBorder: "dark:border-amber-700/70",
-        hex: "#d97706", // Amber / warm gold for cephalea / headache
+        hex: "#70091f", // Institutional Burgundy
     },
     dizziness: {
         bg: "bg-purple-100/90",
@@ -50,7 +50,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-purple-950/70",
         darkText: "dark:text-purple-200",
         darkBorder: "dark:border-purple-700/70",
-        hex: "#8b5cf6", // Purple / violet for vertigo / dizziness
+        hex: "#b84255", // Warm Berry Burgundy
     },
     stomach: {
         bg: "bg-orange-100/90",
@@ -59,7 +59,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-orange-950/70",
         darkText: "dark:text-orange-200",
         darkBorder: "dark:border-orange-700/70",
-        hex: "#ea580c", // Orange for abdominal / gastrointestinal / stomachache
+        hex: "#932738", // Rich Wine
     },
     fatigue: {
         bg: "bg-indigo-100/90",
@@ -68,7 +68,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-indigo-950/70",
         darkText: "dark:text-indigo-200",
         darkBorder: "dark:border-indigo-700/70",
-        hex: "#6366f1", // Indigo for fatigue / general weakness / malaise
+        hex: "#c95d6f", // Soft Wine Rose
     },
     cough: {
         bg: "bg-sky-100/90",
@@ -77,7 +77,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-sky-950/70",
         darkText: "dark:text-sky-200",
         darkBorder: "dark:border-sky-700/70",
-        hex: "#0284c7", // Sky blue for respiratory / cough / cold
+        hex: "#7c1c2b", // Maroon Wine
     },
     injury: {
         bg: "bg-red-100",
@@ -86,7 +86,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-red-950/80",
         darkText: "dark:text-red-200",
         darkBorder: "dark:border-red-700",
-        hex: "#b91c1c", // Crimson red for trauma / wound / injury
+        hex: "#851122", // Deep Burgundy Red
     },
     bodypain: {
         bg: "bg-fuchsia-100/90",
@@ -95,7 +95,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-fuchsia-950/70",
         darkText: "dark:text-fuchsia-200",
         darkBorder: "dark:border-fuchsia-700/70",
-        hex: "#c026d3",
+        hex: "#ad3c50", // Ruby Burgundy
     },
     checkup: {
         bg: "bg-emerald-100/90",
@@ -104,7 +104,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-emerald-950/70",
         darkText: "dark:text-emerald-200",
         darkBorder: "dark:border-emerald-700/70",
-        hex: "#10b981", // Emerald green for healthy / routine checkup
+        hex: "#630b1c", // Darkest Velvet Burgundy
     },
     firstaid: {
         bg: "bg-teal-100/90",
@@ -113,7 +113,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-teal-950/70",
         darkText: "dark:text-teal-200",
         darkBorder: "dark:border-teal-700/70",
-        hex: "#0d9488", // Teal for nursing first aid
+        hex: "#bf4e61", // Rose Burgundy
     },
     allergy: {
         bg: "bg-violet-100/90",
@@ -122,7 +122,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-violet-950/70",
         darkText: "dark:text-violet-200",
         darkBorder: "dark:border-violet-700/70",
-        hex: "#7c3aed", // Violet for allergic reaction
+        hex: "#9e2f42", // Velvet Wine
     },
     medication: {
         bg: "bg-blue-100/90",
@@ -131,7 +131,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-blue-950/70",
         darkText: "dark:text-blue-200",
         darkBorder: "dark:border-blue-700/70",
-        hex: "#2563eb",
+        hex: "#70091f", // Primary Burgundy
     },
     dysmenorrhea: {
         bg: "bg-pink-100/90",
@@ -140,7 +140,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-pink-950/70",
         darkText: "dark:text-pink-200",
         darkBorder: "dark:border-pink-700/70",
-        hex: "#db2777",
+        hex: "#d67182", // Dusty Rose Burgundy
     },
     asthma: {
         bg: "bg-cyan-100/90",
@@ -149,7 +149,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-cyan-950/70",
         darkText: "dark:text-cyan-200",
         darkBorder: "dark:border-cyan-700/70",
-        hex: "#0891b2",
+        hex: "#8e2335", // Brick Burgundy
     },
     dental: {
         bg: "bg-slate-200/90",
@@ -158,7 +158,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-slate-800",
         darkText: "dark:text-slate-200",
         darkBorder: "dark:border-slate-600",
-        hex: "#475569",
+        hex: "#5a101d", // Deep Maroon
     },
     other: {
         bg: "bg-amber-100/80",
@@ -167,7 +167,7 @@ export const REASON_COLOR_MAP: Record<string, ReasonBadgeStyle> = {
         darkBg: "dark:bg-amber-950/60",
         darkText: "dark:text-amber-200",
         darkBorder: "dark:border-amber-700",
-        hex: "#70091f",
+        hex: "#70091f", // Primary Burgundy
     },
 };
 

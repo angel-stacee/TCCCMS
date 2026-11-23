@@ -419,7 +419,7 @@ export async function exportMonthlyReportPDF(reportData: {
 
     autoTable(doc, {
         startY: currentY + 6.5,
-        head: [["Date", "Patient Name", "Type", "Department", "Reason / Symptoms", "Medicine", "Nurse"]],
+        head: [["Date", "Patient", "Type", "Department", "Reason / Symptoms", "Medicine", "Attending Staff"]],
         body: visits.length > 0 ? visits.map(v => [
             formatDate(v.date),
             formatNA(v.person),
@@ -439,13 +439,14 @@ export async function exportMonthlyReportPDF(reportData: {
         bodyStyles: {
             fontSize: 7,
             textColor: TEXT_DARK,
-            valign: "middle",
+            valign: "top",
+            overflow: "linebreak",
         },
         columnStyles: {
             0: { cellWidth: 20 },
-            1: { cellWidth: 32 },
+            1: { cellWidth: 30 },
             2: { cellWidth: 16 },
-            3: { cellWidth: 30 },
+            3: { cellWidth: 32 },
             4: { cellWidth: 38 },
             5: { cellWidth: 24 },
             6: { cellWidth: 22 },

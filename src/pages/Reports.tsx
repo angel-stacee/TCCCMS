@@ -522,44 +522,44 @@ function Reports() {
 
                         {/* Desktop Table View */}
                         <div className="hidden md:block print:block overflow-x-auto scrollbar-thin">
-                            <table className="report-visit-table w-full min-w-[760px] lg:min-w-full table-fixed">
+                            <table className="report-visit-table w-full min-w-[780px] lg:min-w-full table-fixed border-collapse">
                                 <colgroup>
-                                    <col style={{ width: "12%" }} />
-                                    <col style={{ width: "18%" }} />
-                                    <col style={{ width: "10%" }} />
-                                    <col style={{ width: "18%" }} />
-                                    <col style={{ width: "18%" }} />
-                                    <col style={{ width: "12%" }} />
-                                    <col style={{ width: "12%" }} />
+                                    <col style={{ width: "11%" }} />
+                                    <col style={{ width: "16%" }} />
+                                    <col style={{ width: "8%" }} />
+                                    <col style={{ width: "17%" }} />
+                                    <col style={{ width: "20%" }} />
+                                    <col style={{ width: "14%" }} />
+                                    <col style={{ width: "14%" }} />
                                 </colgroup>
                                 <thead>
                                     <tr className="bg-[#70091f] text-white print:bg-[#70091f] print:text-white text-left">
-                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Date</th>
-                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Patient</th>
-                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Type</th>
-                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Department</th>
-                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Reason / Symptoms</th>
-                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Medicine</th>
-                                        <th className="px-3.5 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Attending Staff</th>
+                                        <th className="px-3 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Date</th>
+                                        <th className="px-3 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Patient</th>
+                                        <th className="px-3 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Type</th>
+                                        <th className="px-3 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Department</th>
+                                        <th className="px-3 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Reason / Symptoms</th>
+                                        <th className="px-3 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Medicine</th>
+                                        <th className="px-3 py-2.5 text-xs font-bold uppercase text-white print:text-white tracking-wider">Attending Staff</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredVisits.length > 0 ? (
                                         filteredVisits.map((visit) => (
-                                            <tr key={visit.id} className="border-t border-stone-100 hover:bg-stone-50/50">
-                                                <td className="px-4 py-3 text-sm text-stone-600">{formatVisitDate(visit.date)}</td>
-                                                <td className="px-4 py-3 text-sm font-semibold text-stone-800">{formatNA(visit.person)}</td>
-                                                <td className="px-4 py-3 text-sm text-stone-600">
+                                            <tr key={visit.id} className="border-t border-stone-100 hover:bg-stone-50/50 align-top">
+                                                <td className="px-3 py-3 text-xs sm:text-sm text-stone-600 whitespace-nowrap">{formatVisitDate(visit.date)}</td>
+                                                <td className="px-3 py-3 text-xs sm:text-sm font-semibold text-stone-800 break-words leading-snug">{formatNA(visit.person)}</td>
+                                                <td className="px-3 py-3 text-xs sm:text-sm text-stone-600">
                                                     <span className="capitalize">{formatNA(visit.person_type)}</span>
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-stone-600">{formatNA(visit.department)}</td>
-                                                <td className="px-4 py-3 text-sm text-stone-700">
-                                                    <ReasonBadge reason={visit.reason} symptoms={visit.symptoms} />
+                                                <td className="px-3 py-3 text-xs sm:text-sm text-stone-600 break-words leading-snug">{formatNA(visit.department)}</td>
+                                                <td className="px-3 py-3 text-xs sm:text-sm text-stone-700 break-words leading-snug">
+                                                    <ReasonBadge reason={visit.reason} symptoms={visit.symptoms} className="break-words" />
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-stone-600">
+                                                <td className="px-3 py-3 text-xs sm:text-sm text-stone-600 break-words leading-snug">
                                                     {visit.medicine ? `${visit.medicine}${visit.medicine_quantity ? ` (${visit.medicine_quantity})` : ""}` : "None"}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-stone-600">{formatNA(visit.nurse)}</td>
+                                                <td className="px-3 py-3 text-xs sm:text-sm text-stone-600 break-words leading-snug">{formatNA(visit.nurse)}</td>
                                             </tr>
                                         ))
                                     ) : (

@@ -10,6 +10,7 @@ import {
     Flame,
     Download,
     Clock,
+    Mail,
 } from "lucide-react";
 import api from "../../services/api";
 import { addClinicNotification } from "../../services/notifications";
@@ -45,6 +46,8 @@ export function MedicineRequisitionModal({
     const [priority, setPriority] = useState<"normal" | "urgent" | "critical">("normal");
     const [reason, setReason] = useState("Routine Stock Replenishment");
     const [remarks, setRemarks] = useState("");
+    const [recipientEmail, setRecipientEmail] = useState("");
+    const [sendCopyToNurse, setSendCopyToNurse] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
 
@@ -72,6 +75,8 @@ export function MedicineRequisitionModal({
             setQuantity(50);
         }
         setError("");
+        setRecipientEmail("");
+        setSendCopyToNurse(true);
     }, [medicine, allMedicines, isOpen]);
 
     if (!isOpen) return null;
@@ -95,23 +100,36 @@ export function MedicineRequisitionModal({
             setSubmitting(true);
             const medName = activeMedicine?.medicine_name || "Medicine";
 
-            await api.post("/medicines/requisitions", {
+            const response = await api.post("/medicines/requisitions", {
                 medicine_id: Number(selectedMedId),
                 quantity_requested: parsedQty,
                 unit: unit || activeMedicine?.unit || "Tablet",
                 priority,
                 reason,
                 remarks: remarks.trim() || undefined,
+                recipient_email: recipientEmail.trim() || undefined,
+                send_copy_to_nurse: sendCopyToNurse,
             });
+
+            const emailDispatched = response.data?.email_sent;
+            const recipientsList = response.data?.email_recipients;
 
             addClinicNotification({
                 type: "add",
                 title: "Medicine Requisition Submitted",
-                description: `Requested ${parsedQty} ${unit} of ${medName} (${priority.toUpperCase()})`,
+                description: `Requested ${parsedQty} ${unit} of ${medName} (${priority.toUpperCase()})` +
+                    (emailDispatched ? ` • Email sent to ${recipientsList?.join(", ") || recipientEmail}` : ""),
                 category: "medicine",
             });
 
-            onSuccess(`Requisition request for ${parsedQty} ${unit} of ${medName} submitted successfully.`);
+            let successMsg = `Requisition request for ${parsedQty} ${unit} of ${medName} submitted successfully.`;
+            if (emailDispatched) {
+                successMsg += ` ✉️ Notification email dispatched to ${recipientsList?.join(", ") || recipientEmail}.`;
+            } else if (response.data?.email_error) {
+                successMsg += ` (Notice: Email notice could not be delivered: ${response.data.email_error})`;
+            }
+
+            onSuccess(successMsg);
             onClose();
         } catch (err: any) {
             console.error("Requisition submit error:", err);
@@ -131,7 +149,7 @@ export function MedicineRequisitionModal({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="req-title"
-                className="w-full max-w-lg overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white shadow-2xl transition-all dark:border-[#382f25] dark:bg-[#1f1914]"
+                className="w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden rounded-2xl border border-[#e8dfd4] bg-white shadow-2xl transition-all dark:border-[#382f25] dark:bg-[#1f1914]"
             >
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-[#e8dfd4] bg-[#fcfaf6] px-5 py-4 dark:border-[#382f25] dark:bg-[#251f19]">
@@ -161,7 +179,7 @@ export function MedicineRequisitionModal({
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto">
                     {error && (
                         <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
                             <AlertCircle size={16} className="mt-0.5 shrink-0" />
@@ -307,6 +325,40 @@ export function MedicineRequisitionModal({
                         />
                     </div>
 
+                    {/* Email Notification Section */}
+                    <div className="rounded-xl border border-[#ebd8c8] bg-[#fbf8f3] p-3.5 dark:border-[#382f25] dark:bg-[#251f19]">
+                        <div className="flex items-center justify-between mb-1.5">
+                            <label className="flex items-center gap-1.5 text-xs font-bold text-stone-800 dark:text-stone-200">
+                                <Mail size={14} className="text-[#70091f] dark:text-[#f8a598]" />
+                                <span>Send Requisition via Email (Optional)</span>
+                            </label>
+                            <span className="text-[10px] font-semibold text-[#70091f] bg-[#70091f]/10 dark:bg-[#70091f]/20 dark:text-[#f8a598] px-2 py-0.5 rounded-full">
+                                Any Email
+                            </span>
+                        </div>
+                        <input
+                            type="text"
+                            value={recipientEmail}
+                            onChange={(e) => setRecipientEmail(e.target.value)}
+                            placeholder="Enter recipient email: e.g. procurement@tagoloan.edu.ph, supplier@gmail.com"
+                            className="w-full rounded-xl border border-[#ded4c9] bg-white px-3.5 py-2 text-xs text-stone-800 shadow-xs focus:border-[#70091f] focus:outline-hidden dark:border-[#382f25] dark:bg-[#1a1511] dark:text-[#f4ecdf]"
+                        />
+                        <div className="mt-2.5 flex items-center justify-between gap-2">
+                            <label className="flex items-center gap-2 cursor-pointer text-[11px] text-stone-600 dark:text-stone-300">
+                                <input
+                                    type="checkbox"
+                                    checked={sendCopyToNurse}
+                                    onChange={(e) => setSendCopyToNurse(e.target.checked)}
+                                    className="h-3.5 w-3.5 rounded border-[#ded4c9] text-[#70091f] focus:ring-[#70091f]/40 dark:border-[#382f25] dark:bg-[#251f19]"
+                                />
+                                <span>Send copy to TCC Clinic &amp; Attending Nurse</span>
+                            </label>
+                        </div>
+                        <p className="mt-1.5 text-[10px] text-stone-500 dark:text-stone-400">
+                            Dispatches an official notice with medicine name, required quantity, current stock level, urgency priority, and attending nurse details.
+                        </p>
+                    </div>
+
                     {/* Remarks */}
                     <div>
                         <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
@@ -336,7 +388,9 @@ export function MedicineRequisitionModal({
                             className="inline-flex items-center gap-1.5 rounded-xl bg-[#70091f] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#8b1505] disabled:opacity-50 transition"
                         >
                             <Send size={14} />
-                            {submitting ? "Submitting Request..." : "Submit Requisition Request"}
+                            {submitting
+                                ? (recipientEmail ? "Submitting & Sending Email..." : "Submitting Request...")
+                                : "Submit Requisition Request"}
                         </button>
                     </div>
                 </form>

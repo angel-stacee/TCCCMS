@@ -444,18 +444,30 @@ function Dashboard() {
                 });
             }
 
-            // Automatic notification for medicines expiring within 30 days
+            // Automatic notification ONLY for medicines 3 days or less before expiration
             if (Array.isArray(data?.medicine_alerts?.expiring_soon) && data.medicine_alerts.expiring_soon.length > 0) {
                 const stored = getStoredNotifications();
                 data.medicine_alerts.expiring_soon.forEach((med: any) => {
-                    const alertKey = `expiring-med-${med.id}-${med.expiration_date}`;
-                    if (!stored.some((n) => n.key === alertKey)) {
-                        addClinicNotification({
-                            type: "info",
-                            title: "Medicine Expiring Soon",
-                            description: `${med.medicine_name} will expire on ${med.expiration_date}. Plan replenishment.`,
-                            category: "medicine",
-                        });
+                    if (med.expiration_date) {
+                        const exp = new Date(med.expiration_date);
+                        exp.setHours(0, 0, 0, 0);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+                        // Strictly ONLY notify if within 3 days before expiration (0 to 3 days)
+                        if (diffDays >= 0 && diffDays <= 3) {
+                            const alertKey = `expiring-med-3d-${med.id}-${med.expiration_date}`;
+                            if (!stored.some((n) => n.key === alertKey)) {
+                                const daysText = diffDays === 0 ? "today" : diffDays === 1 ? "tomorrow" : `in ${diffDays} days`;
+                                addClinicNotification({
+                                    type: "warning",
+                                    title: `Medicine Expiring Soon: ${med.medicine_name}`,
+                                    description: `${med.medicine_name} will expire ${daysText} (${med.expiration_date}). Please review and prepare replenishment.`,
+                                    category: "medicine",
+                                });
+                            }
+                        }
                     }
                 });
             }

@@ -561,10 +561,10 @@ function Medicine() {
                 formattedDate: cleanDate,
             };
         }
-        if (days <= 30) {
+        if (days <= 3) {
             return {
                 status: "expiring_soon",
-                label: `Expires in ${days}d`,
+                label: days === 0 ? "Expires today" : `Expires in ${days}d`,
                 days,
                 formattedDate: cleanDate,
             };
@@ -876,10 +876,10 @@ function Medicine() {
                             </div>
                             <div>
                                 <p className="text-sm font-bold">
-                                    {summary.expiring_soon_count} Medicine{summary.expiring_soon_count > 1 ? "s" : ""} Expiring Soon (Within 30 Days)
+                                    {summary.expiring_soon_count} Medicine{summary.expiring_soon_count > 1 ? "s" : ""} Expiring Soon (Within 3 Days)
                                 </p>
                                 <p className="text-xs text-amber-700/80 dark:text-amber-300/80">
-                                    Check stock levels and schedule restock before items reach expiration.
+                                    Check stock levels and schedule replacement before items expire within 3 days.
                                 </p>
                             </div>
                         </div>

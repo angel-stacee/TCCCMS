@@ -201,9 +201,9 @@ export function MedicineModal({
 
     // Live preview of 4-Tier expiration status:
     // Expired (< 0 days)
-    // Expiring Soon (0 - 30 days)
-    // Near Expiration (31 - 90 days)
-    // Good (> 90 days)
+    // Expiring Soon (0 - 3 days)
+    // Near Expiration (4 - 30 days)
+    // Good (> 30 days)
     let isExpired = false;
     let isExpiringSoon = false;
     let isNearExpiration = false;
@@ -221,9 +221,9 @@ export function MedicineModal({
 
         if (daysUntilExp < 0) {
             isExpired = true;
-        } else if (daysUntilExp <= 30) {
+        } else if (daysUntilExp <= 3) {
             isExpiringSoon = true;
-        } else if (daysUntilExp <= 90) {
+        } else if (daysUntilExp <= 30) {
             isNearExpiration = true;
         } else {
             isGood = true;

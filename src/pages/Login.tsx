@@ -248,6 +248,12 @@ export default function Login(): React.JSX.Element {
         }
     };
 
+    const useTestAccount = () => {
+        setEmail("test");
+        setPassword("password123");
+        setError("");
+    };
+
     return (
         <main className="relative flex min-h-screen w-full items-center justify-center bg-[#160408] px-4 py-12 font-[system-ui,_-apple-system,_sans-serif] text-white">
             {/* Background texture & maroon gradient */}
@@ -319,11 +325,11 @@ export default function Login(): React.JSX.Element {
                             <input
                                 id="login-email"
                                 name="email"
-                                type="email"
-                                autoComplete="email"
+                                type="text"
+                                autoComplete="username"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="e.g. staff.clinic.edu@gmail.com"
+                                placeholder="Username or email"
                                 required
                                 disabled={loading}
                                 className="tcc-login-input h-11 w-full rounded-xl border border-[#70091f]/60 bg-[#160307] pl-10 pr-4 text-sm font-semibold text-white placeholder:text-[#dfcfc7]/75 outline-none transition focus:border-[#d4a017] focus:ring-1 focus:ring-[#d4a017] disabled:cursor-not-allowed disabled:opacity-60"
@@ -402,6 +408,23 @@ export default function Login(): React.JSX.Element {
                         >
                             Forgot password?
                         </button>
+                    </div>
+
+                    <div className="rounded-xl border border-[#d4a017]/35 bg-[#d4a017]/10 p-3 text-xs text-[#fcebe7]/90">
+                        <div className="flex items-center justify-between gap-3">
+                            <div>
+                                <p className="font-semibold text-[#f0c040]">Test account</p>
+                                <p className="mt-0.5">Username: <span className="font-bold text-white">test</span> · Password: <span className="font-bold text-white">password123</span></p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={useTestAccount}
+                                disabled={loading || lockoutSeconds > 0}
+                                className="shrink-0 rounded-lg border border-[#d4a017]/60 px-2.5 py-1.5 font-semibold text-[#f0c040] transition hover:bg-[#d4a017]/15 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Use account
+                            </button>
+                        </div>
                     </div>
 
                     {/* Error display */}

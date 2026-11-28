@@ -92,9 +92,14 @@ export default function QrScannerModal({
         setCameraError("");
         setLookupError("");
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment" },
-            });
+            let stream: MediaStream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+                });
+            } catch {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            }
             streamRef.current = stream;
             setCameraActive(true);
 

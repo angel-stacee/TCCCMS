@@ -325,10 +325,23 @@ export function ClinicVisitModal({
                 handleIdLookup(existingIdentifier);
             }
         } else {
-            // If new visit and form is empty, focus scanner input
-            setTimeout(() => {
-                idScanInputRef.current?.focus();
-            }, 100);
+            // If pre-filled (e.g. from QR scanner), auto-populate Automatic Patient Identification
+            const hasPrefilledPatient = Boolean(
+                formData.student_id || formData.faculty_id || formData.staff_id
+            );
+            const prefilledId = hasPrefilledPatient
+                ? patientSearch.match(/\(([^)]+)\)\s*$/)?.[1]
+                : undefined;
+
+            if (prefilledId) {
+                setIdScanInput(prefilledId);
+                handleIdLookup(prefilledId);
+            } else {
+                // If new visit and form is empty, focus scanner input
+                setTimeout(() => {
+                    idScanInputRef.current?.focus();
+                }, 100);
+            }
         }
     }, [showForm, editingVisit, handleIdLookup]);
 

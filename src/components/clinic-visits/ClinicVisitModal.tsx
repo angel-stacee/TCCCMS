@@ -250,13 +250,17 @@ export function ClinicVisitModal({
             setSearchedId(cleanId);
 
             try {
-                const response = await api.get("/patients/lookup", {
-                    params: { id: cleanId },
-                });
+                const isQrToken = cleanId.startsWith("TCMS-QR-") || cleanId.startsWith("TCMS1:");
+                const response = isQrToken
+                    ? await api.get("/patients/qr-resolve", { params: { code: cleanId } })
+                    : await api.get("/patients/lookup", { params: { id: cleanId } });
 
                 if (response.data && response.data.found && response.data.patient) {
                     const p = response.data.patient;
-                    const pType = (response.data.type || "student") as "student" | "faculty" | "staff";
+                    const pType = (response.data.patient_type || response.data.type || "student") as
+                        | "student"
+                        | "faculty"
+                        | "staff";
                     const enrichedPatient = { ...p, type: pType };
                     setIdentifiedPatient(enrichedPatient);
                     setLookupStatus("found");
@@ -269,7 +273,9 @@ export function ClinicVisitModal({
                         staff_id: pType === "staff" ? p.id : "",
                         department: p.course
                             ? mapCourseToDepartment(p.course)
-                            : (p.department || prev.department || ""),
+                            : p.department
+                              ? mapCourseToDepartment(p.department)
+                              : prev.department || "",
                     }));
 
                     setPatientSearch(`${p.student_id || p.identifier} - ${p.full_name || p.name}`);

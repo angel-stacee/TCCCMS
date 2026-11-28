@@ -1039,10 +1039,6 @@ export default function Organization(): React.JSX.Element {
                 }));
             }
             setDbSyncStatus("synced");
-        } catch (err) {
-            console.warn("Database sync notice: saved locally. Backend will sync once migration runs:", err);
-            setDbSyncStatus("synced");
-        } finally {
             setIsSavingDb(false);
             setToastMessage(`Personnel member "${updated.name}" saved successfully.`);
             addClinicNotification({
@@ -1051,6 +1047,12 @@ export default function Organization(): React.JSX.Element {
                 description: `${updated.name} (${updated.role}) profile updated in organization directory`,
                 category: "system",
             });
+        } catch (err: any) {
+            console.error("Organization member save failed:", err);
+            setDbSyncStatus("error");
+            setIsSavingDb(false);
+            const msg = err?.response?.data?.message || "Failed to save personnel member to server. Changes were not synced.";
+            setToastMessage(msg);
         }
     };
 
@@ -1111,10 +1113,6 @@ export default function Organization(): React.JSX.Element {
                 }));
             }
             setDbSyncStatus("synced");
-        } catch (err) {
-            console.warn("Database sync notice: deleted locally:", err);
-            setDbSyncStatus("synced");
-        } finally {
             setIsSavingDb(false);
             const memberName = memberToDelete?.name || "Personnel member";
             setToastMessage(`"${memberName}" has been removed from the organizational chart.`);
@@ -1124,6 +1122,12 @@ export default function Organization(): React.JSX.Element {
                 description: `${memberName} was removed from the organization directory`,
                 category: "system",
             });
+        } catch (err: any) {
+            console.error("Organization member delete failed:", err);
+            setDbSyncStatus("error");
+            setIsSavingDb(false);
+            const msg = err?.response?.data?.message || "Failed to remove personnel member from server.";
+            setToastMessage(msg);
         }
     };
 

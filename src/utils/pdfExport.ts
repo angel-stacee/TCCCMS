@@ -906,21 +906,21 @@ export async function exportReferralFormPDF(cert: ReferralFormData) {
     doc.text(careReason, padLeft + 4, curY);
     doc.line(padLeft, curY + 1.2, rightMargin, curY + 1.2);
 
-    // Row: Vitals
+    // Row: Vitals (never fabricate missing clinical measurements)
     curY += 8;
     doc.setFont("helvetica", "normal");
     const tempVal = cert.temperature && cert.temperature !== "N/A" && cert.temperature !== "-"
         ? (String(cert.temperature).includes("°C") ? String(cert.temperature) : `${cert.temperature} °C`)
-        : "36.5 °C";
+        : "N/A";
     const prVal = cert.pulse_rate && cert.pulse_rate !== "N/A"
         ? (String(cert.pulse_rate).includes("bpm") ? String(cert.pulse_rate) : `${cert.pulse_rate} bpm`)
-        : "76 bpm";
+        : "N/A";
     const rrVal = cert.respiratory_rate && cert.respiratory_rate !== "N/A"
         ? (String(cert.respiratory_rate).includes("cpm") ? String(cert.respiratory_rate) : `${cert.respiratory_rate} cpm`)
-        : "18 cpm";
+        : "N/A";
     const bpVal = cert.blood_pressure && cert.blood_pressure !== "N/A" && cert.blood_pressure !== "-"
         ? (String(cert.blood_pressure).includes("mmHg") ? String(cert.blood_pressure) : `${cert.blood_pressure} mmHg`)
-        : "120/80 mmHg";
+        : "N/A";
 
     doc.text(`Temp: ${tempVal}`, padLeft, curY);
     doc.text(`PR: ${prVal}`, padLeft + 42, curY);
@@ -930,7 +930,7 @@ export async function exportReferralFormPDF(cert: ReferralFormData) {
     // Row: Intervention/s done
     curY += 7;
     doc.text("Intervention/s done:", padLeft, curY);
-    const interventionStr = cert.interventions || cert.treatment || (cert.remarks ? cert.remarks : "Vital signs monitored, bed rest in clinic observation bay, oral hydration, supportive care.");
+    const interventionStr = cert.interventions || cert.treatment || cert.remarks || "N/A";
     curY += 5.5;
     doc.setFont("helvetica", "bold");
     doc.text(interventionStr, padLeft + 4, curY);
@@ -956,10 +956,10 @@ export async function exportReferralFormPDF(cert: ReferralFormData) {
         doc.rect(x, y - 3.2, 3.8, 3.8);
 
         if (checked) {
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(9);
-            doc.setTextColor(20, 20, 20);
-            doc.text("✓", x + 0.6, y - 0.2);
+            doc.setDrawColor(20, 20, 20);
+            doc.setLineWidth(0.55);
+            doc.line(x + 0.7, y - 1.2, x + 1.6, y - 0.2);
+            doc.line(x + 1.6, y - 0.2, x + 3.2, y - 2.6);
         }
 
         doc.setFont("helvetica", "normal");

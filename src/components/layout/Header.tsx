@@ -214,14 +214,8 @@ export function Header({
             // ignore
         }
 
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("tcc-dashboard-cache");
-        try {
-            invalidateRecordCache();
-        } catch {
-            // ignore
-        }
+        const { clearAuthSession } = await import("../../services/api");
+        clearAuthSession();
 
         navigate("/login", { replace: true });
     };
@@ -635,7 +629,7 @@ export function Header({
                                                             setNotifToDelete(item);
                                                         }}
                                                         title="Delete notification"
-                                                        className="flex h-6 w-6 items-center justify-center rounded-md text-stone-400 opacity-0 group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 transition cursor-pointer"
+                                                        className="flex h-6 w-6 items-center justify-center rounded-md text-stone-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 transition cursor-pointer"
                                                     >
                                                         <Trash2 size={13} />
                                                     </button>

@@ -119,6 +119,12 @@ export function MedicineTrendLineChart({
                 </div>
             </div>
 
+            {error && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+                    {error}
+                </div>
+            )}
+
             {/* Quick Metrics Bar: Up / Down Indicator Banner */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 {/* 1. Status Indicator: UP / DOWN */}
@@ -235,7 +241,7 @@ export function MedicineTrendLineChart({
                             className="inline-flex items-center gap-1.5 rounded-xl bg-[#70091f] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#8b1505] transition cursor-pointer self-start sm:self-auto"
                         >
                             <FileText size={13} />
-                            + Request Stock (rqst)
+                            + Request Stock
                         </button>
                     )}
                 </div>

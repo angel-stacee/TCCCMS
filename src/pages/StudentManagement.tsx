@@ -5,6 +5,7 @@ import api from "../services/api";
 import { getCachedRecord, invalidateRecordCache } from "../services/recordCache";
 import { ConfirmationModal, InfoItem, Modal, RecordSection } from "../components/student-management/FieldsAndModals";
 import { RestorePatientsModal } from "../components/student-management/RestorePatientsModal";
+import StudentQrSection from "../components/student-management/StudentQrSection";
 import { StudentForms, validateContactNumber, type StudentFormValues, type StaffFormValues, type FacultyFormValues } from "../components/student-management/StudentForms";
 import FloatingToast from "../components/common/FloatingToast";
 import { addClinicNotification } from "../services/notifications";
@@ -370,12 +371,15 @@ function StudentManagement() {
         try {
             const normalizedSearch = searchTerm.trim();
             const response = await getCachedRecord(
-                `students:list:${page}:${normalizedSearch}`,
+                `students:list:${page}:${normalizedSearch}:${sexFilter}:${courseFilter}:${sortBy}`,
                 () => api.get("/students", {
                     params: {
                         page,
                         per_page: 25,
                         search: normalizedSearch || undefined,
+                        sex: sexFilter !== "all" ? sexFilter : undefined,
+                        course: courseFilter !== "all" ? courseFilter : undefined,
+                        sort_by: sortBy || undefined,
                     },
                 })
             );
@@ -394,7 +398,7 @@ function StudentManagement() {
                     "Unable to load student records."
             );
         }
-    }, []);
+    }, [sexFilter, courseFilter, sortBy]);
 
     const loadStaffPage = useCallback(async (page, searchTerm = "") => {
         try {
@@ -3075,6 +3079,17 @@ function StudentManagement() {
                             </div>
                         </div>
 
+                        <StudentQrSection
+                            student={viewingStudent}
+                            onQrUpdated={(newToken) => {
+                                setViewingStudent((prev: any) => (prev ? { ...prev, qr_token: newToken } : prev));
+                                setStudents((prev: any[]) =>
+                                    prev.map((st) => (st.id === viewingStudent.id ? { ...st, qr_token: newToken } : st))
+                                );
+                            }}
+                            onNotify={(msg) => setSuccessToast(msg)}
+                        />
+
                         <RecordSection
                             icon={<User size={14} />}
                             title="Personal Information"
@@ -3280,6 +3295,18 @@ function StudentManagement() {
                             </span>
                         </div>
 
+                        <StudentQrSection
+                            patientType="staff"
+                            patient={viewingStaff}
+                            onQrUpdated={(newToken) => {
+                                setViewingStaff((prev: any) => (prev ? { ...prev, qr_token: newToken } : prev));
+                                setStaff((prev: any[]) =>
+                                    prev.map((st) => (st.id === viewingStaff.id ? { ...st, qr_token: newToken } : st))
+                                );
+                            }}
+                            onNotify={(msg) => setSuccessToast(msg)}
+                        />
+
                         <RecordSection
                             icon={<User size={14} />}
                             title="Personal Information"
@@ -3407,6 +3434,18 @@ function StudentManagement() {
                                 }
                             </span>
                         </div>
+
+                        <StudentQrSection
+                            patientType="faculty"
+                            patient={viewingFaculty}
+                            onQrUpdated={(newToken) => {
+                                setViewingFaculty((prev: any) => (prev ? { ...prev, qr_token: newToken } : prev));
+                                setFaculties((prev: any[]) =>
+                                    prev.map((f) => (f.id === viewingFaculty.id ? { ...f, qr_token: newToken } : f))
+                                );
+                            }}
+                            onNotify={(msg) => setSuccessToast(msg)}
+                        />
 
                         <RecordSection
                             icon={<User size={14} />}

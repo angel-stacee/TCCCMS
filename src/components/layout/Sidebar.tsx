@@ -10,6 +10,7 @@ import {
     Stethoscope,
     Pill,
     BarChart3,
+    Activity,
     Network,
     Settings,
     LogOut,
@@ -79,14 +80,8 @@ function Sidebar({
             // ignore
         }
 
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("tcc-dashboard-cache");
-        try {
-            invalidateRecordCache();
-        } catch {
-            // ignore
-        }
+        const { clearAuthSession } = await import("../../services/api");
+        clearAuthSession();
 
         navigate("/login", { replace: true });
     };

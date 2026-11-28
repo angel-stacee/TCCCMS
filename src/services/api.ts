@@ -128,6 +128,42 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+const USER_SCOPED_STORAGE_KEYS = [
+    "token",
+    "user",
+    "tcc-dashboard-cache",
+    "tcc-dashboard-persisted",
+    "tcc-ai-chat-sessions-v1",
+    "tcc-ai-active-session-id-v1",
+    "tcc-clinic-notifications-cache-v2",
+    "tcc-dismissed-activities",
+    "tcc-pushed-device-notifs-v2",
+    "tcc_organization_data_v1",
+];
+
+export const clearAuthSession = (): void => {
+    try {
+        invalidateRecordCache();
+    } catch {
+        // ignore cache clear error
+    }
+
+    if (typeof window !== "undefined") {
+        USER_SCOPED_STORAGE_KEYS.forEach((key) => {
+            try {
+                localStorage.removeItem(key);
+            } catch {
+                // ignore storage error
+            }
+        });
+        try {
+            sessionStorage.clear();
+        } catch {
+            // ignore sessionStorage error
+        }
+    }
+};
+
 api.interceptors.response.use(
     (response) => {
         const method = response.config.method?.toLowerCase() || "get";
@@ -140,10 +176,7 @@ api.interceptors.response.use(
     },
     (error) => {
         if (error?.response?.status === 401) {
-            invalidateRecordCache();
-
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
+            clearAuthSession();
 
             if (
                 typeof window !== "undefined" &&

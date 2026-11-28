@@ -131,10 +131,26 @@ export function addClinicNotification(item: {
     title: string;
     description: string;
     category?: string;
+    key?: string;
 }): void {
     if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("tcc-notifications-updated"));
     }
+
+    // Deduplicate device sound/vibration chimes by key so page reloads don't spam alerts
+    const dedupeKey = item.key || `${item.type}:${item.title}:${item.description}`;
+    try {
+        const pushedRaw = localStorage.getItem("tcc-pushed-device-notifs-v2");
+        const pushed: string[] = pushedRaw ? JSON.parse(pushedRaw) : [];
+        if (pushed.includes(dedupeKey)) {
+            return;
+        }
+        const nextPushed = [dedupeKey, ...pushed].slice(0, 100);
+        localStorage.setItem("tcc-pushed-device-notifs-v2", JSON.stringify(nextPushed));
+    } catch {
+        // ignore storage errors
+    }
+
     // Also dispatch to cellphone / device notification tray
     sendDeviceNotification(item.title, item.description).catch(() => {});
 }

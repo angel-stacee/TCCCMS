@@ -28,7 +28,7 @@ export function PageLoadingScreen(): React.JSX.Element {
                         }}
                         className="h-16 w-16 animate-pulse rounded-full object-contain"
                     />
-                    <div className="absolute -inset-1 rounded-2xl border border-[#8a6f50]/20 animate-ping opacity-30" />
+                    <div className="absolute -inset-1 rounded-2xl border border-[#70091f]/20 animate-ping opacity-30" />
                 </div>
 
                 <h1 className="text-lg font-bold tracking-tight text-[#3d3329] dark:text-[#f4ecdf]">
@@ -40,7 +40,7 @@ export function PageLoadingScreen(): React.JSX.Element {
 
                 {/* Animated loading bar */}
                 <div className="mt-6 h-1.5 w-48 overflow-hidden rounded-full bg-[#e8dfd4] dark:bg-[#382f25]">
-                    <div className="h-full w-24 rounded-full bg-[#8a6f50] animate-[shimmer_1.4s_infinite_ease-in-out]" />
+                    <div className="h-full w-24 rounded-full bg-[#70091f] animate-[shimmer_1.4s_infinite_ease-in-out]" />
                 </div>
             </div>
             <span className="sr-only">Loading page...</span>

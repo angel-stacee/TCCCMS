@@ -248,12 +248,6 @@ export default function Login(): React.JSX.Element {
         }
     };
 
-    const useTestAccount = () => {
-        setEmail("test");
-        setPassword("password123");
-        setError("");
-    };
-
     return (
         <main className="relative flex min-h-screen w-full items-center justify-center bg-[#160408] px-4 py-12 font-[system-ui,_-apple-system,_sans-serif] text-white">
             {/* Background texture & maroon gradient */}
@@ -408,23 +402,6 @@ export default function Login(): React.JSX.Element {
                         >
                             Forgot password?
                         </button>
-                    </div>
-
-                    <div className="rounded-xl border border-[#d4a017]/35 bg-[#d4a017]/10 p-3 text-xs text-[#fcebe7]/90">
-                        <div className="flex items-center justify-between gap-3">
-                            <div>
-                                <p className="font-semibold text-[#f0c040]">Test account</p>
-                                <p className="mt-0.5">Username: <span className="font-bold text-white">test</span> · Password: <span className="font-bold text-white">password123</span></p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={useTestAccount}
-                                disabled={loading || lockoutSeconds > 0}
-                                className="shrink-0 rounded-lg border border-[#d4a017]/60 px-2.5 py-1.5 font-semibold text-[#f0c040] transition hover:bg-[#d4a017]/15 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Use account
-                            </button>
-                        </div>
                     </div>
 
                     {/* Error display */}
@@ -585,7 +562,7 @@ export default function Login(): React.JSX.Element {
                                 </div>
 
                                 <div className="rounded-lg bg-[#70091f]/20 p-3 text-xs leading-relaxed text-white/70">
-                                    The OTP code will be sent to your inbox and remains valid for 15 minutes. Authorized clinic staff can also use the emergency verification code: <strong className="text-[#d4a017]">123456</strong>
+                                    The OTP code will be sent to your inbox and remains valid for 15 minutes.
                                 </div>
 
                                 <div className="flex items-center justify-end gap-2.5 pt-2">
@@ -669,7 +646,7 @@ export default function Login(): React.JSX.Element {
                                         className="tcc-login-input w-full rounded-xl border border-[#70091f]/60 bg-[#160307] py-2.5 text-center font-mono text-xl tracking-[0.4em] font-bold text-white placeholder:tracking-normal placeholder:font-sans placeholder:text-sm placeholder:text-[#dfcfc7]/75 focus:border-[#d4a017] focus:outline-none focus:ring-1 focus:ring-[#d4a017] disabled:bg-stone-900"
                                     />
                                     <p className="mt-1.5 text-center text-xs text-white/60">
-                                        Enter the 6-digit code received in your email, or use backup code <strong className="text-[#d4a017]">123456</strong>.
+                                        Enter the 6-digit verification code sent to your email.
                                     </p>
                                 </div>
 

@@ -1002,7 +1002,7 @@ function Dashboard() {
         Number(
             dashboard?.patient_gender_counts?.students?.male ??
             (hasDetailedCounts ? dashboard?.student_gender_counts?.male : undefined) ??
-            (male > 0 ? 1 : 0)
+            0
         ) || 0
     );
     const studentFemale = Math.max(
@@ -1010,7 +1010,7 @@ function Dashboard() {
         Number(
             dashboard?.patient_gender_counts?.students?.female ??
             (hasDetailedCounts ? dashboard?.student_gender_counts?.female : undefined) ??
-            (female > 0 ? Math.min(female, 2) : 0)
+            0
         ) || 0
     );
 
@@ -1456,12 +1456,17 @@ function Dashboard() {
                                     )}
 
                                     <div className="mt-2.5 flex items-center gap-1.5 text-xs">
-                                        <span className="flex items-center font-semibold text-[#10b981]">
-                                            <ArrowUp size={12} className="text-[#10b981]" />
-                                            <span className="ml-0.5 text-[#10b981]">
-                                                {change !== null && change > 0 ? change : 0}%
+                                        {change !== null && change < 0 ? (
+                                            <span className="flex items-center font-semibold text-rose-600 dark:text-rose-400">
+                                                <ArrowDown size={12} className="text-rose-600 dark:text-rose-400" />
+                                                <span className="ml-0.5">{change}%</span>
                                             </span>
-                                        </span>
+                                        ) : (
+                                            <span className="flex items-center font-semibold text-[#10b981]">
+                                                <ArrowUp size={12} className="text-[#10b981]" />
+                                                <span className="ml-0.5">{change ?? 0}%</span>
+                                            </span>
+                                        )}
                                         <span className="font-normal text-[#9c8e82] dark:text-stone-400">
                                             vs last month
                                         </span>

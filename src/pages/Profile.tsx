@@ -149,6 +149,7 @@ function Profile() {
                     "user",
                     JSON.stringify(updatedUser)
                 );
+                window.dispatchEvent(new Event("tcc-user-updated"));
 
                 setName(updatedUser.name || "");
                 setEmail(updatedUser.email || "");

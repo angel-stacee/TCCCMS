@@ -17,12 +17,14 @@ import {
     FileBadge,
     FileText,
     RotateCcw,
+    QrCode,
 } from "lucide-react";
 import api from "../services/api";
 import { getCachedRecord } from "../services/recordCache";
 import { ClinicVisitTable, type VisitRecord } from "../components/clinic-visits/ClinicVisitTable";
 import { ClinicVisitModal } from "../components/clinic-visits/ClinicVisitModal";
 import { RestoreVisitsModal } from "../components/clinic-visits/RestoreVisitsModal";
+import QrScannerModal, { type ResolvedQrPatient } from "../components/clinic-visits/QrScannerModal";
 import FloatingToast from "../components/common/FloatingToast";
 import { addClinicNotification } from "../services/notifications";
 import { formatNA, formatTemperature, formatDate, mapCourseToDepartment } from "../utils/formatters";
@@ -134,6 +136,7 @@ function ClinicVisits() {
     const [toastType, setToastType] = useState<"success" | "delete" | "info" | "error" | "warning">("info");
     const [toastAction, setToastAction] = useState<{ label: string; onClick: () => void } | undefined>(undefined);
     const [showRestoreModal, setShowRestoreModal] = useState(false);
+    const [showQrScanner, setShowQrScanner] = useState(false);
 
     const [medicalReportTarget, setMedicalReportTarget] = useState<{
         patient: any;
@@ -649,12 +652,15 @@ function ClinicVisits() {
         try {
             const normalizedSearch = searchTerm.trim();
             const response = await getCachedRecord(
-                `clinic-visits:list:${page}:${normalizedSearch}`,
+                `clinic-visits:list:${page}:${normalizedSearch}:${patientTypeFilter}:${dateFilter}:${treatmentFilter}`,
                 () => api.get("/clinic-visits", {
                     params: {
                         page,
                         per_page: 25,
                         search: normalizedSearch || undefined,
+                        patient_type: patientTypeFilter !== "all" ? patientTypeFilter : undefined,
+                        date_filter: dateFilter !== "all" ? dateFilter : undefined,
+                        treatment_type: treatmentFilter !== "all" ? treatmentFilter : undefined,
                     },
                 })
             );
@@ -686,7 +692,7 @@ function ClinicVisits() {
                 per_page: 25,
             });
         }
-    }, []);
+    }, [patientTypeFilter, dateFilter, treatmentFilter]);
 
     const fetchOptions = async () => {
         try {
@@ -958,7 +964,45 @@ function ClinicVisits() {
 
 
 
+    const handleQrPatientResolved = (resolved: ResolvedQrPatient) => {
+        setShowQrScanner(false);
+        setEditingVisit(null);
 
+        const storedUser = (() => {
+            try {
+                const u = localStorage.getItem("user");
+                return u ? JSON.parse(u) : null;
+            } catch {
+                return null;
+            }
+        })();
+
+        const defaultNurseId =
+            (storedUser?.id && nurses.some((n) => Number(n.id) === Number(storedUser.id)))
+                ? storedUser.id
+                : nurses[0]?.id || "";
+
+        const p = resolved.patient;
+        const pType = resolved.patient_type;
+
+        setFormData({
+            ...EMPTY_FORM,
+            student_id: pType === "student" ? String(p.id) : "",
+            faculty_id: pType === "faculty" ? String(p.id) : "",
+            staff_id: pType === "staff" ? String(p.id) : "",
+            department: p.department ? mapCourseToDepartment(p.department) : "",
+            nurse_id: defaultNurseId,
+            visit_date: getToday(),
+        });
+
+        setPatientSearch(`${p.full_name} (${p.identifier})`);
+        setMedicineSearch("");
+        setShowPatientDropdown(false);
+        setShowMedicineDropdown(false);
+        setShowForm(true);
+        setToastType("success");
+        setToastMessage(`Retrieved existing ${pType}: ${p.full_name} (${p.identifier}). Ready to record visit.`);
+    };
     const handleEdit = (visit) => {
         setEditingVisit(visit);
 
@@ -1042,8 +1086,6 @@ function ClinicVisits() {
 
         setShowForm(true);
     };
-
-
 
 
 
@@ -1186,24 +1228,31 @@ function ClinicVisits() {
             return;
         }
 
-        if (
-            !editingVisit &&
-            selectedMedicine &&
-            Number(
-                formData.medicine_quantity
-            ) >
-                getMedicineStock(
-                    selectedMedicine
-                )
-        ) {
+        const requestedQty = Number(formData.medicine_quantity) || 0;
+        const previouslyDispensedForSameMed =
+            editingVisit &&
+            Number(editingVisit.medicine_id) === Number(formData.medicine_id)
+                ? Number(editingVisit.medicine_quantity || 0)
+                : 0;
+        const effectiveAvailableStock = selectedMedicine
+            ? getMedicineStock(selectedMedicine) + previouslyDispensedForSameMed
+            : 0;
+
+        if (selectedMedicine && requestedQty > effectiveAvailableStock) {
             setToastType("warning");
             setToastMessage(
-                `Not enough stock. Available stock: ${getMedicineStock(
-                    selectedMedicine
-                )}.`
+                `Not enough stock. Available stock: ${effectiveAvailableStock}.`
             );
             return;
         }
+
+        const rawTemp = formData.temperature.trim();
+        const formattedTemp =
+            rawTemp === ""
+                ? null
+                : /^\d+(\.\d+)?$/.test(rawTemp)
+                ? `${rawTemp} °C`
+                : rawTemp;
 
         const payload = {
             student_id:
@@ -1218,6 +1267,9 @@ function ClinicVisits() {
             nurse_id:
                 formData.nurse_id || null,
 
+            department:
+                formData.department?.trim() || null,
+
             visit_date:
                 formData.visit_date,
 
@@ -1229,8 +1281,7 @@ function ClinicVisits() {
                 null,
 
             temperature:
-                formData.temperature.trim() ||
-                null,
+                formattedTemp,
 
             blood_pressure:
                 formData.blood_pressure.trim() ||
@@ -1624,6 +1675,16 @@ function ClinicVisits() {
                             >
                                 <RotateCcw size={15} className="text-[#8a6f50]" />
                                 <span>Restore</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowQrScanner(true)}
+                                className="flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-xl border border-[#70091f]/30 bg-[#70091f]/5 px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-semibold text-[#70091f] shadow-xs transition hover:bg-[#70091f]/10 dark:border-[#70091f]/50 dark:bg-[#70091f]/20 dark:text-[#f8a598] cursor-pointer"
+                                title="Scan Patient QR Code to record visit"
+                            >
+                                <QrCode size={16} />
+                                <span>Scan Patient QR</span>
                             </button>
 
                             <button
@@ -2356,6 +2417,13 @@ function ClinicVisits() {
                     open={showRestoreModal}
                     onClose={() => setShowRestoreModal(false)}
                     onRestored={() => fetchVisits(visitPagination.current_page, search)}
+                />
+
+                {/* QR Scanner Modal */}
+                <QrScannerModal
+                    isOpen={showQrScanner}
+                    onClose={() => setShowQrScanner(false)}
+                    onPatientResolved={handleQrPatientResolved}
                 />
             </div>
         </div>

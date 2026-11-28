@@ -662,7 +662,24 @@ export function DashboardAssistant() {
                                                     : "border border-[#70091f]/60 bg-[#20040b] text-[#fcebe7] shadow-xs"
                                             }`}
                                         >
-                                            {message.text}
+                                            <div className="space-y-1">
+                                                {message.text.split("\n").map((line, lIdx) => {
+                                                    const parts = line.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+                                                    return (
+                                                        <p key={lIdx} className={line.trim() === "" ? "h-1.5" : ""}>
+                                                            {parts.map((part, pIdx) => {
+                                                                if (part.startsWith("**") && part.endsWith("**")) {
+                                                                    return <strong key={pIdx} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+                                                                }
+                                                                if (part.startsWith("`") && part.endsWith("`")) {
+                                                                    return <code key={pIdx} className="rounded bg-black/30 px-1 py-0.5 font-mono text-xs text-[#f0c040]">{part.slice(1, -1)}</code>;
+                                                                }
+                                                                return <span key={pIdx}>{part}</span>;
+                                                            })}
+                                                        </p>
+                                                    );
+                                                })}
+                                            </div>
                                             {message.error && (
                                                 <button
                                                     type="button"

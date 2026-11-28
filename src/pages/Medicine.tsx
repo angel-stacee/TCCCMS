@@ -1277,13 +1277,31 @@ function Medicine() {
 
                         {/* Card Footer matching left card */}
                         <div className="mt-1 flex flex-col items-center gap-0.5 border-t border-[#e8dfd4] pt-2 text-center dark:border-[#382f25]">
-                            <div className="flex items-center gap-2 text-xs font-semibold text-stone-800 dark:text-stone-200">
-                                <span>All 49 medicines have sufficient stock above reorder threshold</span>
-                                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                            </div>
-                            <div className="text-[10px] text-stone-500 dark:text-stone-400">
-                                Zero shortages • Ready for clinic consultations &amp; dispensing
-                            </div>
+                            {lowStockCount === 0 && outOfStockCount === 0 ? (
+                                <>
+                                    <div className="flex items-center gap-2 text-xs font-semibold text-stone-800 dark:text-stone-200">
+                                        <span>All {totalMedicines} medicines have sufficient stock above reorder threshold</span>
+                                        <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                    </div>
+                                    <div className="text-[10px] text-stone-500 dark:text-stone-400">
+                                        Zero shortages • Ready for clinic consultations &amp; dispensing
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                                        <span>
+                                            {outOfStockCount > 0 ? `${outOfStockCount} out of stock` : ""}
+                                            {outOfStockCount > 0 && lowStockCount > 0 ? " • " : ""}
+                                            {lowStockCount > 0 ? `${lowStockCount} low stock` : ""}
+                                        </span>
+                                        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                    </div>
+                                    <div className="text-[10px] text-stone-500 dark:text-stone-400">
+                                        {totalMedicines} total formulary items • Restock recommended
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -1316,7 +1334,7 @@ function Medicine() {
                             }`}
                         >
                             <Flame size={15} className="text-amber-600" />
-                            <span>Most Used &amp; Requisitions (rqst)</span>
+                            <span>Most Used &amp; Requisitions</span>
                         </button>
 
                         <button

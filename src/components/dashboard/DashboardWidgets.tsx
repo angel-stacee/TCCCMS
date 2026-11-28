@@ -120,9 +120,10 @@ export function MiniBarChart({
     const svgWidth = totalBars * (groupWidth + groupGap) - groupGap;
 
     // Calculate max value across all items
+    const hasPairedSeries = data.some((d) => d.value2 !== undefined || d.employees !== undefined);
     const allVals = data.flatMap((d) => [
         d.value1 ?? d.students ?? d.value,
-        d.value2 ?? d.employees ?? Math.max(0, Math.floor(d.value * 0.5)),
+        ...(hasPairedSeries ? [d.value2 ?? d.employees ?? 0] : []),
     ]);
     const max = Math.max(...allVals, 1);
 
@@ -138,7 +139,7 @@ export function MiniBarChart({
                 {data.map((item, index) => {
                     const isLast = index === data.length - 1;
                     const val1 = item.value1 ?? item.students ?? (item.value > 0 ? item.value : 0);
-                    const val2 = item.value2 ?? item.employees ?? (item.value > 0 ? Math.max(1, Math.round(item.value * 0.5)) : 0);
+                    const val2 = hasPairedSeries ? (item.value2 ?? item.employees ?? 0) : 0;
 
                     const has1 = val1 > 0;
                     const has2 = val2 > 0;

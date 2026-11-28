@@ -262,6 +262,7 @@ function ChangeNameSection({ onSuccess }: { onSuccess?: (msg: string) => void })
             const updated = response.data?.user;
             if (updated) {
                 localStorage.setItem("user", JSON.stringify(updated));
+                window.dispatchEvent(new Event("tcc-user-updated"));
                 setName(updated.name || "");
             }
             const successMsg = "Name updated successfully.";
@@ -403,6 +404,7 @@ function ChangeProfilePhotoSection({ onSuccess }: { onSuccess?: (msg: string) =>
             const updated = response.data?.user;
             if (updated) {
                 localStorage.setItem("user", JSON.stringify(updated));
+                window.dispatchEvent(new Event("tcc-user-updated"));
                 if (updated.profile_picture) {
                     setPreview(resolveImageUrl(updated.profile_picture));
                     setImageError(false);

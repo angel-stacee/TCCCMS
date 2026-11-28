@@ -124,7 +124,7 @@ export function MostUsedMedicinesView({
 
                 <div className="flex flex-col justify-center rounded-2xl border border-[#70091f]/20 bg-[#70091f]/5 p-4 dark:border-[#70091f]/40 dark:bg-[#70091f]/10">
                     <p className="text-xs font-bold text-[#70091f] dark:text-[#f8a598]">
-                        Clinic Requisition (rqst)
+                        Clinic Requisition
                     </p>
                     <p className="text-[11px] text-stone-600 dark:text-stone-300 mb-2">
                         Fast stock replenishment order
@@ -202,7 +202,7 @@ export function MostUsedMedicinesView({
                             <th className="py-3 px-4 font-bold">Usage Level</th>
                             <th className="py-3 px-4 font-bold">Current Stock</th>
                             <th className="py-3 px-4 font-bold">Trajectory</th>
-                            <th className="py-3 px-4 font-bold text-center">Action / Requisition (rqst)</th>
+                            <th className="py-3 px-4 font-bold text-center">Action / Requisition</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#eee7de] dark:divide-[#382f25]">
@@ -351,7 +351,7 @@ export function MostUsedMedicinesView({
                                                     className="inline-flex items-center gap-1 rounded-lg bg-[#70091f] px-2.5 py-1 text-[11px] font-bold text-white shadow-xs hover:bg-[#8b1505] transition cursor-pointer"
                                                 >
                                                     <FileText size={12} />
-                                                    Make Request (rqst)
+                                                    Make Request
                                                 </button>
                                             </div>
 

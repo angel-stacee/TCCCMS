@@ -96,16 +96,23 @@ function Reports() {
     const [year, setYear] = useState(currentDate.getFullYear());
     const [visitSearch, setVisitSearch] = useState<string>("");
 
+    const toLocalIsoDate = (d: Date) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+    };
+
     // Analytics Data State
     const [analyticsData, setAnalyticsData] = useState<AnalyticsReport | null>(null);
     const [analyticsLoading, setAnalyticsLoading] = useState(false);
     const [analyticsFilters, setAnalyticsFilters] = useState<AnalyticsFilterState>({
         periodType: "monthly",
-        date: currentDate.toISOString().slice(0, 10),
+        date: toLocalIsoDate(currentDate),
         month: currentDate.getMonth() + 1,
         year: currentDate.getFullYear(),
-        startDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().slice(0, 10),
-        endDate: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString().slice(0, 10),
+        startDate: toLocalIsoDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)),
+        endDate: toLocalIsoDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)),
         patientType: "all",
     });
 
@@ -122,6 +129,7 @@ function Reports() {
     // Fetch Department & Symptom Analytics
     const fetchAnalytics = async (filters: AnalyticsFilterState = analyticsFilters) => {
         setAnalyticsLoading(true);
+        setError("");
         try {
             const res = await api.get<AnalyticsReport>("/reports/analytics", {
                 params: {
@@ -137,6 +145,7 @@ function Reports() {
             setAnalyticsData(res.data);
         } catch (err: any) {
             console.error("ANALYTICS ERROR:", err);
+            setError(err?.response?.data?.message || "Failed to load department & symptom analytics.");
         } finally {
             setAnalyticsLoading(false);
         }
@@ -228,6 +237,11 @@ function Reports() {
     };
 
     const handleDownloadPDF = () => {
+        if (viewTab === "analytics") {
+            if (!analyticsData && !report) return;
+            handlePrint();
+            return;
+        }
         if (!report) return;
         exportMonthlyReportPDF(report);
     };

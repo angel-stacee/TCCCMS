@@ -53,6 +53,14 @@ const Reports = lazyWithRetry(() => import("./pages/Reports"));
 const Settings = lazyWithRetry(() => import("./pages/Settings"));
 const Organization = lazyWithRetry(() => import("./pages/Organization"));
 
+function ProtectedRoute({ children }: { children: React.ReactNode }): React.JSX.Element {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+        return <Navigate to="/login" replace />;
+    }
+    return <>{children}</>;
+}
+
 function App(): React.JSX.Element {
     useLayoutEffect(() => {
         const isDark = localStorage.getItem("tcc-theme") === "dark";
@@ -78,8 +86,14 @@ function App(): React.JSX.Element {
                         <Route path="/landing" element={<Landing />} />
                         <Route path="/login" element={<Login />} />
 
-                        {/* Main Application Layout Shell */}
-                        <Route element={<MainLayout />}>
+                        {/* Main Application Layout Shell (Protected) */}
+                        <Route
+                            element={
+                                <ProtectedRoute>
+                                    <MainLayout />
+                                </ProtectedRoute>
+                            }
+                        >
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/students" element={<StudentManagement />} />
                             <Route path="/clinic-visits" element={<ClinicVisits />} />

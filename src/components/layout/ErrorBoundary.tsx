@@ -45,21 +45,23 @@ export class ErrorBoundary extends Component<Props, State> {
             hasError: true,
             error,
             isBuilding: isChunkOrBuildError,
-            countdown: 3,
+            countdown: isChunkOrBuildError ? 3 : 0,
         });
 
-        // Start countdown to auto-refresh seamlessly
-        if (this.timer) clearInterval(this.timer);
-        this.timer = setInterval(() => {
-            this.setState((prev) => {
-                if (prev.countdown <= 1) {
-                    if (this.timer) clearInterval(this.timer);
-                    this.handleReload();
-                    return { ...prev, countdown: 0 };
-                }
-                return { ...prev, countdown: prev.countdown - 1 };
-            });
-        }, 1000);
+        // Only auto-refresh for chunk/deployment errors (and guard against reload loops)
+        if (isChunkOrBuildError) {
+            if (this.timer) clearInterval(this.timer);
+            this.timer = setInterval(() => {
+                this.setState((prev) => {
+                    if (prev.countdown <= 1) {
+                        if (this.timer) clearInterval(this.timer);
+                        this.handleReload();
+                        return { ...prev, countdown: 0 };
+                    }
+                    return { ...prev, countdown: prev.countdown - 1 };
+                });
+            }, 1000);
+        }
     }
 
     public componentWillUnmount() {
@@ -162,29 +164,31 @@ export class ErrorBoundary extends Component<Props, State> {
                         </div>
 
                         <h2 className="text-xl font-bold tracking-tight text-stone-900 dark:text-white">
-                            {isBuilding ? "System is Building / Updating" : "Loading Latest Updates"}
+                            {isBuilding ? "System is Updating" : "Something went wrong"}
                         </h2>
 
                         <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
-                            The system is currently applying updates or compiling new changes.
-                            Synchronizing latest clinic modules...
+                            {isBuilding
+                                ? "A new version of the clinic system was deployed. Refreshing the module..."
+                                : "An unexpected error occurred while rendering this view. You can reload or return to the dashboard."}
                         </p>
 
-                        {/* Auto-refresh progress bar */}
-                        <div className="mx-auto mt-4 max-w-xs">
-                            <div className="flex items-center justify-between text-[11px] font-semibold text-stone-500 dark:text-stone-400 mb-1.5">
-                                <span>Auto-refreshing module</span>
-                                <span className="font-mono text-[#70091f] dark:text-[#f8a598] font-bold">
-                                    {countdown > 0 ? `${countdown}s` : "Reloading..."}
-                                </span>
+                        {isBuilding && (
+                            <div className="mx-auto mt-4 max-w-xs">
+                                <div className="flex items-center justify-between text-[11px] font-semibold text-stone-500 dark:text-stone-400 mb-1.5">
+                                    <span>Auto-refreshing module</span>
+                                    <span className="font-mono text-[#70091f] dark:text-[#f8a598] font-bold">
+                                        {countdown > 0 ? `${countdown}s` : "Reloading..."}
+                                    </span>
+                                </div>
+                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
+                                    <div
+                                        className="h-full bg-[#70091f] transition-all duration-1000"
+                                        style={{ width: `${Math.max(10, ((4 - countdown) / 3) * 100)}%` }}
+                                    />
+                                </div>
                             </div>
-                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
-                                <div
-                                    className="h-full bg-[#70091f] transition-all duration-1000"
-                                    style={{ width: `${Math.max(10, ((4 - countdown) / 3) * 100)}%` }}
-                                />
-                            </div>
-                        </div>
+                        )}
 
                         {error?.message && (
                             <details className="mt-4 text-left text-xs text-stone-500 dark:text-stone-400">

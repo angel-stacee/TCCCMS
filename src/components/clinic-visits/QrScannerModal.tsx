@@ -96,16 +96,24 @@ export default function QrScannerModal({
                 video: { facingMode: "environment" },
             });
             streamRef.current = stream;
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                await videoRef.current.play();
-            }
             setCameraActive(true);
+
+            // Wait a tick for <video> to mount if needed, then attach stream
+            requestAnimationFrame(async () => {
+                if (videoRef.current && streamRef.current) {
+                    videoRef.current.srcObject = streamRef.current;
+                    try {
+                        await videoRef.current.play();
+                    } catch {
+                        // Ignore autoplay interruption
+                    }
+                }
+            });
 
             const scanFrame = () => {
                 const video = videoRef.current;
                 const canvas = canvasRef.current;
-                if (video && canvas && video.readyState === video.HAVE_ENOUGH_DATA) {
+                if (video && canvas && video.readyState >= video.HAVE_CURRENT_DATA && video.videoWidth > 0) {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -113,7 +121,7 @@ export default function QrScannerModal({
                         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                         const decoded = jsQR(imageData.data, imageData.width, imageData.height, {
-                            inversionAttempts: "dontInvert",
+                            inversionAttempts: "attemptBoth",
                         });
                         if (decoded?.data) {
                             resolveCode(decoded.data);
